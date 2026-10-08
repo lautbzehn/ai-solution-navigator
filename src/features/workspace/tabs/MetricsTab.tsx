@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { ArrowDown, ArrowUp, Gauge, Plus } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Activity, ArrowDown, ArrowUp, BrainCircuit, Briefcase, CircleDollarSign, Gauge, Package, Plus, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Sparkline } from '@/components/charts/Charts'
+import { Section, SectionStack, useSections } from '@/components/layout/Section'
 import { PersonChip } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -21,6 +22,7 @@ import { useWorkspace } from '../context'
 
 const HEALTH_TONE: Record<MetricHealth, Tone> = { met: 'success', on_track: 'success', watch: 'warning', off_track: 'danger', no_data: 'muted' }
 const CATEGORY_ORDER: MetricCategory[] = ['business', 'financial', 'adoption', 'ai_performance', 'product', 'operational']
+const CATEGORY_ICON: Record<MetricCategory, React.ReactNode> = { business: <Briefcase />, financial: <CircleDollarSign />, adoption: <Users />, ai_performance: <BrainCircuit />, product: <Package />, operational: <Activity /> }
 const KEYS: { value: MetricKey; label: string }[] = [
   { value: 'eligible_users', label: 'Eligible users' },
   { value: 'active_users', label: 'Active users' },
@@ -38,6 +40,8 @@ export function MetricsTab() {
   const { metrics } = insight.bundle
   const [editing, setEditing] = useState<Metric | 'new' | null>(null)
   const groups = CATEGORY_ORDER.map((c) => ({ c, items: metrics.filter((m) => m.category === c) })).filter((g) => g.items.length)
+  const ids = useMemo(() => groups.map((g) => g.c), [groups.map((g) => g.c).join()]) // eslint-disable-line react-hooks/exhaustive-deps
+  const sections = useSections('metrics', ids)
   const measured = metrics.filter((m) => m.current !== undefined && m.measurement !== 'not_applicable')
   const onTrack = measured.filter((m) => ['met', 'on_track'].includes(metricHealth(m).status)).length
 
@@ -54,14 +58,36 @@ export function MetricsTab() {
       {!metrics.length ? (
         <Card><EmptyState icon={<Gauge />} title="Define how you'll know it worked" body="Add business, adoption, and AI performance metrics with a baseline and a target. The Design gate needs at least two." action={<Button variant="primary" onClick={() => setEditing('new')}><Plus /> Add metric</Button>} /></Card>
       ) : (
-        groups.map((g) => (
-          <section key={g.c}>
-            <h2 className="mb-2.5 text-[11.5px] font-semibold tracking-[0.06em] text-fg-subtle uppercase">{METRIC_CATEGORY[g.c]}</h2>
-            <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-              {g.items.map((m) => <MetricCard key={m.id} m={m} onEdit={() => setEditing(m)} />)}
-            </div>
-          </section>
-        ))
+        <SectionStack>
+          {groups.map((g) => {
+            const health = g.items.filter((m) => m.measurement !== 'not_applicable').map((m) => metricHealth(m).status)
+            const good = health.filter((h) => h === 'met' || h === 'on_track').length
+            const watch = health.filter((h) => h === 'watch').length
+            const off = health.filter((h) => h === 'off_track').length
+            const none = health.filter((h) => h === 'no_data').length
+            return (
+              <Section
+                key={g.c}
+                {...sections.bind(g.c)}
+                icon={CATEGORY_ICON[g.c]}
+                tone={off ? 'danger' : watch ? 'warning' : undefined}
+                title={METRIC_CATEGORY[g.c]}
+                summary={
+                  <>
+                    {g.items.length} {g.items.length === 1 ? 'metric' : 'metrics'} · <span className={good ? 'text-success-fg' : undefined}>{good} on track or met</span>
+                    {watch > 0 && <span className="text-warning-fg"> · {watch} to watch</span>}
+                    {off > 0 && <span className="text-danger-fg"> · {off} off track</span>}
+                    {none > 0 && <> · {none} not measured yet</>}
+                  </>
+                }
+              >
+                <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                  {g.items.map((m) => <MetricCard key={m.id} m={m} onEdit={() => setEditing(m)} />)}
+                </div>
+              </Section>
+            )
+          })}
+        </SectionStack>
       )}
       <MetricSheet metric={editing} onClose={() => setEditing(null)} />
     </div>

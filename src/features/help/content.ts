@@ -1,0 +1,80 @@
+/* Help center content. Kept as data so the guide, FAQ, and search stay in sync. */
+
+export interface Guide {
+  id: string
+  title: string
+  steps: string[]
+  /** Where "Show me" goes: a route, or an action the help panel performs. */
+  to?: string
+  action?: 'create'
+}
+
+export const GUIDES: Guide[] = [
+  {
+    id: 'health',
+    title: 'Check portfolio health in 30 seconds',
+    steps: ['Open the Dashboard.', 'Read the one-line briefing and the four headline numbers.', 'Open Needs attention to see what is blocked or at risk, and the next step for each.'],
+    to: '/#attention',
+  },
+  {
+    id: 'blocked',
+    title: "Find out why a solution can't advance",
+    steps: ['Open a solution from the Dashboard or Solutions.', 'On Overview, Gate readiness lists every open requirement and who owns it.', 'Select a requirement to open the activity and see exactly what is missing.'],
+    to: '/solutions/s_support',
+  },
+  {
+    id: 'advance',
+    title: 'Move a solution to the next stage',
+    steps: ['In Work, complete the gate activities and attach their evidence.', 'Get each piece of evidence approved. A checked box alone does not count.', 'Select Advance in the header to run the gate review and record the decision.'],
+    to: '/solutions/s_support/work',
+  },
+  {
+    id: 'advisor',
+    title: 'Get an AI analysis of any area',
+    steps: ['Find the star icon on a section header.', 'Select it. The AI advisor opens with an analysis of just that area.', 'Ask follow-up questions in the advisor panel.'],
+    to: '/solutions/s_support',
+  },
+  {
+    id: 'create',
+    title: 'Start a new AI initiative',
+    steps: ['Select New solution in the top bar.', 'Describe the problem, the users, and how AI will help.', 'Review the recommended risk tier. The plan and gates are generated to match it.'],
+    action: 'create',
+  },
+  {
+    id: 'report',
+    title: 'Report to leadership',
+    steps: ['Open Reports.', 'Read the three key insights, then open only the section you need.', 'Filter by date range, lifecycle stage, or risk tier.'],
+    to: '/reports',
+  },
+]
+
+export const FAQ_CATEGORIES = ['Getting around', 'Lifecycle and gates', 'Readiness', 'Risk and evidence', 'Reports', 'AI advisor', 'Demo data'] as const
+export type FaqCategory = (typeof FAQ_CATEGORIES)[number]
+
+export interface Faq {
+  category: FaqCategory
+  q: string
+  a: string
+}
+
+export const FAQS: Faq[] = [
+  { category: 'Getting around', q: "What's the fastest way to find a solution?", a: 'Press ⌘K (Ctrl K on Windows) anywhere and type its name. Or open Solutions and filter by status, stage, risk, owner, or readiness.' },
+  { category: 'Getting around', q: 'Why are sections folded?', a: 'Each section shows a one-line headline so you can scan a page in seconds. Open only what you need, or use Expand all. The app remembers what you opened.' },
+  { category: 'Getting around', q: 'What are the items under each sidebar page?', a: "They're the sections of the page you're on. Select one to jump straight to it." },
+  { category: 'Lifecycle and gates', q: 'What are the eight stages?', a: 'Discover, Assess, Design, Build, Validate, Deploy, Operate, and Improve / Retire. Each ends in a gate except the last, which is continuous.' },
+  { category: 'Lifecycle and gates', q: 'What does a gate check?', a: 'Blocking activities must be complete with approved evidence, plus criteria such as named roles, defined metrics, and mitigated high risks. The gate review explains anything still open.' },
+  { category: 'Lifecycle and gates', q: 'Who decides that a solution can advance?', a: 'A named person records the gate decision with a rationale and any conditions. Neither the app nor the AI advisor advances anything on its own.' },
+  { category: 'Readiness', q: 'What does the readiness score measure?', a: 'How prepared the whole implementation is to move forward, across seven weighted dimensions. It is not a measure of model quality alone.' },
+  { category: 'Readiness', q: "Why is a solution 'behind pace'?", a: 'Each stage expects a minimum readiness. Below it shows amber; more than 10 points below shows red.' },
+  { category: 'Readiness', q: 'Can we change how readiness is weighted?', a: 'Yes. Open Lifecycle Framework, then Readiness weights. Every score in the portfolio recalculates immediately.' },
+  { category: 'Risk and evidence', q: 'How is the risk tier chosen?', a: 'The new-solution wizard recommends one from impact, data sensitivity, and autonomy. Higher tiers add required controls and stronger gate criteria.' },
+  { category: 'Risk and evidence', q: "Why doesn't a completed activity count fully?", a: "Readiness and gates give full credit only when the evidence is approved, so 'done' always means 'proven'." },
+  { category: 'Risk and evidence', q: 'What happens to a high-severity risk with no mitigation?', a: 'It lowers Risk & Governance readiness and blocks the Validate gate until a mitigation is recorded.' },
+  { category: 'Reports', q: 'Where do the report numbers come from?', a: "They're calculated live from every solution's activities, evidence, risks, metrics, and gate history." },
+  { category: 'Reports', q: 'Can I filter the reports?', a: 'Yes, by date range, lifecycle stage, and risk tier. The insights recalculate for whatever you select.' },
+  { category: 'AI advisor', q: 'What does the star icon do?', a: 'It asks the AI advisor for an analysis of that specific area, such as a gate, the risks, or delivery across the portfolio.' },
+  { category: 'AI advisor', q: 'Does the AI advisor make decisions?', a: 'No. It analyzes, recommends, and explains. Approvals, gate decisions, and legal or security determinations stay with your team.' },
+  { category: 'AI advisor', q: 'Is it a live AI model?', a: 'By default it uses built-in guidance computed in your browser from the live data. When a server key is configured it answers with Claude, and falls back automatically if that is unavailable.' },
+  { category: 'Demo data', q: 'Is this real data?', a: 'No. Every person, solution, and number is fictional demo data.' },
+  { category: 'Demo data', q: 'Are my changes saved?', a: 'Yes, in this browser only. Nobody else sees them. Settings, then Reset demo data, restores the original portfolio.' },
+]

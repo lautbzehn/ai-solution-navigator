@@ -23,6 +23,6 @@ export function useAdvisorContext(): { convoKey: string; context: AdvisorContext
     }
     const perf = implementationPerformance(items, gateAttempts, audit, '90')
     const insights = portfolioInsights(items, perf).map((i) => i.body)
-    return { convoKey: 'portfolio', context: buildPortfolioContext(items, insights), subject: 'the AI portfolio' }
+    return { convoKey: 'portfolio', context: buildPortfolioContext(items, insights, perf, people), subject: 'the AI portfolio' }
   }, [insight, items, people, gateAttempts, audit])
 }

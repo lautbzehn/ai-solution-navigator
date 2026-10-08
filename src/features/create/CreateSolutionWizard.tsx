@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
-import { ArrowLeft, ArrowRight, Check, ShieldAlert, Sparkles } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, FolderPlus, Lightbulb, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { RiskPill } from '@/components/status'
 import { Button } from '@/components/ui/Button'
@@ -138,7 +138,7 @@ export function CreateSolutionWizard() {
       open={createOpen}
       onOpenChange={setCreate}
       size="lg"
-      title={<span className="flex items-center gap-2"><Sparkles className="size-4 text-accent" /> New AI solution</span>}
+      title={<span className="flex items-center gap-2"><FolderPlus className="size-4 text-accent" /> New AI solution</span>}
       description={`Step ${step + 1} of ${STEPS.length}`}
       footer={
         <>
@@ -227,7 +227,7 @@ export function CreateSolutionWizard() {
           <div className="grid gap-4">
             <div className="rounded-xl bg-surface-2 p-4 ring-1 ring-border">
               <div className="flex items-center justify-between gap-2">
-                <p className="flex items-center gap-1.5 text-[12.5px] text-fg-subtle"><Sparkles className="size-3.5 text-accent" /> Recommended tier <InfoTip term="riskTier" /></p>
+                <p className="flex items-center gap-1.5 text-[12.5px] text-fg-subtle"><Lightbulb className="size-3.5 text-accent" /> Recommended tier <InfoTip term="riskTier" /></p>
                 <RiskPill tier={rec.tier} />
               </div>
               <ul className="mt-2.5 grid gap-1 text-[12.5px] text-fg-muted">

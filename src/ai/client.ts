@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+import { AREAS, type AdvisorArea } from './areas'
 import { answerPortfolio, answerSolution } from './mockAdvisor'
 import type { AdvisorContext, AdvisorResponse, AdvisorStatus } from './types'
 
-export const UNAVAILABLE = 'The Implementation Advisor is temporarily unavailable. You can continue managing the implementation manually.'
+export const UNAVAILABLE = 'The AI advisor is temporarily unavailable. You can continue managing the implementation manually.'
 
 let statusPromise: Promise<AdvisorStatus> | undefined
 
@@ -27,29 +28,32 @@ export function useAdvisorStatus() {
   return status
 }
 
-function mock(question: string, context: AdvisorContext, notice?: string): AdvisorResponse {
-  const answer = context.kind === 'solution' ? answerSolution(question, context) : answerPortfolio(question, context)
+function mock(question: string, context: AdvisorContext, notice?: string, area?: AdvisorArea): AdvisorResponse {
+  const answer = context.kind === 'solution' ? answerSolution(question, context, area) : answerPortfolio(question, context, area)
   return { answer, source: 'mock', notice }
 }
 
 /** Ask the advisor. Uses Claude when the server is configured and the user
     hasn't forced built-in mode; falls back to deterministic guidance on any failure. */
-export async function askAdvisor(opts: { question: string; context: AdvisorContext; history: { question: string; summary: string }[]; mode: 'auto' | 'mock' }): Promise<AdvisorResponse> {
+export async function askAdvisor(opts: { question: string; context: AdvisorContext; history: { question: string; summary: string }[]; mode: 'auto' | 'mock'; area?: AdvisorArea }): Promise<AdvisorResponse> {
   const status = opts.mode === 'auto' ? await fetchAdvisorStatus() : { live: false }
+  const fallback = (notice?: string) => mock(opts.question, opts.context, notice, opts.area)
   if (!status.live) {
     await new Promise((r) => setTimeout(r, 350))
-    return mock(opts.question, opts.context)
+    return fallback()
   }
+  // The live model gets the focus area named up front so it analyzes just that part of the screen.
+  const question = opts.area ? `Focus area: ${AREAS[opts.area].label}. ${opts.question}` : opts.question
   try {
     const res = await fetch('/api/advisor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: opts.question, context: opts.context, history: opts.history }),
+      body: JSON.stringify({ question, context: opts.context, history: opts.history }),
     })
     const json = await res.json().catch(() => ({}))
-    if (!res.ok || !json.answer) return mock(opts.question, opts.context, json.error ?? UNAVAILABLE)
+    if (!res.ok || !json.answer) return fallback(json.error ?? UNAVAILABLE)
     return json as AdvisorResponse
   } catch {
-    return mock(opts.question, opts.context, UNAVAILABLE)
+    return fallback(UNAVAILABLE)
   }
 }

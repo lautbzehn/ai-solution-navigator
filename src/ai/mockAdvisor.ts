@@ -1,11 +1,32 @@
+import type { AdvisorArea, SolutionArea } from './areas'
 import type { AdvisorAnswer, AdvisorRecommendation, PortfolioContext, SolutionContext } from './types'
 
-/* Deterministic Implementation Advisor.
+/* Deterministic AI advisor.
    Runs entirely in the browser from the same context the live model receives,
    so the app is fully useful at $0 and when the API is unavailable. It
    analyzes, recommends, and explains; it never approves or changes state. */
 
-type Intent = 'next' | 'blocked' | 'gaps' | 'evidence' | 'risks' | 'stakeholder' | 'gate' | 'readiness' | 'value' | 'decisions'
+type Intent = 'next' | 'blocked' | 'gaps' | 'evidence' | 'risks' | 'stakeholder' | 'gate' | 'readiness' | 'value' | 'decisions' | 'brief' | 'lifecycle' | 'work' | 'team' | 'history' | 'case'
+
+/* A star icon names its area, so the analysis never depends on guessing from the wording. */
+const AREA_INTENT: Record<SolutionArea, Intent> = {
+  brief: 'brief',
+  next: 'next',
+  gate: 'gate',
+  readiness: 'readiness',
+  lifecycle: 'lifecycle',
+  work: 'work',
+  evidence: 'evidence',
+  risks: 'risks',
+  decisions: 'decisions',
+  metrics: 'value',
+  case: 'case',
+  team: 'team',
+  history: 'history',
+}
+const isSolutionArea = (a?: AdvisorArea): a is SolutionArea => !!a && a in AREA_INTENT
+const usd = (v: number) => (v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : `$${Math.round(v / 1000)}K`)
+const ownerName = (owner: string) => owner.replace(/ \(.*\)$/, '')
 
 const ROLE_KEYWORDS: [RegExp, string][] = [
   [/secur|dwight|threat|inject/, 'Security'],
@@ -86,8 +107,8 @@ function questionsFor(role: string, c: SolutionContext): string[] {
   return base[role] ?? ['What do you need from the PM to move forward?', 'Is anything blocking you that isn\'t visible in the plan?']
 }
 
-export function answerSolution(question: string, c: SolutionContext): AdvisorAnswer {
-  const { intent, role } = classify(question)
+export function answerSolution(question: string, c: SolutionContext, area?: AdvisorArea): AdvisorAnswer {
+  const { intent, role } = isSolutionArea(area) ? { intent: AREA_INTENT[area], role: undefined } : classify(question)
   const openRisks = [...c.risks].sort((a, b) => (SEV_RANK[b.severity] ?? 0) - (SEV_RANK[a.severity] ?? 0))
   const unmitigated = openRisks.filter((r) => (r.severity === 'High' || r.severity === 'Critical') && r.mitigation === 'None recorded')
   const riskLines = (list = openRisks) => list.slice(0, 4).map((r) => `${r.title} (${r.severity}, ${r.status.toLowerCase()}): ${r.mitigation === 'None recorded' ? 'no mitigation yet' : r.mitigation} · ${r.owner}`)
@@ -187,14 +208,104 @@ export function answerSolution(question: string, c: SolutionContext): AdvisorAns
       }
     }
 
+    case 'brief': {
+      const pace = c.readiness.pace === 'on_pace' ? 'on pace' : c.readiness.pace === 'behind' ? 'slightly behind pace' : 'well behind pace'
+      const status = c.health.status === 'on_track' ? 'on track' : `${c.health.status === 'blocked' ? 'blocked' : 'at risk'} (${c.health.reasons[0]?.replace(/\.$/, '') ?? 'see status'})`
+      const gateLine = !c.solution.nextStage ? 'It is in the final, continuous stage.' : c.gate.canAdvance ? `All ${c.gate.total} gate requirements are met.` : `${c.gate.met} of ${c.gate.total} gate requirements are met.`
+      const recs: AdvisorRecommendation[] = []
+      if (nba.title) recs.push({ title: nba.title, why: nba.why, owner: nba.owner ?? c.solution.owner, impact: nba.impact, blocking: c.gate.unmet.length > 0, priority: 'high', activityId: nba.activityId })
+      for (const u of c.gate.unmet.slice(0, 3)) if (u.activityId !== nba.activityId && recs.length < 3) recs.push(fromUnmet(u, c))
+      if (unmitigated[0]) recs.push({ title: `Add a mitigation for "${unmitigated[0].title}"`, why: `${unmitigated[0].severity}-severity risk with no mitigation.`, owner: unmitigated[0].owner, impact: 'Raises Risk & Governance readiness', blocking: false, priority: 'high', activityId: null })
+      return {
+        ...blank,
+        summary: `${c.solution.name} is in ${c.solution.stage} (${c.solution.daysInStage} days, typical ${c.solution.typicalDaysInStage}) and ${status}. Readiness is ${c.readiness.overall}/100, ${pace} (expected ≥${c.readiness.expectedForStage}). ${gateLine} ${openRisks.length ? `${openRisks.length} open ${openRisks.length === 1 ? 'risk' : 'risks'}${unmitigated.length ? `, ${unmitigated.length} high-severity without a mitigation` : ''}.` : 'No open risks.'} Expected value is ${usd(c.solution.expectedAnnualValueUsd)} a year.`,
+        recommendations: recs.slice(0, 4),
+        risksToDiscuss: riskLines(unmitigated.length ? unmitigated : openRisks.slice(0, 2)),
+      }
+    }
+
+    case 'lifecycle': {
+      const req = (stage: string | null) => c.activities.filter((a) => a.stage === stage && a.required && a.status !== 'Not Applicable')
+      const cur = req(c.solution.stage)
+      const done = cur.filter((a) => a.status === 'Complete')
+      const open = cur.filter((a) => a.status !== 'Complete').sort((a, b) => Number(b.blocking) - Number(a.blocking))
+      const ahead = req(c.solution.nextStage)
+      const started = ahead.filter((a) => a.status !== 'Not Started')
+      const long = c.solution.daysInStage > c.solution.typicalDaysInStage
+      return {
+        ...blank,
+        summary: `${done.length} of ${cur.length} required ${c.solution.stage} activities are complete${open.some((a) => a.blocking) ? `, and ${open.filter((a) => a.blocking).length} of the open ones block the gate` : ''}. ${c.solution.daysInStage} days in ${c.solution.stage} against a typical ${c.solution.typicalDaysInStage}${long ? ', so it is running long' : ''}. ${c.solution.nextStage ? `${ahead.length} required activities wait in ${c.solution.nextStage}; ${started.length} already started.` : 'This is the final stage.'}`,
+        recommendations: [
+          ...open.slice(0, 4).map((a) => ({ title: a.name, why: `${a.status}${a.evidence ? ` · ${a.evidence}` : ''}${a.blockedReason ? ` · Blocked: ${a.blockedReason}` : ''}`, owner: a.owner, impact: a.blocking ? `Gate requirement for ${c.solution.stage}` : `Counts toward ${c.solution.stage} readiness`, blocking: a.blocking, priority: a.blocking ? ('high' as const) : ('medium' as const), activityId: a.id })),
+          ...ahead.filter((a) => a.status === 'Not Started' && a.blocking).slice(0, 2).map((a) => ({ title: `Start early: ${a.name}`, why: `Gate work for ${c.solution.nextStage}. Starting the long-lead pieces now shortens the next stage.`, owner: a.owner, impact: `Prepares the ${c.solution.nextStage} gate`, blocking: false, priority: 'low' as const, activityId: a.id })),
+        ],
+      }
+    }
+
+    case 'work': {
+      const today = new Date().toISOString().slice(0, 10)
+      const open = c.activities.filter((a) => a.status !== 'Complete' && a.status !== 'Not Applicable')
+      const blocked = open.filter((a) => a.status === 'Blocked')
+      const overdue = open.filter((a) => a.dueDate && a.dueDate < today && a.status !== 'Blocked')
+      const unowned = open.filter((a) => a.owner.startsWith('Unassigned'))
+      const load = new Map<string, number>()
+      for (const a of open) if (!a.owner.startsWith('Unassigned')) load.set(ownerName(a.owner), (load.get(ownerName(a.owner)) ?? 0) + 1)
+      const [top] = [...load.entries()].sort((a, b) => b[1] - a[1])
+      const inFlight = open.filter((a) => a.status === 'In Progress' && a.blocking && !overdue.includes(a))
+      return {
+        ...blank,
+        summary: `${open.length} open ${open.length === 1 ? 'activity' : 'activities'} across ${c.solution.stage}${c.solution.nextStage ? ` and ${c.solution.nextStage}` : ''}: ${blocked.length + overdue.length + unowned.length ? [blocked.length && `${blocked.length} blocked`, overdue.length && `${overdue.length} overdue`, unowned.length && `${unowned.length} without an owner`].filter(Boolean).join(', ') : 'nothing blocked, overdue, or unowned'}.${top ? ` ${top[0]} carries the most (${top[1]}).` : ''}`,
+        recommendations: [
+          ...blocked.map((a) => ({ title: `Unblock "${a.name}"`, why: a.blockedReason ?? 'Marked blocked without a reason. Ask the owner what it is waiting on.', owner: a.owner, impact: a.blocking ? 'Blocks the stage gate' : 'Holds up readiness', blocking: a.blocking, priority: 'high' as const, activityId: a.id })),
+          ...overdue.map((a) => ({ title: `Reset or finish "${a.name}"`, why: `Was due ${a.dueDate}; still ${a.status.toLowerCase()}.`, owner: a.owner, impact: a.blocking ? 'Overdue gate work puts the solution at risk' : 'Keeps the plan honest', blocking: a.blocking, priority: a.blocking ? ('high' as const) : ('medium' as const), activityId: a.id })),
+          ...unowned.map((a) => ({ title: `Assign an owner for "${a.name}"`, why: 'Work without a named owner rarely moves.', owner: c.solution.owner, impact: a.blocking ? 'Gate requirement' : 'Counts toward readiness', blocking: a.blocking, priority: 'medium' as const, activityId: a.id })),
+          ...inFlight.map((a) => ({ title: `Keep "${a.name}" moving`, why: `In progress${a.evidence ? ` · ${a.evidence}` : ''}${a.lastComment ? ` · Latest: "${a.lastComment.slice(0, 120)}"` : ''}`, owner: a.owner, impact: `Gate requirement for ${a.stage}`, blocking: true, priority: 'medium' as const, activityId: a.id })),
+        ].slice(0, 5),
+      }
+    }
+
+    case 'team': {
+      const sorted = [...c.team].sort((a, b) => b.openActivities - a.openActivities)
+      const heavy = sorted[0]
+      const unowned = c.activities.filter((a) => a.owner.startsWith('Unassigned') && a.status !== 'Complete' && a.status !== 'Not Applicable')
+      const recs: AdvisorRecommendation[] = []
+      if (heavy && heavy.openActivities >= 3) recs.push({ title: `Check ${heavy.name}'s capacity`, why: `${heavy.name} (${heavy.role}) owns ${heavy.openActivities} open required activities, the most on the team. A single owner is the usual hidden bottleneck.`, owner: c.solution.owner, impact: 'Spreads gate work so one calendar does not set the pace', blocking: false, priority: 'high', activityId: null })
+      for (const a of unowned.slice(0, 3)) recs.push({ title: `Assign an owner for "${a.name}"`, why: 'Unowned work does not get scheduled.', owner: c.solution.owner, impact: a.blocking ? 'Gate requirement' : 'Counts toward readiness', blocking: a.blocking, priority: 'medium', activityId: a.id })
+      for (const u of c.gate.unmet.slice(0, 2)) if (u.owner) recs.push({ title: `Agree a date with ${ownerName(u.owner)} for "${u.label}"`, why: u.detail, owner: u.owner, impact: `Blocks the ${c.gate.name}`, blocking: true, priority: 'high', activityId: u.activityId })
+      return {
+        ...blank,
+        summary: `${c.team.length} people work on ${c.solution.name}.${heavy ? ` ${heavy.name} (${heavy.role}) carries the most open required work (${heavy.openActivities}).` : ''} ${unowned.length ? `${unowned.length} open ${unowned.length === 1 ? 'activity has' : 'activities have'} no owner.` : 'Every open activity has an owner.'}`,
+        recommendations: recs.slice(0, 5),
+        questionsForStakeholders: heavy ? [{ who: `${heavy.name} (${heavy.role.split(', ')[0]})`, questions: questionsFor(heavy.role.split(', ')[0], c).slice(0, 3) }] : [],
+      }
+    }
+
+    case 'history': {
+      const changes = c.recentChanges
+      const proposed = changes.filter((x) => x.status === 'proposed')
+      const retest = changes.filter((x) => /model|prompt|data/.test(x.type) && x.status !== 'rejected')
+      return {
+        ...blank,
+        summary: changes.length
+          ? `${changes.length} recent ${changes.length === 1 ? 'change' : 'changes'}; ${proposed.length} awaiting approval. ${retest.length ? `${retest.length} ${retest.length === 1 ? 'touches' : 'touch'} the model, prompt, or data, so evaluation should be re-run before shipping.` : 'None touch the model, prompt, or data.'}`
+          : 'No changes have been logged. Log material changes to scope, model, data, prompts, or workflow so evaluation and risk can be re-checked.',
+        recommendations: [
+          ...proposed.map((x) => ({ title: `Get a decision on "${x.description}"`, why: 'Proposed changes sit in limbo until someone approves or rejects them.', owner: c.solution.owner, impact: 'Keeps the change log trustworthy', blocking: false, priority: 'medium' as const, activityId: null })),
+          ...retest.map((x) => ({ title: `Re-run evaluation after "${x.description}"`, why: 'Model, prompt, and data changes can shift accuracy and failure modes. Prior results may no longer hold.', owner: c.team.find((t) => /QA/.test(t.role))?.name ?? c.solution.owner, impact: 'Protects the evaluation evidence the gates rely on', blocking: false, priority: 'high' as const, activityId: null })),
+        ].slice(0, 5),
+      }
+    }
+
+    case 'case':
     case 'value': {
       const measured = c.metrics.filter((m) => m.current !== null)
       const weak = c.metrics.filter((m) => m.health === 'Off track' || m.health === 'Watch')
       const unmeasured = c.metrics.filter((m) => m.current === null)
       const fmt = (v: number) => `$${Math.round(v / 1000)}K`
+      const valueLine = `Expected value is ${fmt(c.solution.expectedAnnualValueUsd)} a year${c.solution.realizedAnnualValueUsd ? `, with ${fmt(c.solution.realizedAnnualValueUsd)} realized so far` : ', none realized yet'}. ${measured.length} of ${c.metrics.length} metrics have current values${weak.length ? `; ${weak.length} need attention` : ''}.`
       return {
         ...blank,
-        summary: `Expected value is ${fmt(c.solution.expectedAnnualValueUsd)} a year${c.solution.realizedAnnualValueUsd ? `, with ${fmt(c.solution.realizedAnnualValueUsd)} realized so far` : ', none realized yet'}. ${measured.length} of ${c.metrics.length} metrics have current values${weak.length ? `; ${weak.length} need attention` : ''}.`,
+        summary: intent === 'case' ? `The case: ${c.solution.businessProblem.split(/(?<=\.)\s/)[0]} The target outcome is to ${c.solution.desiredOutcome.charAt(0).toLowerCase()}${c.solution.desiredOutcome.slice(1).replace(/\.$/, '')}. ${valueLine}` : valueLine,
         recommendations: [
           ...weak.map((m) => ({ title: `Investigate ${m.name}`, why: `${m.health}: current ${m.current} ${m.unit} vs target ${m.target} ${m.unit} (baseline ${m.baseline ?? 'n/a'}).`, owner: c.solution.owner, impact: 'Protects the value case', blocking: false, priority: 'high' as const, activityId: null })),
           ...unmeasured.slice(0, 3).map((m) => ({ title: `Start measuring ${m.name}`, why: `Target ${m.target ?? 'not set'} ${m.unit}, but no current value yet. Value can't be proven without it.`, owner: c.solution.owner, impact: 'Needed for value and adoption reporting', blocking: false, priority: 'medium' as const, activityId: null })),
@@ -231,9 +342,12 @@ export function answerSolution(question: string, c: SolutionContext): AdvisorAns
   }
 }
 
-export function answerPortfolio(question: string, c: PortfolioContext): AdvisorAnswer {
+export function answerPortfolio(question: string, c: PortfolioContext, area?: AdvisorArea): AdvisorAnswer {
   const q = question.toLowerCase()
+  const n = c.solutions.length
+  const blank: AdvisorAnswer = { summary: '', recommendations: [], risksToDiscuss: [], questionsForStakeholders: [], gateOutlook: '' }
   const attention = c.solutions.filter((s) => s.status !== 'on_track').sort((a, b) => (a.status === 'blocked' ? -1 : 1) - (b.status === 'blocked' ? -1 : 1))
+  const behind = c.solutions.filter((s) => s.readiness < s.expected).sort((a, b) => a.readiness - a.expected - (b.readiness - b.expected))
   const toRec = (s: PortfolioContext['solutions'][number]): AdvisorRecommendation => ({
     title: `${s.name}: ${s.nextBestAction}`,
     why: `${s.status === 'blocked' ? 'Blocked' : s.status === 'at_risk' ? 'At risk' : 'On track'} in ${s.stage}. ${s.statusReasons[0] ?? ''} Readiness ${s.readiness}% (expected ≥${s.expected}).`,
@@ -243,22 +357,128 @@ export function answerPortfolio(question: string, c: PortfolioContext): AdvisorA
     priority: s.status === 'on_track' ? 'medium' : 'high',
     activityId: null,
   })
-  if (/value|roi|dollar|\$/.test(q)) {
-    const exp = c.solutions.reduce((n, s) => n + s.expectedValueUsd, 0)
-    const real = c.solutions.reduce((n, s) => n + s.realizedValueUsd, 0)
+  const insight = (re: RegExp) => c.insights.find((i) => re.test(i)) ?? ''
+
+  const valueAnswer = (): AdvisorAnswer => {
+    const exp = c.solutions.reduce((t, s) => t + s.expectedValueUsd, 0)
+    const real = c.solutions.reduce((t, s) => t + s.realizedValueUsd, 0)
     const pipeline = c.solutions.filter((s) => !s.realizedValueUsd).sort((a, b) => b.expectedValueUsd - a.expectedValueUsd)
-    return { summary: `The portfolio expects $${(exp / 1e6).toFixed(1)}M a year; $${Math.round(real / 1000)}K is realized today. The biggest unrealized value sits in ${pipeline.slice(0, 2).map((s) => s.name).join(' and ')}.`, recommendations: pipeline.slice(0, 3).map(toRec), risksToDiscuss: [], questionsForStakeholders: [], gateOutlook: c.insights.find((i) => /value/i.test(i)) ?? '' }
+    const adoption = (c.adoption ?? []).filter((a) => a.adoptionRatePct !== null)
+    const low = adoption.filter((a) => (a.adoptionRatePct ?? 0) < 30)
+    return {
+      ...blank,
+      summary: `The portfolio expects ${usd(exp)} a year; ${usd(real)} (${exp ? Math.round((real / exp) * 100) : 0}%) is realized today. The biggest unrealized value sits in ${pipeline.slice(0, 2).map((s) => `${s.name} (${usd(s.expectedValueUsd)})`).join(' and ')}.${adoption.length ? ` ${adoption.length} ${adoption.length === 1 ? 'solution reports' : 'solutions report'} adoption${low.length ? `; ${low.map((a) => `${a.solution} is at ${a.adoptionRatePct}%`).join(', ')}` : ', all above 30%'}.` : ''}`,
+      recommendations: [
+        ...pipeline.slice(0, 3).map(toRec),
+        ...low.slice(0, 2).map((a) => ({ title: `Lift adoption of ${a.solution}`, why: `${a.activeUsers ?? 0} of ${a.eligibleUsers ?? '?'} eligible users are active (${a.adoptionRatePct}%). Value can't be realized by people who don't use it.`, owner: `${a.solution} owner`, impact: 'Turns expected value into realized value', blocking: false, priority: 'high' as const, activityId: null })),
+      ].slice(0, 5),
+      gateOutlook: insight(/value/i),
+    }
   }
+
+  const riskAnswer = (): AdvisorAnswer => {
+    const risks = c.risks ?? []
+    const unmit = risks.filter((r) => (r.severity === 'High' || r.severity === 'Critical') && r.mitigation === 'None recorded')
+    const crit = risks.filter((r) => r.severity === 'Critical')
+    const per = new Map<string, number>()
+    for (const r of risks) per.set(r.solution, (per.get(r.solution) ?? 0) + 1)
+    const [top] = [...per.entries()].sort((a, b) => b[1] - a[1])
+    const focus = [...crit, ...unmit].filter((r, i, a) => a.indexOf(r) === i)
+    return {
+      ...blank,
+      summary: risks.length
+        ? `${risks.length} open risks across the portfolio: ${crit.length} critical and ${unmit.length} high-severity without a mitigation.${top ? ` The most exposure sits with ${top[0]} (${top[1]}).` : ''}`
+        : 'No open risks are recorded across the portfolio.',
+      recommendations: focus.slice(0, 5).map((r) => ({
+        title: r.mitigation === 'None recorded' ? `Define a mitigation for "${r.title}"` : `Confirm the mitigation for "${r.title}" is working`,
+        why: `${r.severity} risk on ${r.solution}. ${r.mitigation === 'None recorded' ? 'Without a mitigation it lowers Risk & Governance readiness and blocks the Validate gate.' : `Current mitigation: ${r.mitigation}`}`,
+        owner: r.owner,
+        impact: 'Affects Risk & Governance readiness and gate eligibility',
+        blocking: r.mitigation === 'None recorded',
+        priority: 'high' as const,
+        activityId: null,
+      })),
+      risksToDiscuss: focus.slice(0, 4).map((r) => `${r.title} (${r.severity}, ${r.solution}) · ${r.owner}`),
+    }
+  }
+
+  switch (area) {
+    case 'portfolio': {
+      const prod = c.solutions.filter((s) => s.stage === 'Operate' || s.stage === 'Improve / Retire')
+      return {
+        ...blank,
+        summary: `${n} solutions: ${prod.length} in production and ${n - prod.length} in flight. ${n - behind.length} ${n - behind.length === 1 ? 'is' : 'are'} at or above the readiness their stage expects; ${behind.length} ${behind.length === 1 ? 'is' : 'are'} behind${behind[0] ? `, furthest behind ${behind[0].name} (${behind[0].readiness}% vs ≥${behind[0].expected})` : ''}.`,
+        recommendations: (behind.length ? behind : attention).slice(0, 4).map(toRec),
+        gateOutlook: c.insights[0] ?? '',
+      }
+    }
+    case 'progress':
+    case 'health': {
+      const avg = Math.round(c.solutions.reduce((t, s) => t + s.readiness, 0) / (n || 1))
+      const stages = new Map<string, number>()
+      for (const s of c.solutions) stages.set(s.stage, (stages.get(s.stage) ?? 0) + 1)
+      const [busiest] = [...stages.entries()].sort((a, b) => b[1] - a[1])
+      const counts = { on: c.solutions.filter((s) => s.status === 'on_track').length, risk: c.solutions.filter((s) => s.status === 'at_risk').length, blocked: c.solutions.filter((s) => s.status === 'blocked').length }
+      return {
+        ...blank,
+        summary:
+          area === 'health'
+            ? `${counts.on} of ${n} solutions are on track, ${counts.risk} at risk, and ${counts.blocked} blocked. Average readiness is ${avg}%. ${behind.length} ${behind.length === 1 ? 'solution is' : 'solutions are'} behind the readiness their stage expects${behind.length ? `: ${behind.slice(0, 3).map((s) => s.name).join(', ')}` : ''}.`
+            : `Average readiness is ${avg}%. ${behind.length} of ${n} solutions ${behind.length === 1 ? 'is' : 'are'} behind the readiness their stage expects, and the most work sits in ${busiest?.[0] ?? 'no stage'} (${busiest?.[1] ?? 0}). ${insight(/bottleneck/i)}`,
+        recommendations: [...attention, ...behind.filter((s) => !attention.includes(s))].slice(0, 4).map(toRec),
+      }
+    }
+    case 'delivery': {
+      const d = c.delivery
+      if (!d) return { ...blank, summary: c.insights[0] ?? 'No delivery data yet.' }
+      const slow = d.stages.filter((s) => s.solutions > 0 && s.avgDays > s.typicalDays).sort((a, b) => b.avgDays / b.typicalDays - a.avgDays / a.typicalDays)
+      const there = slow[0] ? c.solutions.filter((s) => s.stage === slow[0].name) : []
+      return {
+        ...blank,
+        summary: `${d.gatePassRatePct !== null ? `Gate pass rate is ${d.gatePassRatePct}%` : 'No gate attempts yet'}${d.avgDaysToProduction !== null ? `, and solutions take ${d.avgDaysToProduction} days on average to reach production` : ''}. ${slow[0] ? `${slow[0].name} is the slowest stage: ${slow[0].avgDays} days on average against a typical ${slow[0].typicalDays}, main reason: ${slow[0].primaryReason}.` : 'No stage is running over its typical duration.'} ${d.blockedActivities} ${d.blockedActivities === 1 ? 'activity is' : 'activities are'} blocked and ${d.overdueActivities} overdue.`,
+        recommendations: [...there, ...attention.filter((s) => !there.includes(s))].slice(0, 4).map(toRec),
+        gateOutlook: insight(/bottleneck|gate/i),
+      }
+    }
+    case 'portfolio-risk':
+      return riskAnswer()
+    case 'value':
+      return valueAnswer()
+    case 'risk-value': {
+      const r = riskAnswer()
+      const v = valueAnswer()
+      return { ...blank, summary: `${r.summary} ${v.summary}`, recommendations: [...r.recommendations.slice(0, 2), ...v.recommendations.slice(0, 2)], risksToDiscuss: r.risksToDiscuss.slice(0, 3) }
+    }
+    case 'ai-quality': {
+      const m = c.aiMetrics ?? []
+      const off = m.filter((x) => x.health === 'Off track')
+      const watch = m.filter((x) => x.health === 'Watch')
+      const solutions = new Set(m.map((x) => x.solution)).size
+      return {
+        ...blank,
+        summary: m.length
+          ? `${solutions} ${solutions === 1 ? 'solution reports' : 'solutions report'} ${m.length} AI evaluation metrics. ${off.length ? `${off.length} ${off.length === 1 ? 'is' : 'are'} off target: ${off.map((x) => `${x.name} on ${x.solution}`).join(', ')}.` : 'None are off target.'}${watch.length ? ` ${watch.length} ${watch.length === 1 ? 'is' : 'are'} worth watching.` : ''}`
+          : 'No solution is reporting AI evaluation metrics yet. Map accuracy, hallucination, and override metrics in each solution so quality can be compared.',
+        recommendations: off.length + watch.length
+          ? [...off, ...watch].slice(0, 5).map((x) => ({ title: `Investigate ${x.name} on ${x.solution}`, why: `${x.health}: currently ${x.current}${x.unit === '%' ? '%' : ` ${x.unit}`} against a target of ${x.target}${x.unit === '%' ? '%' : ` ${x.unit}`}.`, owner: `${x.solution} owner`, impact: 'Protects AI quality and user trust', blocking: false, priority: x.health === 'Off track' ? ('high' as const) : ('medium' as const), activityId: null }))
+          : c.solutions
+              .filter((s) => ['Validate', 'Deploy'].includes(s.stage) && m.some((x) => x.solution === s.name))
+              .map((s) => ({ title: `Re-measure ${s.name} at production scale`, why: `Offline evaluation results often drift under real traffic. The pilot should re-check ${m.filter((x) => x.solution === s.name).map((x) => x.name.toLowerCase()).slice(0, 3).join(', ')} before go-live.`, owner: `${s.name} owner`, impact: 'Keeps quality evidence current for the Deploy gate', blocking: false, priority: 'medium' as const, activityId: null })),
+      }
+    }
+  }
+
+  if (/value|roi|dollar|\$/.test(q)) return valueAnswer()
   if (/bottleneck|stuck|slow|where/.test(q)) {
-    return { summary: c.insights[0] ?? 'No clear bottleneck right now.', recommendations: attention.slice(0, 4).map(toRec), risksToDiscuss: [], questionsForStakeholders: [], gateOutlook: c.insights.slice(1, 3).join(' ') }
+    return { ...blank, summary: c.insights[0] ?? 'No clear bottleneck right now.', recommendations: attention.slice(0, 4).map(toRec), gateOutlook: c.insights.slice(1, 3).join(' ') }
   }
+  if (/risk|mitigat/.test(q)) return riskAnswer()
   return {
+    ...blank,
     summary: attention.length
-      ? `${attention.length} of ${c.solutions.length} solutions need attention: ${attention.map((s) => `${s.name} (${s.status === 'blocked' ? 'blocked' : 'at risk'})`).join(', ')}. Open a solution and the advisor will focus on it.`
-      : `All ${c.solutions.length} solutions are on track. Open a solution for a focused recommendation.`,
+      ? `${attention.length} of ${n} solutions need attention: ${attention.map((s) => `${s.name} (${s.status === 'blocked' ? 'blocked' : 'at risk'})`).join(', ')}. Open a solution and the advisor will focus on it.`
+      : `All ${n} solutions are on track. Open a solution for a focused recommendation.`,
     recommendations: (attention.length ? attention : c.solutions.slice(0, 3)).slice(0, 4).map(toRec),
-    risksToDiscuss: [],
-    questionsForStakeholders: [],
     gateOutlook: c.insights.slice(0, 2).join(' '),
   }
 }

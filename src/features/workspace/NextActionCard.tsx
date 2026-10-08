@@ -1,17 +1,14 @@
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, Navigation } from 'lucide-react'
 import { PersonChip } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Pill } from '@/components/ui/Pill'
 import { InfoTip } from '@/components/ui/Tooltip'
-import { useUI } from '@/data/ui'
-import { useStore } from '@/data/store'
+import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { cn } from '@/lib/cn'
 import { useWorkspace } from './context'
 
 export function NextActionCard({ className }: { className?: string }) {
   const { insight, openActivity, openGate, goTab } = useWorkspace()
-  const advisorEnabled = useStore((s) => s.settings.advisorEnabled)
-  const setAdvisor = useUI((s) => s.setAdvisor)
   const n = insight.next
 
   return (
@@ -25,10 +22,11 @@ export function NextActionCard({ className }: { className?: string }) {
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.08em] text-accent-fg uppercase">
-            <Sparkles className="size-3.5" /> Next best action <InfoTip term="nextBestAction" />
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.08em] text-accent-fg uppercase">
+            <Navigation className="size-3.5" /> Next best action <InfoTip term="nextBestAction" />
             {n.blocking && <Pill tone="warning" className="ml-1 normal-case tracking-normal">Blocking gate</Pill>}
-          </p>
+            <AdvisorSpark area="next" className="-my-1" />
+          </div>
           <h2 className="mt-2 text-[17px] leading-snug font-semibold tracking-[-0.015em] text-balance text-fg">{n.title}</h2>
           <p className="mt-1.5 max-w-3xl text-[13.5px] leading-relaxed text-fg-muted">
             <span className="font-medium text-fg-muted">Why: </span>
@@ -65,11 +63,6 @@ export function NextActionCard({ className }: { className?: string }) {
           {n.kind === 'gate_criterion' && (
             <Button variant="secondary" onClick={openGate}>
               View gate requirements
-            </Button>
-          )}
-          {advisorEnabled && (
-            <Button variant="accent-soft" onClick={() => setAdvisor(true, 'What should I do next?')}>
-              <Sparkles /> Ask the advisor
             </Button>
           )}
         </div>

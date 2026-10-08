@@ -80,7 +80,7 @@ export function LifecycleRail({
                     style={{ width: `${state === 'complete' ? Math.max(pct, 100) : pct}%` }}
                   />
                 </div>
-                <span className={cn('text-[11px] tabular', state === 'current' ? 'text-accent-fg' : 'text-fg-faint')}>
+                <span className={cn('text-[11px] tabular', state === 'current' ? 'text-accent-fg' : state === 'complete' ? 'text-success-fg' : 'text-fg-faint')}>
                   {state === 'complete' ? 'Complete' : state === 'current' ? `Current · ${pct}%` : pct > 0 ? `${pct}% early work` : '—'}
                 </span>
               </Node>

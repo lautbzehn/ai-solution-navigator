@@ -1,3 +1,5 @@
+import type { AdvisorArea } from './areas'
+
 /* Advisor contract shared by the browser, the deterministic mock, and the
    server route that calls Claude. The advisor analyzes, recommends, and
    explains. It never changes lifecycle state or approves anything. */
@@ -37,6 +39,8 @@ export interface AdvisorResponse {
 export interface AdvisorTurn {
   role: 'user' | 'advisor'
   text?: string
+  /** Set when the question came from a star icon on a specific area. */
+  area?: AdvisorArea
   response?: AdvisorResponse
   ts: string
 }
@@ -96,4 +100,16 @@ export interface PortfolioContext {
   kind: 'portfolio'
   solutions: { id: string; name: string; stage: string; riskTier: string; readiness: number; expected: number; status: string; statusReasons: string[]; nextBestAction: string; openGateRequirements: number; expectedValueUsd: number; realizedValueUsd: number }[]
   insights: string[]
+  /** Open and mitigating risks across the portfolio, most severe first. */
+  risks?: { solution: string; title: string; severity: string; status: string; mitigation: string; owner: string }[]
+  delivery?: {
+    gatePassRatePct: number | null
+    avgDaysToProduction: number | null
+    blockedActivities: number
+    overdueActivities: number
+    reworkRatePct: number
+    stages: { name: string; solutions: number; avgDays: number; typicalDays: number; blocked: number; openGateItems: number; primaryReason: string }[]
+  }
+  aiMetrics?: { solution: string; name: string; current: number | null; target: number | null; unit: string; health: string }[]
+  adoption?: { solution: string; adoptionRatePct: number | null; activeUsers: number | null; eligibleUsers: number | null }[]
 }

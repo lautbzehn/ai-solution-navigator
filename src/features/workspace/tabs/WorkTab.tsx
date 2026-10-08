@@ -72,9 +72,11 @@ export function WorkTab() {
         <FilterSelect label="Status" value={status} onChange={setStatus} options={[{ value: '', label: 'Any status' }, { value: 'open', label: 'Open (not complete)' }, ...ACTIVITY_STATUS_ORDER.map((s) => ({ value: s, label: ACTIVITY_STATUS[s] }))]} />
         <FilterSelect label="Owner" value={owner} onChange={setOwner} options={[{ value: '', label: 'Any owner' }, ...owners.map((id) => ({ value: id, label: people.find((p) => p.id === id)?.name ?? id }))]} />
         <FilterSelect label="Scope" value={scope} onChange={setScope} options={[{ value: '', label: 'All activities' }, { value: 'gate', label: 'Gate requirements' }, { value: 'required', label: 'Required' }, { value: 'optional', label: 'Optional' }, { value: 'overdue', label: 'Overdue' }]} />
+        <Tip content="Add work that isn't part of the standard lifecycle plan">
         <Button variant="primary" size="sm" className="ml-auto" onClick={() => setAdding(true)}>
           <Plus strokeWidth={2.2} /> Add activity
         </Button>
+        </Tip>
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-fg-subtle">

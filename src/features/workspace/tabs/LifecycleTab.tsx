@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { useSearchParams } from 'react-router'
 import { Check, CircleX, FileCheck2, Gavel, ShieldPlus, Target, Users } from 'lucide-react'
-import { LifecycleRail } from '@/components/lifecycle/LifecycleRail'
 import { ActivityStatusIcon, EvidenceStatusPill, RiskPill } from '@/components/status'
 import { AvatarStack, PersonChip } from '@/components/ui/Avatar'
 import { Card, CardBody, CardHeader, SectionLabel } from '@/components/ui/Card'
@@ -44,12 +43,15 @@ export function LifecycleTab() {
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
-      <Card>
-        <CardBody className="pt-4">
-          <p className="mb-3 flex items-center gap-1.5 text-[12px] text-fg-subtle">Select a stage to inspect it <InfoTip term="lifecycle" /></p>
-          <LifecycleRail current={solution.stage} progress={readiness.stageProgress} gate={insight.gate} selected={selected} onSelect={select} />
-        </CardBody>
-      </Card>
+      {/* The lifecycle bar in the header picks the stage, so there's no second bar here. */}
+      <p className="-mt-1 flex items-center gap-1.5 text-[12.5px] text-fg-subtle">
+        Select any stage on the lifecycle bar above to inspect it. <InfoTip term="lifecycle" />
+        {selected !== solution.stage && (
+          <button onClick={() => select(solution.stage)} className="ml-1 font-medium text-accent-fg hover:underline">
+            Back to the current stage
+          </button>
+        )}
+      </p>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="grid min-w-0 content-start gap-4">

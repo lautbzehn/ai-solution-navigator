@@ -1,7 +1,6 @@
 import { toast } from 'sonner'
 import { stageDef } from '@/config'
 import { useStore } from '@/data/store'
-import { useUI } from '@/data/ui'
 import { bundleFor } from '@/domain/db'
 import { evaluateGate } from '@/domain/gates'
 import { computeReadiness } from '@/domain/readiness'
@@ -52,5 +51,3 @@ function snapshot(solutionId: string) {
     stage: bundle.solution.stage,
   }
 }
-
-export const openAdvisor = (prompt?: string) => useUI.getState().setAdvisor(true, prompt)

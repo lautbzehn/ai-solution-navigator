@@ -315,7 +315,7 @@ export function portfolioInsights(items: SolutionInsight[], perf: ReturnType<typ
       title: 'Delivery insight',
       body: `${perf.passRate}% of gate attempts passed first time. Each failed attempt means a team asked to advance before its evidence was ready, so watch rework (${perf.reworkRate}%) and early evidence reviews.`,
       tone: perf.passRate >= 80 ? 'success' : 'warning',
-      link: '/reports#performance',
+      link: '/reports#delivery',
     })
   }
   return out

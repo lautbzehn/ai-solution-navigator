@@ -1,11 +1,14 @@
 import { useEffect } from 'react'
 import { Link, Outlet, ScrollRestoration, useLocation, useParams } from 'react-router'
 import { Dialog } from 'radix-ui'
-import { ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Plus, Search } from 'lucide-react'
+import { ChevronRight, CircleHelp, Menu, PanelLeftClose, PanelLeftOpen, Plus, Search } from 'lucide-react'
 import { useStore } from '@/data/store'
 import { useUI } from '@/data/ui'
 import { cn } from '@/lib/cn'
+import { ForgeFooter } from '@/components/brand/ForgeMark'
 import { CreateSolutionWizard } from '@/features/create/CreateSolutionWizard'
+import { HelpCenter } from '@/features/help/HelpCenter'
+import { OnboardingTour, useSessionTour } from '@/features/onboarding/OnboardingTour'
 import { Button } from '../ui/Button'
 import { Kbd } from '../ui/misc'
 import { Tip } from '../ui/Tooltip'
@@ -48,11 +51,11 @@ function Breadcrumbs() {
 }
 
 function Topbar() {
-  const { sidebarCollapsed, toggleSidebar, setPalette, setCreate, setMobileNav } = useUI()
+  const { sidebarCollapsed, toggleSidebar, setPalette, setCreate, setMobileNav, setHelp } = useUI()
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-bg/80 px-4 backdrop-blur-md md:px-5">
-      <Button variant="ghost" size="icon-sm" className="md:hidden" aria-label="Open navigation" onClick={() => setMobileNav(true)}>
+      <Button data-tour="nav-mobile" variant="ghost" size="icon-sm" className="md:hidden" aria-label="Open navigation" onClick={() => setMobileNav(true)}>
         <Menu />
       </Button>
       <Tip content={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
@@ -62,23 +65,35 @@ function Topbar() {
       </Tip>
       <Breadcrumbs />
       <div className="ml-auto flex items-center gap-2">
-        <button
-          onClick={() => setPalette(true)}
-          className="hidden h-8 w-56 items-center gap-2 rounded-lg bg-surface px-2.5 text-[12.5px] text-fg-subtle ring-1 ring-border transition-colors hover:bg-surface-2 hover:text-fg-muted lg:flex"
-        >
-          <Search className="size-3.5" />
-          <span className="flex-1 text-left">Search solutions…</span>
-          <Kbd>{isMac ? '⌘' : 'Ctrl'}</Kbd>
-          <Kbd>K</Kbd>
-        </button>
-        <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="Search" onClick={() => setPalette(true)}>
-          <Search />
-        </Button>
+        <Tip content="Find any solution or page and jump straight to it">
+          <button
+            onClick={() => setPalette(true)}
+            className="hidden h-8 w-56 items-center gap-2 rounded-lg bg-surface px-2.5 text-[12.5px] text-fg-subtle ring-1 ring-border transition-colors hover:bg-surface-2 hover:text-fg-muted lg:flex"
+          >
+            <Search className="size-3.5" />
+            <span className="flex-1 text-left">Search solutions…</span>
+            <Kbd>{isMac ? '⌘' : 'Ctrl'}</Kbd>
+            <Kbd>K</Kbd>
+          </button>
+        </Tip>
+        <Tip content="Search solutions and pages">
+          <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="Search" onClick={() => setPalette(true)}>
+            <Search />
+          </Button>
+        </Tip>
+        <Tip content="Quick how-to guides, answers by topic, and the product tour">
+          <Button data-tour="help" variant="ghost" size="sm" aria-label="Help" onClick={() => setHelp(true)}>
+            <CircleHelp />
+            <span className="hidden md:inline">Help</span>
+          </Button>
+        </Tip>
         <AdvisorSlot.Toggle />
-        <Button variant="primary" size="sm" onClick={() => setCreate(true)}>
-          <Plus strokeWidth={2.2} />
-          <span className="hidden sm:inline">New solution</span>
-        </Button>
+        <Tip content="Start a new AI initiative with a guided setup">
+          <Button variant="primary" size="sm" onClick={() => setCreate(true)} aria-label="New solution">
+            <Plus strokeWidth={2.2} />
+            <span className="hidden sm:inline">New solution</span>
+          </Button>
+        </Tip>
       </div>
     </header>
   )
@@ -103,9 +118,10 @@ function MobileNav() {
 export function AppShell() {
   const setPalette = useUI((s) => s.setPalette)
   const advisorOpen = useUI((s) => s.advisorOpen)
+  useSessionTour()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !useUI.getState().tourOpen) {
         e.preventDefault()
         setPalette(true)
       }
@@ -124,14 +140,19 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
         <div className="flex min-h-0 flex-1">
-          <main id="main" className={cn('page-glow min-w-0 flex-1')}>
-            <Outlet />
+          <main id="main" className={cn('page-glow flex min-w-0 flex-1 flex-col')}>
+            <div className="flex-1">
+              <Outlet />
+            </div>
+            <ForgeFooter />
           </main>
           {advisorOpen && <AdvisorSlot.Panel />}
         </div>
       </div>
       <CommandPalette />
       <CreateSolutionWizard />
+      <HelpCenter />
+      <OnboardingTour />
       {/* Key by path: fresh page loads otherwise share one key and inherit each other's scroll position. */}
       <ScrollRestoration getKey={(location) => location.pathname} />
     </div>

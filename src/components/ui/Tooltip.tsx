@@ -13,10 +13,10 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
 }
 
 /** Hover/focus tooltip for short labels on interactive elements. */
-export function Tip({ content, children, side = 'top' }: { content: ReactNode; children: ReactNode; side?: 'top' | 'bottom' | 'left' | 'right' }) {
+export function Tip({ content, children, side = 'top', delay }: { content: ReactNode; children: ReactNode; side?: 'top' | 'bottom' | 'left' | 'right'; delay?: number }) {
   if (!content) return <>{children}</>
   return (
-    <RTooltip.Root>
+    <RTooltip.Root delayDuration={delay}>
       <RTooltip.Trigger asChild>{children}</RTooltip.Trigger>
       <RTooltip.Portal>
         <RTooltip.Content

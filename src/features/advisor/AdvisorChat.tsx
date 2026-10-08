@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { ArrowRight, ArrowUp, CircleAlert, Info, MessagesSquare, RotateCcw, ShieldAlert, Sparkles, Target } from 'lucide-react'
+import { AREAS, type AdvisorArea } from '@/ai/areas'
 import { askAdvisor, useAdvisorStatus } from '@/ai/client'
 import type { AdvisorContext, AdvisorResponse, AdvisorTurn } from '@/ai/types'
 import { Button } from '@/components/ui/Button'
@@ -26,7 +27,8 @@ export function AdvisorChat({ convoKey, context, subject, solutionId, embedded }
   const pushTurn = useUI((s) => s.pushTurn)
   const clear = useUI((s) => s.clearConversation)
   const advisorOpen = useUI((s) => s.advisorOpen)
-  const consumePrompt = useUI((s) => s.consumeAdvisorPrompt)
+  const request = useUI((s) => s.advisorRequest)
+  const consumeRequest = useUI((s) => s.consumeAdvisorRequest)
   const mode = useStore((s) => s.settings.advisorMode ?? 'auto')
   const status = useAdvisorStatus()
   const [input, setInput] = useState('')
@@ -35,7 +37,7 @@ export function AdvisorChat({ convoKey, context, subject, solutionId, embedded }
   const scroller = useRef<HTMLDivElement>(null)
   const prompts = context?.kind === 'portfolio' ? PORTFOLIO_PROMPTS : SOLUTION_PROMPTS
 
-  const send = async (question: string) => {
+  const send = async (question: string, area?: AdvisorArea) => {
     const q = question.trim()
     if (!q) return setError('Type a question first.')
     if (q.length > 500) return setError('Keep questions under 500 characters.')
@@ -45,30 +47,36 @@ export function AdvisorChat({ convoKey, context, subject, solutionId, embedded }
     const history = turns
       .flatMap((t, i) => (t.role === 'advisor' && t.response && turns[i - 1]?.role === 'user' ? [{ question: turns[i - 1].text ?? '', summary: t.response.answer.summary }] : []))
       .slice(-3)
-    pushTurn(convoKey, { role: 'user', text: q, ts: new Date().toISOString() })
+    pushTurn(convoKey, { role: 'user', text: q, area, ts: new Date().toISOString() })
     setBusy(true)
-    const response = await askAdvisor({ question: q, context, history, mode })
+    const response = await askAdvisor({ question: q, context, history, mode, area })
     pushTurn(convoKey, { role: 'advisor', response, ts: new Date().toISOString() })
     setBusy(false)
   }
 
-  // A question queued from elsewhere (e.g. "Ask the advisor" on the Next Best Action).
+  // A question queued from elsewhere, usually a star icon on one area of the page.
   useEffect(() => {
-    if (!advisorOpen || embedded || !context) return
-    const queued = consumePrompt()
-    if (queued) void send(queued)
+    if (!advisorOpen || embedded || !context || !request || busy) return
+    const queued = consumeRequest()
+    if (queued) void send(queued.question, queued.area)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [advisorOpen, context?.kind, convoKey])
+  }, [advisorOpen, request?.id, busy, context?.kind, convoKey])
 
+  // While thinking, show the newest question; once answered, start reading from the top of the answer.
   useEffect(() => {
-    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' })
-  }, [turns.length, busy])
+    const el = scroller.current
+    if (!el) return
+    const asked = el.querySelectorAll<HTMLElement>('[data-turn="user"]')
+    const last = asked[asked.length - 1]
+    const answered = turns.at(-1)?.role === 'advisor'
+    el.scrollTo({ top: answered && last ? last.offsetTop - 12 : el.scrollHeight, behavior: document.hidden ? 'auto' : 'smooth' })
+  }, [turns, busy])
 
   const modeLabel = mode === 'mock' || !status?.live ? 'Built-in guidance' : `Live · ${status.model}`
 
   return (
     <div className={cn('flex min-h-0 flex-col', embedded ? 'h-[620px]' : 'h-full')}>
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-4 py-4" aria-live="polite">
+      <div ref={scroller} className="relative min-h-0 flex-1 overflow-y-auto px-4 py-4" aria-live="polite">
         {turns.length === 0 ? (
           <div className="flex flex-col items-center px-2 pt-6 text-center">
             <span className="grid size-11 place-items-center rounded-xl bg-accent-soft text-accent-fg ring-1 ring-accent-line">
@@ -77,6 +85,9 @@ export function AdvisorChat({ convoKey, context, subject, solutionId, embedded }
             <p className="mt-3 text-[14px] font-semibold text-fg">Ask about {subject}</p>
             <p className="mt-1 max-w-[300px] text-[12.5px] leading-relaxed text-fg-subtle">
               I analyze the live lifecycle, gates, evidence, risks, and metrics, then recommend what to do next and who owns it. I never approve or change anything.
+            </p>
+            <p className="mt-2 flex max-w-[300px] items-center gap-1.5 text-[12px] text-fg-subtle">
+              <Sparkles className="size-3.5 shrink-0 text-accent" /> Select the star on any section for an analysis of just that area.
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-1.5">
               {prompts.map((p) => (
@@ -89,9 +100,16 @@ export function AdvisorChat({ convoKey, context, subject, solutionId, embedded }
         ) : (
           <ol className="grid gap-4">
             {turns.map((t, i) => (
-              <li key={i}>
+              <li key={i} data-turn={t.role}>
                 {t.role === 'user' ? (
-                  <div className="ml-8 rounded-2xl rounded-tr-sm bg-surface-3 px-3.5 py-2 text-[13px] text-fg">{t.text}</div>
+                  <div className="ml-8 rounded-2xl rounded-tr-sm bg-surface-3 px-3.5 py-2 text-[13px] text-fg">
+                    {t.area && (
+                      <span className="mb-1 flex items-center gap-1 text-[11px] font-semibold tracking-[0.04em] text-accent-fg uppercase">
+                        <Sparkles className="size-3" /> {AREAS[t.area].label} analysis
+                      </span>
+                    )}
+                    {t.text}
+                  </div>
                 ) : t.response ? (
                   <AnswerView response={t.response} solutionId={solutionId} />
                 ) : null}
@@ -123,7 +141,7 @@ export function AdvisorChat({ convoKey, context, subject, solutionId, embedded }
           }}
           className="flex items-end gap-2 rounded-xl bg-surface p-1.5 ring-1 ring-border-strong focus-within:ring-2 focus-within:ring-ring"
         >
-          <label htmlFor={`advisor-input-${convoKey}`} className="sr-only">Ask the Implementation Advisor</label>
+          <label htmlFor={`advisor-input-${convoKey}`} className="sr-only">Ask the AI advisor</label>
           <textarea
             id={`advisor-input-${convoKey}`}
             rows={1}

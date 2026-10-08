@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router'
-import { ArrowLeft, ArrowRight, Calendar, Lock, Pencil } from 'lucide-react'
+import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router'
+import { ArrowRight, Calendar, Lock, Pencil } from 'lucide-react'
 import { LifecycleRail } from '@/components/lifecycle/LifecycleRail'
 import { Page } from '@/components/layout/Page'
 import { HEALTH_TONE, HealthPill, paceTone, RiskPill, StagePill } from '@/components/status'
@@ -10,10 +10,13 @@ import { Button } from '@/components/ui/Button'
 import { Pill, toneText } from '@/components/ui/Pill'
 import { Ring } from '@/components/ui/Progress'
 import { HoverCard, InfoTip, Tip } from '@/components/ui/Tooltip'
-import { riskTierDef, stageDef } from '@/config'
+import { riskTierDef, stageDef, STAGE_IDS } from '@/config'
+import type { SolutionArea } from '@/ai/areas'
 import type { RiskTier } from '@/domain/types'
 import { useSolutionInsight } from '@/data/hooks'
 import { useStore } from '@/data/store'
+import { useUI } from '@/data/ui'
+import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { inProduction } from '@/domain/status'
 import { cn } from '@/lib/cn'
 import { daysBetween, relative } from '@/lib/format'
@@ -23,35 +26,44 @@ import { ActivityDrawer } from './drawers/ActivityDrawer'
 import { EditSolutionSheet } from './forms/EditSolutionSheet'
 import { GateModal } from './GateModal'
 import { NextActionCard } from './NextActionCard'
-import { AdvisorTab } from './tabs/AdvisorTab'
-import { DecisionsTab } from './tabs/DecisionsTab'
+import { RisksAndDecisionsTab, TeamAndHistoryTab } from './tabs/CombinedTabs'
 import { EvidenceTab } from './tabs/EvidenceTab'
-import { HistoryTab } from './tabs/HistoryTab'
 import { LifecycleTab } from './tabs/LifecycleTab'
 import { MetricsTab } from './tabs/MetricsTab'
 import { OverviewTab } from './tabs/OverviewTab'
-import { RisksTab } from './tabs/RisksTab'
-import { TeamTab } from './tabs/TeamTab'
 import { WorkTab } from './tabs/WorkTab'
 
-const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'lifecycle', label: 'Lifecycle' },
-  { id: 'work', label: 'Work' },
-  { id: 'evidence', label: 'Evidence' },
-  { id: 'risks', label: 'Risks' },
-  { id: 'decisions', label: 'Decisions' },
-  { id: 'metrics', label: 'Metrics' },
-  { id: 'team', label: 'Team' },
-  { id: 'history', label: 'History' },
-  { id: 'advisor', label: 'AI Advisor' },
-] as const
+/* Seven tabs, each with a one-line purpose. Related registers share a tab
+   (risks with decisions, team with history); their old URLs still work. */
+const TABS: { id: string; label: string; hint: string; area: SolutionArea }[] = [
+  { id: 'overview', label: 'Overview', hint: 'Gate status, readiness, risks, and the business case at a glance', area: 'brief' },
+  { id: 'lifecycle', label: 'Lifecycle', hint: 'Inspect any stage: its activities, gate, evidence, and decisions', area: 'lifecycle' },
+  { id: 'work', label: 'Work', hint: 'Every activity. Update status, assign owners, and attach evidence', area: 'work' },
+  { id: 'evidence', label: 'Evidence', hint: 'Proof that work met the standard, and whether it is approved', area: 'evidence' },
+  { id: 'risks', label: 'Risks & decisions', hint: 'The risk register, heat map, and decision log', area: 'risks' },
+  { id: 'metrics', label: 'Metrics', hint: 'Business, adoption, and AI metrics against their targets', area: 'metrics' },
+  { id: 'team', label: 'Team & history', hint: 'Who owns what, the change log, and the audit trail', area: 'team' },
+]
+/** Tabs that now live inside another tab, and the section they open. */
+const MERGED: Record<string, string> = { decisions: 'risks#decisions', history: 'team#history' }
 
 export function WorkspacePage() {
-  const { id, tab = 'overview' } = useParams()
+  const { id, tab: rawTab = 'overview' } = useParams()
   const insight = useSolutionInsight(id)
   const navigate = useNavigate()
+  const askAdvisor = useUI((s) => s.askAdvisor)
   const [params, setParams] = useSearchParams()
+  const tab = TABS.some((t) => t.id === rawTab) ? rawTab : 'overview'
+
+  // Old tab URLs keep working: /decisions and /history open their section, /advisor opens the AI advisor.
+  useEffect(() => {
+    if (!id) return
+    if (MERGED[rawTab]) navigate(`/solutions/${id}/${MERGED[rawTab]}`, { replace: true })
+    else if (rawTab === 'advisor') {
+      navigate(`/solutions/${id}`, { replace: true })
+      askAdvisor('Give me an executive briefing on this solution: status, readiness, what is blocking it, and the next step.', 'brief')
+    }
+  }, [rawTab, id, navigate, askAdvisor])
   const [gateOpen, setGateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const sponsorId = insight?.bundle.solution.team.find((m) => m.roleId === 'executive_sponsor')?.personId
@@ -78,7 +90,7 @@ export function WorkspacePage() {
             insight,
             openActivity,
             openGate: () => setGateOpen(true),
-            goTab: (t: string) => navigate(`/solutions/${insight.bundle.solution.id}/${t}`),
+            goTab: (t: string) => navigate(`/solutions/${insight.bundle.solution.id}/${MERGED[t] ?? t}`),
           }
         : null,
     [insight, openActivity, navigate],
@@ -100,19 +112,17 @@ export function WorkspacePage() {
   const daysInStage = visit ? daysBetween(visit.enteredAt) : 0
   const next = gate.nextStage ? stageDef(gate.nextStage) : undefined
   const tone = paceTone(readiness.overall, readiness.expected)
-  const tabBadge: Record<string, number | undefined> = {
-    work: gate.unmet.filter((u) => u.kind === 'activity').length || undefined,
-    risks: counts.risks || undefined,
-    decisions: counts.decisions || undefined,
+  const tabBadge: Record<string, { n: number; tip: string } | undefined> = {
+    work: gate.unmet.some((u) => u.kind === 'activity') ? { n: gate.unmet.filter((u) => u.kind === 'activity').length, tip: 'Gate activities still open' } : undefined,
+    risks: counts.risks + counts.decisions ? { n: counts.risks + counts.decisions, tip: `${counts.risks} open ${counts.risks === 1 ? 'risk' : 'risks'} · ${counts.decisions} pending ${counts.decisions === 1 ? 'decision' : 'decisions'}` } : undefined,
   }
+  const current = TABS.find((t) => t.id === tab) ?? TABS[0]
+  const stageParam = params.get('stage')
+  const railSelected = tab === 'lifecycle' && stageParam && (STAGE_IDS as string[]).includes(stageParam) ? (stageParam as typeof solution.stage) : undefined
 
   return (
     <WorkspaceContext.Provider value={ctx}>
       <Page wide>
-        <Link to="/solutions" className="mb-4 inline-flex items-center gap-1.5 text-[12.5px] text-fg-subtle hover:text-fg">
-          <ArrowLeft className="size-3.5" /> All solutions
-        </Link>
-
         {/* Header */}
         <header className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
@@ -144,7 +154,7 @@ export function WorkspacePage() {
                 </Button>
               </Tip>
             </div>
-            <p className="mt-1.5 max-w-3xl text-[14px] leading-relaxed text-fg-muted">{solution.description}</p>
+            <p className="mt-1.5 line-clamp-2 max-w-3xl text-[14px] leading-relaxed text-fg-muted">{solution.description}</p>
             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12.5px] text-fg-subtle">
               <span className="flex items-center gap-1.5">Owner <PersonChip id={solution.ownerId} /></span>
               {sponsorId && <span className="flex items-center gap-1.5">Sponsor <PersonChip id={sponsorId} /></span>}
@@ -161,9 +171,11 @@ export function WorkspacePage() {
               <p className="flex items-center gap-1 text-[12px] text-fg-subtle">Readiness <InfoTip term="readiness" /></p>
               <p className={cn('text-[12px]', toneText[tone])}>{readiness.pace === 'on_pace' ? 'On pace' : readiness.pace === 'behind' ? 'Behind pace' : 'Well behind'} · expected ≥{readiness.expected}</p>
               {next ? (
-                <Button variant={gate.canAdvance ? 'primary' : 'secondary'} size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
-                  {gate.canAdvance ? <>Advance to {next.name} <ArrowRight /></> : <><Lock className="!size-3.5" /> Advance to {next.name}</>}
-                </Button>
+                <Tip content={gate.canAdvance ? `Every requirement is met. Open the gate review to record the decision.` : `See what's still open before ${next.name}, and who owns it`}>
+                  <Button variant={gate.canAdvance ? 'primary' : 'secondary'} size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
+                    {gate.canAdvance ? <>Advance to {next.name} <ArrowRight /></> : <><Lock className="!size-3.5" /> Advance to {next.name}</>}
+                  </Button>
+                </Tip>
               ) : (
                 <p className="mt-2 text-[12px] text-fg-subtle">Final stage</p>
               )}
@@ -177,30 +189,37 @@ export function WorkspacePage() {
         <NextActionCard className="mt-6" />
 
         <section aria-label="Lifecycle" className="mt-5">
-          <LifecycleRail current={solution.stage} progress={readiness.stageProgress} gate={gate} onSelect={(s) => navigate(`/solutions/${solution.id}/lifecycle?stage=${s}`)} />
+          <LifecycleRail current={solution.stage} progress={readiness.stageProgress} gate={gate} selected={railSelected} onSelect={(s) => navigate(`/solutions/${solution.id}/lifecycle?stage=${s}`)} />
         </section>
 
         {/* Tabs */}
         <nav aria-label="Solution sections" className="sticky top-14 z-20 -mx-4 mt-5 border-b border-border bg-bg/85 px-4 backdrop-blur-md md:-mx-8 md:px-8">
-          <ul className="-mb-px flex gap-1 overflow-x-auto">
+          <ul className="-mb-px flex items-center gap-1 overflow-x-auto">
             {TABS.map((t) => (
               <li key={t.id}>
-                <NavLink
-                  to={`/solutions/${solution.id}/${t.id === 'overview' ? '' : t.id}`}
-                  end={t.id === 'overview'}
-                  className={({ isActive }) =>
-                    cn(
+                <Tip content={t.hint} side="bottom" delay={500}>
+                  <NavLink
+                    to={`/solutions/${solution.id}/${t.id === 'overview' ? '' : t.id}`}
+                    end={t.id === 'overview'}
+                    aria-current={tab === t.id ? 'page' : undefined}
+                    className={cn(
                       'flex h-10 items-center gap-1.5 border-b-2 px-2.5 text-[13px] whitespace-nowrap transition-colors',
-                      isActive || (t.id === 'overview' && tab === 'overview') ? 'border-accent font-medium text-fg' : 'border-transparent text-fg-subtle hover:text-fg',
-                      t.id === 'advisor' && 'text-accent-fg',
-                    )
-                  }
-                >
-                  {t.label}
-                  {tabBadge[t.id] !== undefined && <span className="rounded-full bg-surface-3 px-1.5 text-[10.5px] font-medium text-fg-muted tabular">{tabBadge[t.id]}</span>}
-                </NavLink>
+                      tab === t.id ? 'border-accent font-medium text-fg' : 'border-transparent text-fg-subtle hover:text-fg',
+                    )}
+                  >
+                    {t.label}
+                    {tabBadge[t.id] && (
+                      <span className="rounded-full bg-surface-3 px-1.5 text-[10.5px] font-medium text-fg-muted tabular" aria-label={tabBadge[t.id]!.tip}>
+                        {tabBadge[t.id]!.n}
+                      </span>
+                    )}
+                  </NavLink>
+                </Tip>
               </li>
             ))}
+            <li className="sticky right-0 ml-auto flex h-10 items-center bg-bg/85 pl-2">
+              <AdvisorSpark area={current.area} />
+            </li>
           </ul>
         </nav>
 
@@ -209,12 +228,9 @@ export function WorkspacePage() {
           {tab === 'lifecycle' && <LifecycleTab />}
           {tab === 'work' && <WorkTab />}
           {tab === 'evidence' && <EvidenceTab />}
-          {tab === 'risks' && <RisksTab />}
-          {tab === 'decisions' && <DecisionsTab />}
+          {tab === 'risks' && <RisksAndDecisionsTab />}
           {tab === 'metrics' && <MetricsTab />}
-          {tab === 'team' && <TeamTab />}
-          {tab === 'history' && <HistoryTab />}
-          {tab === 'advisor' && <AdvisorTab />}
+          {tab === 'team' && <TeamAndHistoryTab />}
         </div>
       </Page>
 

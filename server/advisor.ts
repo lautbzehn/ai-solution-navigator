@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { AdvisorAnswer, AdvisorContext, AdvisorStatus } from '../src/ai/types'
 
-/* Server-side Implementation Advisor.
+/* Server-side AI advisor.
    The API key stays on the server. Live mode is opt-in: it runs only when
    ANTHROPIC_API_KEY is set in the server environment, so a fresh checkout or
    a public demo never incurs API charges. Shared by the Vite dev middleware
@@ -93,7 +93,7 @@ export interface HandlerResult {
   body: unknown
 }
 
-const UNAVAILABLE = 'The Implementation Advisor is temporarily unavailable. You can continue managing the implementation manually.'
+const UNAVAILABLE = 'The AI advisor is temporarily unavailable. You can continue managing the implementation manually.'
 
 export function advisorStatus(env: AdvisorEnv = nodeEnv()): AdvisorStatus {
   return env.ANTHROPIC_API_KEY ? { live: true, model: model(env) } : { live: false }

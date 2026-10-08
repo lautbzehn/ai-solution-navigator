@@ -67,7 +67,7 @@ export function EvidenceTab() {
       <div className="flex flex-wrap items-center gap-2">
         <FilterSelect label="Scope" value={scope} onChange={setScope} options={[{ value: 'to_date', label: 'Stages to date' }, { value: 'current', label: `Current stage (${stageDef(solution.stage).name})` }, { value: 'required', label: 'All required evidence' }, { value: 'all', label: 'Full evidence plan' }]} />
         <FilterSelect label="Status" value={status} onChange={setStatus} options={[{ value: '', label: 'Any status' }, { value: 'gaps', label: 'Gaps (not approved)' }, ...EVIDENCE_STATUS_ORDER.map((s) => ({ value: s, label: EVIDENCE_STATUS[s] }))]} />
-        <Button variant="primary" size="sm" className="ml-auto" onClick={() => setAdding(true)}><FilePlus2 /> Add evidence</Button>
+        <Tip content="Record proof that work met the standard, with a link to the document"><Button variant="primary" size="sm" className="ml-auto" onClick={() => setAdding(true)}><FilePlus2 /> Add evidence</Button></Tip>
       </div>
 
       {list.length === 0 ? (

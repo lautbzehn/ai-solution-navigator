@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Check, Minus, RotateCcw, ShieldAlert } from 'lucide-react'
+import { Check, Layers, Minus, RotateCcw, Scale, ShieldAlert, SlidersHorizontal, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Page, PageHeader } from '@/components/layout/Page'
+import { ExpandAllButton, Section, SectionStack, useSections, type SectionsState } from '@/components/layout/Section'
 import { RiskPill } from '@/components/status'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
@@ -13,24 +14,28 @@ import type { DimensionId, RiskTier, StageId } from '@/domain/types'
 import { cn } from '@/lib/cn'
 
 const TIERS: RiskTier[] = ['low', 'moderate', 'high']
+const SECTIONS = ['stages', 'tiers', 'weights', 'roles'] as const
 
 export function FrameworkPage() {
   const [stage, setStage] = useState<StageId>('validate')
   const def = STAGES.find((s) => s.id === stage)!
   const acts = lifecycle.activityTemplates.filter((a) => a.stage === stage)
   const gate = gateFor(stage)
+  const sections = useSections('framework', SECTIONS)
+  const gates = STAGES.filter((s) => gateFor(s.id)).length
+  const highExtra = riskBasedControls('high').length
 
   return (
     <Page>
       <PageHeader
         title="Lifecycle Framework"
-        subtitle={`${lifecycle.name} · v${lifecycle.version}. The methodology every solution is planned and gated against. It's defined in configuration (lifecycle.json), not hard-coded in the product.`}
+        subtitle={`${lifecycle.name} · v${lifecycle.version}. The methodology every solution is planned and gated against, defined in configuration rather than hard-coded.`}
+        actions={<ExpandAllButton sections={sections} />}
       />
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
-        {/* Stages */}
-        <section aria-labelledby="fw-stages">
-          <h2 id="fw-stages" className="mb-3 flex items-center gap-1.5 text-[17px] font-semibold tracking-[-0.015em]">Stages and gates <InfoTip term="lifecycle" /></h2>
+      <SectionStack>
+        <Section {...sections.bind('stages')} icon={<Layers />} title="Stages and gates" summary={`${STAGES.length} stages · ${gates} gates · ${lifecycle.activityTemplates.length} activity templates. Pick a stage to see its work and exit criteria.`}>
+          <p className="mb-3 flex items-center gap-1.5 text-[13px] text-fg-subtle">Every solution moves through the same stages; each one ends in a gate. <InfoTip term="lifecycle" /></p>
           <div className="-mx-1 mb-4 overflow-x-auto px-1">
             <div className="flex min-w-[760px] gap-1.5" role="tablist" aria-label="Lifecycle stage">
               {STAGES.map((s, i) => (
@@ -41,7 +46,7 @@ export function FrameworkPage() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,2.3fr)_minmax(0,1fr)]">
             <Card className="overflow-hidden">
               <CardHeader title={def.name} subtitle={def.purpose} actions={<Pill tone="neutral">Typical {def.typicalDays} days · readiness ≥{def.expectedReadiness}</Pill>} />
               <div className="overflow-x-auto border-t border-border">
@@ -63,9 +68,11 @@ export function FrameworkPage() {
                             {a.tags?.includes('human_oversight') && <InfoTip term="humanOversight" />}
                             {a.id.includes('residual') && <InfoTip term="residualRisk" />}
                           </p>
-                          <p className="text-[11.5px] text-fg-subtle">{a.why}</p>
+                          <Tip content={a.why} delay={400}>
+                            <p className="line-clamp-1 max-w-[340px] text-[11.5px] text-fg-subtle">{a.why}</p>
+                          </Tip>
                         </td>
-                        <td className="px-2 py-2.5 text-fg-muted">{roleName(a.ownerRole)}</td>
+                        <td className="px-2 py-2.5 whitespace-nowrap text-fg-muted">{roleName(a.ownerRole)}</td>
                         <td className="px-2 py-2.5 text-fg-muted">{a.evidence ? evidenceTemplate(a.evidence)?.name : '—'}</td>
                         {TIERS.map((t) => (
                           <td key={t} className="px-2 py-2.5 text-center">
@@ -109,12 +116,10 @@ export function FrameworkPage() {
               </CardBody>
             </Card>
           </div>
-        </section>
+        </Section>
 
-        {/* Risk tiers */}
-        <section aria-labelledby="fw-tiers">
-          <h2 id="fw-tiers" className="mb-3 flex items-center gap-1.5 text-[17px] font-semibold tracking-[-0.015em]">Risk tiers <InfoTip term="riskTier" /></h2>
-          <p className="-mt-1 mb-3 text-[13px] text-fg-subtle">Higher risk = more required evidence and stronger gate criteria. Changing a solution's tier reshapes its plan automatically.</p>
+        <Section {...sections.bind('tiers')} icon={<Scale />} title="Risk tiers" summary={`Low, Moderate, and High. Higher risk adds controls (High adds ${highExtra}) and stronger gate criteria.`}>
+          <p className="mb-3 flex items-center gap-1.5 text-[13px] text-fg-subtle">Changing a solution's tier reshapes its plan automatically. <InfoTip term="riskTier" /></p>
           <div className="grid gap-3 md:grid-cols-3">
             {lifecycle.riskTiers.map((t) => {
               const extra = riskBasedControls(t.id)
@@ -130,13 +135,11 @@ export function FrameworkPage() {
               )
             })}
           </div>
-        </section>
+        </Section>
 
-        <WeightsEditor />
+        <WeightsEditor sections={sections} />
 
-        {/* Roles */}
-        <section aria-labelledby="fw-roles">
-          <h2 id="fw-roles" className="mb-3 text-[17px] font-semibold tracking-[-0.015em]">Roles</h2>
+        <Section {...sections.bind('roles')} icon={<Users />} title="Roles" summary={`${lifecycle.roles.length} roles own the work across the lifecycle, from Executive Sponsor to Operations.`}>
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {lifecycle.roles.map((r) => {
               const owns = lifecycle.activityTemplates.filter((a) => a.ownerRole === r.id).length
@@ -148,8 +151,8 @@ export function FrameworkPage() {
               )
             })}
           </div>
-        </section>
-      </div>
+        </Section>
+      </SectionStack>
     </Page>
   )
 }
@@ -160,7 +163,7 @@ function TierCell({ required, blocking }: { required: boolean; blocking: boolean
   return <Minus className="mx-auto size-3.5 text-fg-faint" aria-label="Optional" />
 }
 
-function WeightsEditor() {
+function WeightsEditor({ sections }: { sections: SectionsState }) {
   const weights = useStore((s) => s.settings.weights)
   const setWeights = useStore((s) => s.setWeights)
   const [draft, setDraft] = useState<Record<DimensionId, string>>(() => toStrings(weights))
@@ -182,11 +185,10 @@ function WeightsEditor() {
   }
 
   return (
-    <section aria-labelledby="fw-weights">
-      <h2 id="fw-weights" className="mb-3 flex items-center gap-1.5 text-[17px] font-semibold tracking-[-0.015em]">Readiness dimensions and weights <InfoTip term="readiness" /></h2>
+    <Section {...sections.bind('weights')} icon={<SlidersHorizontal />} title="Readiness dimensions and weights" summary={`${DIMENSIONS.length} weighted dimensions make up every readiness score · ${isDefault ? 'using the default weights' : 'custom weights in use'}`}>
       <Card>
         <CardBody className="pt-4">
-          <p className="mb-4 text-[13px] text-fg-subtle">Implementation readiness is a weighted average of seven dimensions. Adjust the weights to match your organization's priorities; every solution's score updates immediately.</p>
+          <p className="mb-4 text-[13px] text-fg-subtle">Implementation readiness <InfoTip term="readiness" className="align-[-3px]" /> is a weighted average of seven dimensions. Adjust the weights to match your organization's priorities; every solution's score updates immediately.</p>
           <div className="grid gap-x-8 gap-y-3 lg:grid-cols-2">
             {DIMENSIONS.map((d) => (
               <div key={d.id} className="grid grid-cols-[minmax(0,1fr)_88px] items-center gap-3">
@@ -211,7 +213,7 @@ function WeightsEditor() {
           </div>
         </CardBody>
       </Card>
-    </section>
+    </Section>
   )
 }
 

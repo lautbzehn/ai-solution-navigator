@@ -13,10 +13,10 @@ export function AdvisorToggle() {
   const { advisorOpen, setAdvisor } = useUI()
   if (!enabled) return null
   return (
-    <Tip content={advisorOpen ? 'Close the Implementation Advisor' : 'Open the Implementation Advisor'}>
-      <Button variant={advisorOpen ? 'accent-soft' : 'ghost'} size="sm" aria-pressed={advisorOpen} onClick={() => setAdvisor(!advisorOpen)}>
+    <Tip content={advisorOpen ? 'Close the AI advisor' : 'Ask the AI advisor about anything on this page'}>
+      <Button data-tour="advisor" variant={advisorOpen ? 'accent-soft' : 'ghost'} size="sm" aria-pressed={advisorOpen} aria-label={advisorOpen ? 'Close the AI advisor' : 'Open the AI advisor'} onClick={() => setAdvisor(!advisorOpen)}>
         <Sparkles className={cn(advisorOpen ? 'text-accent-fg' : 'text-accent')} />
-        <span className="hidden md:inline">Advisor</span>
+        <span className="hidden md:inline">AI advisor</span>
       </Button>
     </Tip>
   )
@@ -36,15 +36,15 @@ export function AdvisorPanel() {
   if (!enabled) return null
   return (
     <aside
-      aria-label="Implementation Advisor"
+      aria-label="AI advisor"
       className="fixed top-14 right-0 bottom-0 z-40 flex w-[min(420px,100vw)] animate-slide-in-right flex-col border-l border-border bg-bg-subtle shadow-pop 2xl:sticky 2xl:z-10 2xl:h-[calc(100dvh-3.5rem)] 2xl:w-[400px] 2xl:shrink-0 2xl:shadow-none"
     >
       <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-[13px] font-semibold text-fg"><Sparkles className="size-4 text-accent" /> Implementation Advisor</p>
+          <p className="flex items-center gap-1.5 text-[13px] font-semibold text-fg"><Sparkles className="size-4 text-accent" /> AI advisor</p>
           <p className="truncate text-[11.5px] text-fg-subtle">{ctx.solutionId ? ctx.subject : 'Portfolio view. Open a solution for focused advice.'}</p>
         </div>
-        <Button variant="ghost" size="icon-sm" aria-label="Close advisor" onClick={() => setAdvisor(false)}>
+        <Button variant="ghost" size="icon-sm" aria-label="Close the AI advisor" onClick={() => setAdvisor(false)}>
           <X />
         </Button>
       </div>

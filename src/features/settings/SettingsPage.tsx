@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Dialog'
 import { Segmented } from '@/components/ui/misc'
+import { Tip } from '@/components/ui/Tooltip'
 import { Pill } from '@/components/ui/Pill'
 import { lifecycle } from '@/config'
 import { useStore } from '@/data/store'
@@ -38,19 +39,19 @@ export function SettingsPage() {
 
   return (
     <Page className="max-w-[880px]">
-      <PageHeader title="Settings" subtitle="Demo data, the Implementation Advisor, appearance, and the lifecycle framework." />
+      <PageHeader title="Settings" subtitle="Demo data, the AI advisor, appearance, and the lifecycle framework." />
       <div className="grid gap-4">
         <Section icon={<Database />} title="Demo data" description="Everything is stored privately in this browser, so your changes persist between refreshes and never reach other viewers. Resetting restores the starting portfolio.">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[12.5px] text-fg-subtle tabular">{counts.solutions} solutions · {counts.activities} activities · {counts.audit} history entries</p>
-            <Button variant="danger" onClick={() => setConfirm(true)}><RotateCcw /> Reset demo data</Button>
+            <Tip content="Put back the original demo portfolio and undo every change"><Button variant="danger" onClick={() => setConfirm(true)}><RotateCcw /> Reset demo data</Button></Tip>
           </div>
         </Section>
 
-        <Section icon={<Sparkles />} title="Implementation Advisor" description="A contextual advisor that analyzes the current solution, recommends the next action, and explains why. It never approves, changes lifecycle state, or makes legal or security determinations.">
+        <Section icon={<Sparkles />} title="AI advisor" description="A contextual advisor that analyzes the current solution, recommends the next action, and explains why. It never approves, changes lifecycle state, or makes legal or security determinations.">
           <div className="grid gap-4">
-            <Row label="Advisor" hint="Shows the Advisor panel, the AI Advisor tab, and the 'Ask the advisor' shortcuts.">
-              <Segmented label="Advisor" value={settings.advisorEnabled ? 'on' : 'off'} onChange={(v) => setAdvisorEnabled(v === 'on')} options={[{ value: 'on', label: 'On' }, { value: 'off', label: 'Off' }]} />
+            <Row label="AI advisor" hint="Shows the AI advisor in the top bar and the star icons on each section.">
+              <Segmented label="AI advisor" value={settings.advisorEnabled ? 'on' : 'off'} onChange={(v) => setAdvisorEnabled(v === 'on')} options={[{ value: 'on', label: 'On' }, { value: 'off', label: 'Off' }]} />
             </Row>
             <Row label="Mode" hint="Built-in guidance is deterministic, free, and works offline. Live mode uses Claude through a server route when the server has an API key.">
               <Segmented label="Advisor mode" value={mode} onChange={(v) => setAdvisorMode(v)} options={[{ value: 'auto', label: 'Live when available' }, { value: 'mock', label: 'Built-in only' }]} />

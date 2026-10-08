@@ -4,6 +4,7 @@ import { gateLabel } from '@/domain/gates'
 import type { SolutionInsight } from '@/domain/insight'
 import { ACTIVITY_STATUS, DECISION_OUTCOME, EVIDENCE_STATUS, LIKELIHOOD, RISK_CATEGORY, RISK_STATUS, SEVERITY } from '@/domain/labels'
 import { METRIC_HEALTH_LABEL, metricHealth } from '@/domain/metrics'
+import { adoptionRows, aiPerformanceRows, bottlenecks, type implementationPerformance } from '@/domain/reports'
 import { sortUnmet } from '@/domain/nextAction'
 import type { Person } from '@/domain/types'
 import type { PortfolioContext, SolutionContext } from './types'
@@ -92,7 +93,9 @@ export function buildSolutionContext(insight: SolutionInsight, people: Person[],
   }
 }
 
-export function buildPortfolioContext(items: SolutionInsight[], insights: string[]): PortfolioContext {
+export function buildPortfolioContext(items: SolutionInsight[], insights: string[], perf?: ReturnType<typeof implementationPerformance>, people: Person[] = []): PortfolioContext {
+  const name = (id?: string) => (id ? people.find((p) => p.id === id)?.name ?? 'Unassigned' : 'Unassigned')
+  const sev = ['critical', 'high', 'medium', 'low']
   return {
     kind: 'portfolio',
     solutions: items.map((i) => ({
@@ -110,5 +113,22 @@ export function buildPortfolioContext(items: SolutionInsight[], insights: string
       realizedValueUsd: i.bundle.solution.realizedValue,
     })),
     insights,
+    risks: items
+      .flatMap((i) => i.bundle.risks.filter((r) => r.status === 'open' || r.status === 'mitigating').map((r) => ({ r, solution: i.bundle.solution.name })))
+      .sort((a, b) => sev.indexOf(a.r.severity) - sev.indexOf(b.r.severity))
+      .slice(0, 30)
+      .map(({ r, solution }) => ({ solution, title: r.title, severity: SEVERITY[r.severity], status: RISK_STATUS[r.status], mitigation: r.mitigation || 'None recorded', owner: name(r.ownerId) })),
+    delivery: perf && {
+      gatePassRatePct: perf.passRate ?? null,
+      avgDaysToProduction: perf.avgToProduction ?? null,
+      blockedActivities: perf.blocked,
+      overdueActivities: perf.overdue,
+      reworkRatePct: perf.reworkRate,
+      stages: bottlenecks(items).map((b) => ({ name: b.name, solutions: b.solutions, avgDays: b.avgDays, typicalDays: b.typicalDays, blocked: b.blocked, openGateItems: b.openRequirements, primaryReason: b.primaryReason })),
+    },
+    aiMetrics: aiPerformanceRows(items).flatMap((row) =>
+      row.cells.filter((m) => m && m.current !== undefined).map((m) => ({ solution: row.solution.name, name: m!.name, current: m!.current ?? null, target: m!.target ?? null, unit: m!.unit, health: METRIC_HEALTH_LABEL[metricHealth(m!).status] })),
+    ),
+    adoption: adoptionRows(items).map((r) => ({ solution: r.solution.name, adoptionRatePct: r.rate ?? null, activeUsers: r.active ?? null, eligibleUsers: r.eligible ?? null })),
   }
 }

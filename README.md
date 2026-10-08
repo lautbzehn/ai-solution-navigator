@@ -13,19 +13,19 @@ It operationalizes an 8-stage enterprise AI lifecycle (Discover → Assess → D
 ## What it does
 
 - **Portfolio dashboard:** KPIs, lifecycle distribution, readiness trend, risk and value, and the solutions that need attention. Every chart drills down.
-- **Solution workspace:** a lifecycle rail, a **Next Best Action** with owner and impact, and tabs for Overview, Lifecycle, Work, Evidence, Risks, Decisions, Metrics, Team, History, and the AI Advisor.
+- **Solution workspace:** a lifecycle rail, a **Next Best Action** with owner and impact, and seven tabs: Overview, Lifecycle, Work, Evidence, Risks & decisions, Metrics, and Team & history. Busy views fold into collapsible sections whose headers carry a one-line headline.
 - **Real gate validation:** each stage's exit gate combines blocking activities (which ones block depends on the risk tier) with explicit criteria (fields, roles, metrics, risk rules). A completed activity *without approved evidence* does not pass. Blocked advancement always explains why, with owners and links to resolve.
 - **Implementation readiness:** seven weighted dimensions (configurable). Every score shows its why, its gaps, and what would raise it. It measures implementation readiness, not AI safety alone.
 - **Risk-based rigor:** changing a solution's risk tier reshapes its plan. High risk adds autonomy boundaries, override controls, adversarial testing, executive risk acceptance, and board approval.
 - **Portfolio Intelligence:** health, delivery performance (time per stage, gate pass rate, rework), lifecycle bottlenecks, risk heat map, business outcomes, adoption, and AI performance, with deterministic key insights.
-- **Implementation Advisor:** a contextual advisor that analyzes → recommends → explains. It runs as built-in deterministic guidance by default ($0), or as live Claude when a server key is configured. It never approves, changes lifecycle state, or makes legal or security determinations.
+- **AI advisor:** a contextual advisor that analyzes → recommends → explains. A star icon on each section asks it for an analysis of just that area. It runs as built-in deterministic guidance by default ($0), or as live Claude when a server key is configured. It never approves, changes lifecycle state, or makes legal or security determinations.
 - **Audit and change log:** every change is recorded with who, what, from, and to.
 
 ## Demo script (5 minutes)
 
 1. **Dashboard**: 8 solutions, 2 need attention. Click **Validate** in Lifecycle distribution.
 2. Open **AI Customer Support Resolution Assistant** (Validate, Moderate risk, **76% ready**).
-3. Next Best Action: *Validate human oversight in practice*, owner Dwight Schrute. Click **Ask the advisor**.
+3. Next Best Action: *Validate human oversight in practice*, owner Dwight Schrute. Click the star icon next to it to ask the AI advisor.
 4. Click **Advance to Deploy**: blocked, with 3 requirements (oversight validation, UAT, monitoring plan).
 5. Open the oversight activity, mark it **Complete**: the gate still flags the draft evidence. Approve it and readiness rises.
 6. Resolve UAT and the monitoring plan the same way. The gate opens.
@@ -43,7 +43,7 @@ npm run build      # type-check and production build
 
 Data persists in your browser (localStorage), so every viewer gets a private sandbox. **Settings → Reset demo data** restores the starting portfolio.
 
-### Live AI Advisor (optional)
+### Live AI advisor (optional)
 
 The advisor works out of the box in built-in mode. To use Claude:
 

@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { ArrowDownUp, Columns3, FolderSearch, LayoutList, Plus, Search, Sparkles, X } from 'lucide-react'
+import { ArrowDownUp, ArrowRight, Columns3, FolderSearch, LayoutList, ListFilter, Search, X } from 'lucide-react'
 import { MiniLifecycle } from '@/components/lifecycle/LifecycleRail'
 import { Page, PageHeader } from '@/components/layout/Page'
 import { HealthPill, paceTone, RiskPill } from '@/components/status'
@@ -14,7 +14,7 @@ import { InfoTip, Tip } from '@/components/ui/Tooltip'
 import { STAGES, stageDef, stageOrder } from '@/config'
 import { usePortfolio, type SolutionInsight } from '@/data/hooks'
 import { useStore } from '@/data/store'
-import { useUI } from '@/data/ui'
+import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { READINESS_BUCKETS, bucketOf, inProductionStage } from '@/domain/portfolio'
 import { cn } from '@/lib/cn'
 import { money } from '@/lib/format'
@@ -25,7 +25,6 @@ const RISK_RANK = { low: 0, moderate: 1, high: 2 }
 export function SolutionsPage() {
   const items = usePortfolio()
   const people = useStore((s) => s.people)
-  const setCreate = useUI((s) => s.setCreate)
   const [params, setParams] = useSearchParams()
 
   const q = params.get('q') ?? ''
@@ -70,6 +69,10 @@ export function SolutionsPage() {
   }, [items, q, stage, risk, status, owner, readiness, sort])
 
   const activeFilters = [stage, risk, status, owner, readiness, q].filter(Boolean).length
+  // Secondary filters stay tucked away unless one of them is in use.
+  const hiddenActive = [risk, owner, readiness].filter(Boolean).length
+  const [moreOpen, setMoreOpen] = useState(false)
+  const showMore = moreOpen || hiddenActive > 0
 
   return (
     <Page>
@@ -78,18 +81,20 @@ export function SolutionsPage() {
         subtitle="Every AI initiative in the portfolio, where it is in the lifecycle, and what it needs next."
         actions={
           <>
-            <Segmented
-              label="View"
-              value={view}
-              onChange={(v) => set('view', v === 'list' ? '' : v)}
-              options={[
-                { value: 'list', label: <span className="flex items-center gap-1.5"><LayoutList className="size-3.5" />List</span> },
-                { value: 'board', label: <span className="flex items-center gap-1.5"><Columns3 className="size-3.5" />Board</span> },
-              ]}
-            />
-            <Button variant="primary" onClick={() => setCreate(true)}>
-              <Plus strokeWidth={2.2} /> New solution
-            </Button>
+            <AdvisorSpark area="portfolio" />
+            <Tip content="List shows details; Board groups solutions by lifecycle stage">
+              <span>
+                <Segmented
+                  label="View"
+                  value={view}
+                  onChange={(v) => set('view', v === 'list' ? '' : v)}
+                  options={[
+                    { value: 'list', label: <span className="flex items-center gap-1.5"><LayoutList className="size-3.5" />List</span> },
+                    { value: 'board', label: <span className="flex items-center gap-1.5"><Columns3 className="size-3.5" />Board</span> },
+                  ]}
+                />
+              </span>
+            </Tip>
           </>
         }
       />
@@ -105,13 +110,23 @@ export function SolutionsPage() {
             className="h-8 w-full rounded-lg bg-surface pr-3 pl-8 text-[12.5px] text-fg ring-1 ring-inset ring-border-strong placeholder:text-fg-faint focus:ring-2 focus:ring-ring focus:outline-none"
           />
         </div>
-        <FilterSelect label="Stage" value={stage} onChange={(v) => set('stage', v)} options={[{ value: '', label: 'All stages' }, ...STAGES.map((s) => ({ value: s.id, label: s.name })), { value: 'production', label: 'In production' }]} />
-        <FilterSelect label="Risk" value={risk} onChange={(v) => set('risk', v)} options={[{ value: '', label: 'All risk tiers' }, { value: 'low', label: 'Low risk' }, { value: 'moderate', label: 'Moderate risk' }, { value: 'high', label: 'High risk' }]} />
         <FilterSelect label="Status" value={status} onChange={(v) => set('status', v)} options={[{ value: '', label: 'All statuses' }, { value: 'on_track', label: 'On track' }, { value: 'at_risk', label: 'At risk' }, { value: 'blocked', label: 'Blocked' }, { value: 'attention', label: 'Needs attention' }]} />
-        <FilterSelect label="Owner" value={owner} onChange={(v) => set('owner', v)} options={[{ value: '', label: 'All owners' }, ...owners.map((id) => ({ value: id, label: people.find((p) => p.id === id)?.name ?? id }))]} />
-        <FilterSelect label="Readiness" value={readiness} onChange={(v) => set('readiness', v)} options={[{ value: '', label: 'Any readiness' }, ...READINESS_BUCKETS.map((b) => ({ value: b.key, label: `Readiness ${b.label}` }))]} />
+        <FilterSelect label="Stage" value={stage} onChange={(v) => set('stage', v)} options={[{ value: '', label: 'All stages' }, ...STAGES.map((s) => ({ value: s.id, label: s.name })), { value: 'production', label: 'In production' }]} />
+        {showMore ? (
+          <>
+            <FilterSelect label="Risk" value={risk} onChange={(v) => set('risk', v)} options={[{ value: '', label: 'All risk tiers' }, { value: 'low', label: 'Low risk' }, { value: 'moderate', label: 'Moderate risk' }, { value: 'high', label: 'High risk' }]} />
+            <FilterSelect label="Owner" value={owner} onChange={(v) => set('owner', v)} options={[{ value: '', label: 'All owners' }, ...owners.map((id) => ({ value: id, label: people.find((p) => p.id === id)?.name ?? id }))]} />
+            <FilterSelect label="Readiness" value={readiness} onChange={(v) => set('readiness', v)} options={[{ value: '', label: 'Any readiness' }, ...READINESS_BUCKETS.map((b) => ({ value: b.key, label: `Readiness ${b.label}` }))]} />
+          </>
+        ) : (
+          <Tip content="Filter by risk tier, owner, or readiness band">
+            <Button variant="ghost" size="sm" onClick={() => setMoreOpen(true)}>
+              <ListFilter /> More filters
+            </Button>
+          </Tip>
+        )}
         {activeFilters > 0 && (
-          <Button variant="ghost" size="sm" onClick={() => setParams(view === 'board' ? { view: 'board' } : {}, { replace: true })}>
+          <Button variant="ghost" size="sm" onClick={() => { setParams(view === 'board' ? { view: 'board' } : {}, { replace: true }); setMoreOpen(false) }}>
             <X /> Clear
           </Button>
         )}
@@ -179,11 +194,10 @@ function SolutionRow({ item }: { item: SolutionInsight }) {
         className="grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-surface-2 focus-visible:bg-surface-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_110px_96px_120px_minmax(0,2fr)]"
       >
         <div className="min-w-0 sm:col-span-2 xl:col-span-1">
-          <div className="flex items-center gap-2">
+          <Tip content={s.description} delay={500}>
             <p className="truncate text-[14px] font-medium text-fg">{s.name}</p>
-          </div>
-          <p className="mt-0.5 line-clamp-1 text-[12.5px] text-fg-subtle">{s.description}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px]">
+          </Tip>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[12px]">
             <PersonChip id={s.ownerId} />
             <RiskPill tier={s.riskTier} compact />
           </div>
@@ -197,10 +211,12 @@ function SolutionRow({ item }: { item: SolutionInsight }) {
           </div>
           <MiniLifecycle current={s.stage} />
         </div>
-        <div className="flex items-center gap-2">
-          <MiniRing value={item.readiness.overall} tone={paceTone(item.readiness.overall, item.readiness.expected)} />
-          <span className="text-[14px] font-semibold tabular">{item.readiness.overall}%</span>
-        </div>
+        <Tip content={`Expected ≥${item.readiness.expected}% at ${stageDef(s.stage).name}`}>
+          <div className="flex items-center gap-2 justify-self-start">
+            <MiniRing value={item.readiness.overall} tone={paceTone(item.readiness.overall, item.readiness.expected)} />
+            <span className={cn('text-[14px] font-semibold tabular', item.readiness.overall >= 85 && item.readiness.overall >= item.readiness.expected && 'text-success-fg')}>{item.readiness.overall}%</span>
+          </div>
+        </Tip>
         <div className="text-[13px] tabular">
           <p className="font-medium text-fg">{money(s.expectedValue)}</p>
           {s.realizedValue > 0 && <p className="text-[11.5px] text-success-fg">{money(s.realizedValue)} realized</p>}
@@ -213,7 +229,7 @@ function SolutionRow({ item }: { item: SolutionInsight }) {
           </Tip>
         </div>
         <p className="line-clamp-2 flex items-start gap-1.5 text-[12.5px] text-fg-muted sm:col-span-2 xl:col-span-1">
-          <Sparkles className="mt-0.5 size-3 shrink-0 text-accent" />
+          <ArrowRight className="mt-0.5 size-3 shrink-0 text-accent" />
           {item.next.title}
         </p>
       </Link>
