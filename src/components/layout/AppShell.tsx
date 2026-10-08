@@ -132,7 +132,8 @@ export function AppShell() {
       </div>
       <CommandPalette />
       <CreateSolutionWizard />
-      <ScrollRestoration />
+      {/* Key by path: fresh page loads otherwise share one key and inherit each other's scroll position. */}
+      <ScrollRestoration getKey={(location) => location.pathname} />
     </div>
   )
 }
