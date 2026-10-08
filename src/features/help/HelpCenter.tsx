@@ -63,7 +63,7 @@ export function HelpCenter() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-semibold text-fg">Take the product tour</p>
-              <p className="text-[12px] text-fg-muted">Six quick steps through what matters most.</p>
+              <p className="text-[12px] text-fg-muted">Eight guided steps across the product.</p>
             </div>
             <Button
               variant="primary"

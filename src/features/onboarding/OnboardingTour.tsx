@@ -1,23 +1,35 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocation, useNavigate } from 'react-router'
 import { ArrowLeft, ArrowRight, Check, LayoutDashboard, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/Button'
 import { useUI } from '@/data/ui'
 import { cn } from '@/lib/cn'
 
-/* A six-step product tour that opens every new browser session, so each
-   visitor to the demo starts with the purpose before exploring. Step one
-   and six are centered statements; the four between spotlight the parts of
-   the product that matter most. Skip ends it for the session; Help replays it.
+/* An eight-step product tour that opens every new browser session, so each
+   visitor to the demo starts with the purpose before exploring. The first and
+   last steps are centered statements. The six between travel the product:
+   a pointer glides to where the tour is heading and "clicks" the sidebar to
+   change pages, then the spotlight settles and the callout appears.
+   Skip ends it for the session; Help replays it.
    Add ?tour=off to a URL to suppress it (screenshots, tests). */
 
 const SESSION_KEY = 'asn-tour'
+const DEMO = '/solutions/s_support'
+/** Pace of the guided motion. Deliberately unhurried so the eye can follow. */
+const GLIDE_MS = 1100
+const CLICK_MS = 520
+const SETTLE_MS = 420
 
 type Side = 'right' | 'bottom' | 'left' | 'top'
 interface Step {
   id: string
-  /** Candidate targets, first visible one wins. None = a centered statement. */
+  /** The page this step lives on. The tour navigates there first. */
+  route?: string
+  /** What the pointer clicks to get to that page; first visible wins. */
+  via?: string[]
+  /** Candidate spotlight targets, first visible wins. None = a centered statement. */
   targets?: string[]
   side?: Side
   title?: string
@@ -27,38 +39,61 @@ interface Step {
 const STEPS: Step[] = [
   { id: 'welcome' },
   {
-    id: 'nav',
-    targets: ['[data-tour="nav"]', '[data-tour="nav-mobile"]'],
-    side: 'right',
-    title: 'Your map of the portfolio',
-    body: "Dashboard for the big picture, Solutions for every initiative, and Reports for leadership. The page you're on lists its sections underneath, so you can jump straight to one.",
+    id: 'attention',
+    route: '/',
+    via: ['nav[aria-label="Primary"] a[href="/"]'],
+    targets: ['#attention', 'main [data-section-header]'],
+    side: 'bottom',
+    title: 'Start with what needs attention',
+    body: "The Dashboard opens with a one-line briefing. Needs attention shows what's blocked or at risk, why, and the next step for each.",
   },
   {
-    id: 'sections',
-    targets: ['main [data-section-header]', 'main h1'],
+    id: 'solution',
+    route: DEMO,
+    via: [`nav[aria-label="Primary"] a[href="${DEMO}"]`, 'nav[aria-label="Primary"] a[href="/solutions"]'],
+    targets: ['[aria-label="Next best action"]'],
     side: 'bottom',
-    title: 'Headlines first, detail on demand',
-    body: 'Every section folds to a one-line headline, so a page reads in seconds. Open only what you need, or use Expand all.',
+    title: 'Every solution shows its next move',
+    body: 'Open any initiative to see its stage, readiness, and gate. The next best action names the one thing to drive now, who owns it, and why it matters.',
+  },
+  {
+    id: 'gate',
+    route: DEMO,
+    targets: ['#gate', 'main [data-section-header]'],
+    side: 'top',
+    title: "See exactly why it can't advance",
+    body: 'Each gate lists every open requirement and its owner. Select one to open the work and see what is missing. A checked box only counts once its evidence is approved.',
   },
   {
     id: 'advisor',
-    targets: ['[data-tour="advisor"]'],
-    side: 'bottom',
-    title: 'An AI advisor on every screen',
+    route: DEMO,
+    targets: ['#gate [aria-label^="AI advisor"]', 'main [aria-label^="AI advisor"]', '[data-tour="advisor"]'],
+    side: 'left',
+    title: 'Ask the AI advisor about any area',
     body: (
       <>
-        Ask it anything here, or select the <Sparkles className="inline size-3.5 align-[-2px] text-accent" aria-label="star" /> star on any section for an analysis of just that area. It recommends and explains; decisions stay with you.
+        Select the <Sparkles className="inline size-3.5 align-[-2px] text-accent" aria-label="star" /> star on any section, like this gate, for an analysis of just that area. Or open AI advisor in the top bar to ask anything. Decisions stay with your team.
       </>
     ),
   },
   {
+    id: 'reports',
+    route: '/reports',
+    via: ['nav[aria-label="Primary"] a[href="/reports"]'],
+    targets: ['section[aria-labelledby="insights-title"]', 'main [data-section-header]'],
+    side: 'bottom',
+    title: 'Report to leadership in one place',
+    body: 'Reports leads with the three most important insights, then health, delivery, risk, value, and AI quality, each folded to a headline until you need it.',
+  },
+  {
     id: 'help',
+    route: '/reports',
     targets: ['[data-tour="help"]'],
     side: 'bottom',
     title: 'Help is one click away',
     body: 'Quick how-to guides, answers by topic, and this tour whenever you want it again.',
   },
-  { id: 'finale' },
+  { id: 'finale', route: '/', via: ['nav[aria-label="Primary"] a[href="/"]'] },
 ]
 
 /** Opens the tour once per browser session. */
@@ -92,13 +127,34 @@ const visible = (el: Element | null): el is HTMLElement => {
   const r = el.getBoundingClientRect()
   return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden'
 }
+const firstVisible = (selectors?: string[]) => selectors?.map((s) => document.querySelector(s)).find(visible) ?? null
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(v, Math.max(lo, hi)))
+const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms))
+const samePath = (a: string, b: string) => a.replace(/\/$/, '') === b.replace(/\/$/, '')
 
 interface Box {
   top: number
   left: number
   width: number
   height: number
+}
+
+/** The spotlight box around an element, kept on screen even for tall targets. */
+function boxOf(el: HTMLElement): Box {
+  const r = el.getBoundingClientRect()
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const pad = 6
+  const top = Math.max(r.top - pad, 8)
+  const bottom = Math.min(r.bottom + pad, vh - 8)
+  return { top, left: Math.max(r.left - pad, 8), width: Math.min(r.width + pad * 2, vw - 16), height: Math.max(bottom - top, 24) }
+}
+
+/** Where the pointer rests on an element: near its leading edge, like a real click. */
+function pointOf(el: HTMLElement) {
+  const r = el.getBoundingClientRect()
+  const small = r.width < 160 && r.height < 60
+  return small ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: r.left + Math.min(r.width * 0.5, 64), y: r.top + Math.min(r.height * 0.5, 26) }
 }
 
 function place(r: Box | null, side: Side, cw: number, ch: number, vw: number, vh: number) {
@@ -115,55 +171,133 @@ function place(r: Box | null, side: Side, cw: number, ch: number, vw: number, vh
   return center
 }
 
+interface Pointer {
+  x: number
+  y: number
+  shown: boolean
+  /** Bumps on each simulated click to replay the ripple. */
+  clicks: number
+  /** False for the first placement, so the pointer appears instead of flying in. */
+  animate: boolean
+}
+
 export function OnboardingTour() {
   const open = useUI((s) => s.tourOpen)
   const endTour = useUI((s) => s.endTour)
+  const navigate = useNavigate()
+  const location = useLocation()
   const [i, setI] = useState(0)
+  const [ready, setReady] = useState(true)
   const [hole, setHole] = useState<Box | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const [pointer, setPointer] = useState<Pointer>({ x: 0, y: 0, shown: false, clicks: 0, animate: false })
   const card = useRef<HTMLDivElement>(null)
   const primary = useRef<HTMLButtonElement>(null)
+  const target = useRef<HTMLElement | null>(null)
+  const run = useRef(0)
+  const forward = useRef(true)
+  const path = useRef(location.pathname)
+  path.current = location.pathname
+  const pointerRef = useRef(pointer)
+  pointerRef.current = pointer
+
   const step = STEPS[i]
   const statement = !step.targets
   const last = i === STEPS.length - 1
 
   useEffect(() => {
-    if (open) setI(0)
+    if (!open) return
+    setI(0)
+    setReady(true)
+    setHole(null)
+    target.current = null
+    setPointer((p) => ({ ...p, shown: false }))
   }, [open])
 
-  const measure = useCallback(() => {
-    const vw = window.innerWidth
-    const vh = window.innerHeight
-    const target = step.targets?.map((t) => document.querySelector(t)).find(visible) ?? null
-    let box: Box | null = null
-    if (target) {
-      const r = target.getBoundingClientRect()
-      const pad = 6
-      // Keep the spotlight on screen even for tall targets like the sidebar.
-      const top = Math.max(r.top - pad, 8)
-      const bottom = Math.min(r.bottom + pad, vh - 8)
-      box = { top, left: Math.max(r.left - pad, 8), width: Math.min(r.width + pad * 2, vw - 16), height: Math.max(bottom - top, 24) }
-    }
-    setHole(box)
-    const el = card.current
-    if (el) setPos(place(box, step.side ?? 'bottom', el.offsetWidth, el.offsetHeight, vw, vh))
-  }, [step])
-
-  // Bring an off-screen target into view, then measure once layout settles.
-  useLayoutEffect(() => {
-    if (!open) return
-    const target = step.targets?.map((t) => document.querySelector(t)).find(visible)
-    if (target) {
-      const r = target.getBoundingClientRect()
-      if (r.top < 56 || r.bottom > window.innerHeight) target.scrollIntoView({ block: 'center' })
-    }
-    measure()
-    const t = window.setTimeout(measure, 80)
-    return () => window.clearTimeout(t)
-  }, [open, i, measure, step])
-
+  // The guided sequence for each step: travel, find the target, glide to it, then show the callout.
   useEffect(() => {
     if (!open) return
+    const id = ++run.current
+    const alive = () => run.current === id && useUI.getState().tourOpen
+    const guided = window.innerWidth >= 768 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    const glide = async (to: { x: number; y: number }) => {
+      if (!pointerRef.current.shown) {
+        // Appear near the middle of the screen, then travel.
+        setPointer((p) => ({ ...p, x: window.innerWidth / 2, y: window.innerHeight * 0.55, shown: true, animate: false }))
+        await sleep(60)
+      }
+      setPointer((p) => ({ ...p, x: to.x, y: to.y, animate: true }))
+      await sleep(GLIDE_MS)
+    }
+    const click = async () => {
+      setPointer((p) => ({ ...p, clicks: p.clicks + 1 }))
+      await sleep(CLICK_MS)
+    }
+    const waitFor = async <T,>(get: () => T | null | false, ms = 3500): Promise<T | null> => {
+      const start = Date.now()
+      for (;;) {
+        const v = get()
+        if (v) return v
+        if (Date.now() - start > ms || !alive()) return null
+        await sleep(80)
+      }
+    }
+
+    ;(async () => {
+      if (i === 0) return
+      setReady(false)
+      // 1. Travel: show the click that gets to this step's page.
+      if (step.route && !samePath(path.current, step.route)) {
+        const via = forward.current ? firstVisible(step.via) : null
+        if (via && guided) {
+          setHole(boxOf(via))
+          await glide(pointOf(via))
+          if (!alive()) return
+          await click()
+          if (!alive()) return
+        }
+        navigate(step.route)
+        await waitFor(() => samePath(path.current, step.route!))
+        if (!alive()) return
+      }
+      // 2. Find what this step is about, and bring it into view.
+      const el = step.targets ? await waitFor(() => firstVisible(step.targets)) : null
+      if (!alive()) return
+      target.current = el
+      if (el) {
+        const r = el.getBoundingClientRect()
+        if (r.top < 72 || r.bottom > window.innerHeight - 24) {
+          el.scrollIntoView({ block: r.height > window.innerHeight * 0.6 ? 'start' : 'center' })
+          await sleep(120)
+        }
+        setHole(boxOf(el))
+        if (guided) await glide(pointOf(el))
+      } else {
+        setHole(null)
+        setPointer((p) => ({ ...p, shown: false }))
+      }
+      if (!alive()) return
+      // 3. Let the spotlight settle before the words arrive.
+      await sleep(guided ? SETTLE_MS : 0)
+      if (alive()) setReady(true)
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, i])
+
+  const measure = useCallback(() => {
+    const el = target.current
+    const box = el && el.isConnected ? boxOf(el) : null
+    if (ready) setHole(box)
+    if (card.current) setPos(place(box, step.side ?? 'bottom', card.current.offsetWidth, card.current.offsetHeight, window.innerWidth, window.innerHeight))
+  }, [ready, step])
+
+  useLayoutEffect(() => {
+    if (open && ready) measure()
+  }, [open, ready, i, measure])
+
+  useEffect(() => {
+    if (!open || !ready) return
     const on = () => measure()
     window.addEventListener('resize', on)
     window.addEventListener('scroll', on, true)
@@ -174,15 +308,23 @@ export function OnboardingTour() {
       window.removeEventListener('scroll', on, true)
       ro?.disconnect()
     }
-  }, [open, measure])
+  }, [open, ready, measure])
 
-  const next = useCallback(() => (last ? endTour() : setI((n) => n + 1)), [last, endTour])
-  const back = useCallback(() => setI((n) => Math.max(0, n - 1)), [])
+  const next = useCallback(() => {
+    if (!ready) return
+    forward.current = true
+    if (last) endTour()
+    else setI((n) => n + 1)
+  }, [ready, last, endTour])
+  const back = useCallback(() => {
+    if (!ready) return
+    forward.current = false
+    setI((n) => Math.max(0, n - 1))
+  }, [ready])
 
   useEffect(() => {
-    if (!open) return
-    primary.current?.focus({ preventScroll: true })
-  }, [open, i])
+    if (open && ready) primary.current?.focus({ preventScroll: true })
+  }, [open, ready, i])
 
   useEffect(() => {
     if (!open) return
@@ -214,9 +356,10 @@ export function OnboardingTour() {
 
   const center = { top: window.innerHeight / 2, left: window.innerWidth / 2, width: 0, height: 0 }
   const spot = hole ?? center
+  const showCard = ready && pos
 
   return createPortal(
-    <div className="tour-root fixed inset-0 z-[90]" data-tour-step={step.id}>
+    <div className="tour-root fixed inset-0 z-[90]" data-tour-step={step.id} data-tour-ready={ready || undefined}>
       {/* Catches clicks so the page can't be changed mid-tour. */}
       <div className="absolute inset-0" aria-hidden />
       <div
@@ -227,23 +370,38 @@ export function OnboardingTour() {
           left: spot.left,
           width: spot.width,
           height: spot.height,
+          // Same three layers in both states so the transition never interpolates a glow into the dimmer.
           boxShadow: hole
             ? '0 0 0 2px var(--accent), 0 0 24px 4px color-mix(in oklch, var(--accent) 45%, transparent), 0 0 0 9999px rgb(5 5 9 / 0.66)'
-            : '0 0 0 9999px rgb(5 5 9 / 0.78)',
+            : '0 0 0 2px transparent, 0 0 24px 4px transparent, 0 0 0 9999px rgb(5 5 9 / 0.78)',
         }}
       />
+
+      {/* The guide's pointer: shows where each step is heading before it arrives. */}
+      <div
+        aria-hidden
+        className={cn('tour-pointer pointer-events-none fixed top-0 left-0 z-[2]', pointer.animate && 'tour-pointer-glide', pointer.shown ? 'opacity-100' : 'opacity-0')}
+        style={{ transform: `translate(${pointer.x}px, ${pointer.y}px)` }}
+      >
+        {pointer.clicks > 0 && <span key={pointer.clicks} className="tour-ripple absolute -top-4 -left-4 size-8 rounded-full" />}
+        <svg width="22" height="26" viewBox="0 0 22 26" className="drop-shadow-[0_2px_6px_rgb(0_0_0/0.55)]">
+          <path d="M2 2 L2 21 L7.2 16.4 L10.6 24 L14 22.5 L10.7 15.1 L17.6 15.1 Z" fill="white" stroke="#141418" strokeWidth="1.6" strokeLinejoin="round" />
+        </svg>
+      </div>
+
       <div
         ref={card}
         role="dialog"
         aria-modal="true"
         aria-labelledby="tour-title"
         aria-describedby="tour-body"
+        aria-hidden={!showCard || undefined}
         key={step.id}
         style={pos ? { top: pos.top, left: pos.left } : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
         className={cn(
-          'tour-card fixed max-h-[calc(100dvh-32px)] animate-pop-in overflow-y-auto overscroll-contain rounded-2xl bg-surface text-fg shadow-pop ring-1 ring-border-strong',
+          'tour-card fixed z-[3] max-h-[calc(100dvh-32px)] overflow-y-auto overscroll-contain rounded-2xl bg-surface text-fg shadow-pop ring-1 ring-border-strong',
           step.id === 'welcome' ? 'w-[min(680px,calc(100vw-32px))] p-5 sm:p-9' : step.id === 'finale' ? 'w-[min(500px,calc(100vw-32px))] p-6 sm:p-8' : 'w-[min(360px,calc(100vw-32px))] p-5',
-          !pos && 'opacity-0',
+          showCard ? 'animate-pop-in' : 'pointer-events-none opacity-0',
         )}
       >
         {step.id !== 'finale' && (
@@ -304,7 +462,7 @@ export function OnboardingTour() {
           </div>
         )}
         <p className="sr-only" aria-live="polite">
-          Step {i + 1} of {STEPS.length}
+          {showCard ? `Step ${i + 1} of ${STEPS.length}` : ''}
         </p>
       </div>
     </div>,
