@@ -1,0 +1,19 @@
+// Cloudflare settings for publishing. `npm run deploy` builds the app and uploads ./dist.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ai-solution-navigator",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // Small server program for /api/* (the Implementation Advisor). Everything else is the static app.
+  "main": "worker/index.ts",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  // Serves the app at this address and creates its DNS record on icarianforge.com automatically.
+  "routes": [{ "pattern": "navigator.icarianforge.com", "custom_domain": true }]
+  // Optional secret (not in this file): ANTHROPIC_API_KEY, set with `wrangler secret put`.
+  // Without it the advisor runs in free, built-in mode.
+}

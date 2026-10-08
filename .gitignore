@@ -7,3 +7,4 @@ dist
 .vercel
 .claude/
 .DS_Store
+.wrangler

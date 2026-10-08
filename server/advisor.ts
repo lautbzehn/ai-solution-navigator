@@ -5,9 +5,15 @@ import type { AdvisorAnswer, AdvisorContext, AdvisorStatus } from '../src/ai/typ
    The API key stays on the server. Live mode is opt-in: it runs only when
    ANTHROPIC_API_KEY is set in the server environment, so a fresh checkout or
    a public demo never incurs API charges. Shared by the Vite dev middleware
-   and the Vercel function in /api. */
+   and the Cloudflare Worker in /worker. */
 
-const model = () => process.env.ADVISOR_MODEL || 'claude-opus-5-5'
+/** Server configuration. Node (Vite dev) reads process.env; the Cloudflare Worker passes its env bindings. */
+export interface AdvisorEnv {
+  ANTHROPIC_API_KEY?: string
+  ADVISOR_MODEL?: string
+}
+const nodeEnv = (): AdvisorEnv => (typeof process !== 'undefined' ? process.env : {})
+const model = (env: AdvisorEnv) => env.ADVISOR_MODEL || 'claude-opus-5-5'
 
 const SYSTEM_PROMPT = `You are an AI implementation advisor supporting a Lead Product Manager.
 
@@ -89,15 +95,15 @@ export interface HandlerResult {
 
 const UNAVAILABLE = 'The Implementation Advisor is temporarily unavailable. You can continue managing the implementation manually.'
 
-export function advisorStatus(): AdvisorStatus {
-  return process.env.ANTHROPIC_API_KEY ? { live: true, model: model() } : { live: false }
+export function advisorStatus(env: AdvisorEnv = nodeEnv()): AdvisorStatus {
+  return env.ANTHROPIC_API_KEY ? { live: true, model: model(env) } : { live: false }
 }
 
-export async function handleAdvisor(method: string, body: unknown): Promise<HandlerResult> {
-  if (method === 'GET') return { status: 200, body: advisorStatus() }
+export async function handleAdvisor(method: string, body: unknown, env: AdvisorEnv = nodeEnv()): Promise<HandlerResult> {
+  if (method === 'GET') return { status: 200, body: advisorStatus(env) }
   if (method !== 'POST') return { status: 405, body: { error: 'Method not allowed' } }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = env.ANTHROPIC_API_KEY
   if (!apiKey) return { status: 503, body: { error: 'Live advisor is not configured on this server.' } }
 
   const parsed = parseBody(body)
@@ -111,7 +117,7 @@ export async function handleAdvisor(method: string, body: unknown): Promise<Hand
 
   try {
     const response = await client.beta.messages.create({
-      model: model(),
+      model: model(env),
       max_tokens: 16000,
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',

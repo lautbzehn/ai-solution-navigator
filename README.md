@@ -1,5 +1,7 @@
 # AI Solution Navigator
 
+**Live demo: [navigator.icarianforge.com](https://navigator.icarianforge.com)**
+
 **A Product Manager's workspace for taking AI solutions from opportunity to production.**
 
 A Lead Product Manager orchestrates an AI implementation; specialists do the work. The Navigator shows, at every moment, *where an AI initiative is, what needs to happen next, who needs to do it, what evidence is required, what could block it, and whether it's actually ready to move forward.*
@@ -54,10 +56,14 @@ npm run dev
 
 The browser sends a compact JSON snapshot of the current solution to `/api/advisor`; the server calls the Messages API with structured JSON output and server-side refusal fallback, then validates the response. Any failure falls back to built-in guidance with a clear notice.
 
-## Deploy (Vercel, free Hobby tier)
+## Deploy (Cloudflare Workers)
 
-1. Import the repository in Vercel. The framework (Vite), build command, output directory, and SPA rewrites come from `vercel.json`.
-2. Optional: add `ANTHROPIC_API_KEY` as an environment variable to enable live advisor mode. `api/advisor.ts` is deployed as a serverless function.
+The app runs as a Cloudflare Worker at `navigator.icarianforge.com`. Static files come from `./dist`; only `/api/*` reaches the Worker (`worker/index.ts`).
+
+```bash
+npm run deploy                                  # build + wrangler deploy
+npx wrangler secret put ANTHROPIC_API_KEY       # optional: enable the live advisor
+```
 
 ## Architecture
 
@@ -66,8 +72,8 @@ src/config/lifecycle.json   The methodology: stages, activities, evidence, gates
 src/domain/                 Pure logic: readiness, gates, health, next best action, plan instantiation, reports, validation
 src/data/                   Zustand store (actions + audit trail), persistence adapter, seed data, derived hooks
 src/ai/                     Advisor contract, context builder, deterministic advisor, client
-server/advisor.ts           Server-side Claude integration (shared by the Vite dev middleware and the Vercel function)
-api/advisor.ts              Vercel function
+server/advisor.ts           Server-side Claude integration (shared by the Vite dev middleware and the Worker)
+worker/index.ts             Cloudflare Worker: serves the app and /api/advisor
 src/components/             Design system: UI primitives, charts, lifecycle rail, readiness gauge
 src/features/               Screens: dashboard, solutions, workspace, reports, framework, settings, advisor, create flow
 ```
