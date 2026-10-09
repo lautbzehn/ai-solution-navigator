@@ -1,6 +1,6 @@
 # The story behind the Navigator
 
-**v1.1 · 10.09.2026** · Dan West · [Try the live demo](https://navigator.icarianforge.com)
+**v1.2 · 10.09.2026** · Dan West · [Try the live demo](https://navigator.icarianforge.com)
 
 ---
 
@@ -28,7 +28,7 @@ I didn't want to build something that only works for one team's way of doing thi
 
 ### "Done" should mean done
 
-You can't move a project to the next stage just by ticking boxes. The work has to be finished and the proof behind it has to be signed off. And if something's holding a project up, the app tells you exactly what it is and who can fix it. No guessing, no chasing people down.
+I've seen projects get waved through because someone said the work was done, while the proof was still sitting in an email somewhere. So here, you can't move a project to the next stage just by ticking boxes. The work has to be finished and the proof behind it has to be signed off. And if something's holding a project up, the app tells you exactly what it is and who can fix it. No guessing, no chasing people down.
 
 ### Small projects shouldn't carry big-project paperwork
 
