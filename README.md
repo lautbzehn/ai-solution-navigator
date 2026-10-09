@@ -6,6 +6,15 @@
 
 **A Product Manager's workspace for taking AI solutions from opportunity to production.**
 
+![The portfolio overview: every AI project at a glance, with the two that need help up front](docs/screenshots/dashboard.png)
+
+<p>
+  <img src="docs/screenshots/workspace.png" width="49%" alt="One project's workspace: where it is, how ready it is, and what to do next">
+  <img src="docs/screenshots/gate-blocked.png" width="49%" alt="A blocked stage gate: exactly what's missing, who owns it, and a link to fix it">
+</p>
+
+*Left: one project's workspace, with where it is and what to do next. Right: when a project can't move forward yet, it shows exactly what's missing and who can help.*
+
 A Lead Product Manager orchestrates an AI implementation; specialists do the work. The Navigator shows, at every moment, *where an AI initiative is, what needs to happen next, who needs to do it, what evidence is required, what could block it, and whether it's actually ready to move forward.*
 
 It operationalizes an 8-stage enterprise AI lifecycle (Discover → Assess → Design → Build → Validate → Deploy → Operate → Improve/Retire) with continuous, risk-based governance, without becoming a GRC platform.
