@@ -1,16 +1,20 @@
 name: CI
 
+# Every pull request is tested and built. Every merge to main is tested, built,
+# and deployed to navigator.icarianforge.com. "Run workflow" on main redeploys.
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded pull request runs are cancelled; runs on main always finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -26,3 +30,58 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm test
       - run: npm run build
+
+  deploy:
+    name: Deploy to navigator.icarianforge.com
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      # Until the Cloudflare secrets are added, skip with a note instead of failing.
+      - name: Check deploy credentials
+        id: creds
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Deploy skipped. Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository secrets to ship automatically."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.creds.outputs.ready == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.creds.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.creds.outputs.ready == 'true'
+        run: npm ci --no-audit --no-fund
+      - if: steps.creds.outputs.ready == 'true'
+        run: npm run build
+      # The token is only given to the step that needs it.
+      - name: Deploy
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
+      - name: Confirm the live site serves this build
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          expected=$(grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' dist/index.html | head -1)
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsS "https://navigator.icarianforge.com/?build=${GITHUB_SHA}" | grep -q "$expected"; then
+              echo "Live: navigator.icarianforge.com is serving $expected"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::The live site is not serving $expected after a minute."
+          exit 1
