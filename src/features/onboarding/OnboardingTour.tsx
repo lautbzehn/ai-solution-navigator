@@ -32,6 +32,8 @@ interface Step {
   /** Candidate spotlight targets, first visible wins. None = a centered statement. */
   targets?: string[]
   side?: Side
+  /** Where the pointer rests relative to the target. */
+  point?: 'right' | 'below'
   title?: string
   body?: ReactNode
 }
@@ -89,7 +91,8 @@ const STEPS: Step[] = [
     id: 'help',
     route: '/reports',
     targets: ['[data-tour="help"]'],
-    side: 'bottom',
+    side: 'left',
+    point: 'below',
     title: 'Help is one click away',
     body: 'Quick how-to guides, answers by topic, and this tour whenever you want it again.',
   },
@@ -117,7 +120,7 @@ export function useSessionTour() {
         /* ignore */
       }
       startTour()
-    }, 650)
+    }, 1200)
     return () => window.clearTimeout(timer)
   }, [startTour])
 }
@@ -150,11 +153,15 @@ function boxOf(el: HTMLElement): Box {
   return { top, left: Math.max(r.left - pad, 8), width: Math.min(r.width + pad * 2, vw - 16), height: Math.max(bottom - top, 24) }
 }
 
-/** Where the pointer rests on an element: near its leading edge, like a real click. */
-function pointOf(el: HTMLElement) {
-  const r = el.getBoundingClientRect()
-  const small = r.width < 160 && r.height < 60
-  return small ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: r.left + Math.min(r.width * 0.5, 64), y: r.top + Math.min(r.height * 0.5, 26) }
+/** Where the pointer rests: just outside the spotlight, pointing at it, so it
+    never covers the text it is showing. Falls back to below, then mirrored on the left. */
+function restPoint(el: HTMLElement, prefer: 'right' | 'below' = 'right'): { x: number; y: number; flip: boolean } {
+  const b = boxOf(el)
+  const right = { x: b.left + b.width + 3, y: b.top + Math.min(b.height / 2, 22), flip: false }
+  const below = { x: b.left + b.width / 2, y: b.top + b.height + 3, flip: false }
+  if (prefer === 'right' && right.x + 22 <= window.innerWidth) return right
+  if (below.y + 28 <= window.innerHeight) return below
+  return { x: b.left - 3, y: right.y, flip: true }
 }
 
 function place(r: Box | null, side: Side, cw: number, ch: number, vw: number, vh: number) {
@@ -174,6 +181,8 @@ function place(r: Box | null, side: Side, cw: number, ch: number, vw: number, vh
 interface Pointer {
   x: number
   y: number
+  /** Points up-right instead of up-left, for targets against the right edge. */
+  flip: boolean
   shown: boolean
   /** Bumps on each simulated click to replay the ripple. */
   clicks: number
@@ -190,7 +199,9 @@ export function OnboardingTour() {
   const [ready, setReady] = useState(true)
   const [hole, setHole] = useState<Box | null>(null)
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
-  const [pointer, setPointer] = useState<Pointer>({ x: 0, y: 0, shown: false, clicks: 0, animate: false })
+  const [entered, setEntered] = useState(false)
+  const firstCard = useRef(true)
+  const [pointer, setPointer] = useState<Pointer>({ x: 0, y: 0, flip: false, shown: false, clicks: 0, animate: false })
   const card = useRef<HTMLDivElement>(null)
   const primary = useRef<HTMLButtonElement>(null)
   const target = useRef<HTMLElement | null>(null)
@@ -206,12 +217,18 @@ export function OnboardingTour() {
   const last = i === STEPS.length - 1
 
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      setEntered(false)
+      return
+    }
+    firstCard.current = true
+    const t = window.setTimeout(() => setEntered(true), 30)
     setI(0)
     setReady(true)
     setHole(null)
     target.current = null
     setPointer((p) => ({ ...p, shown: false }))
+    return () => window.clearTimeout(t)
   }, [open])
 
   // The guided sequence for each step: travel, find the target, glide to it, then show the callout.
@@ -221,13 +238,13 @@ export function OnboardingTour() {
     const alive = () => run.current === id && useUI.getState().tourOpen
     const guided = window.innerWidth >= 768 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    const glide = async (to: { x: number; y: number }) => {
+    const glide = async (to: { x: number; y: number; flip: boolean }) => {
       if (!pointerRef.current.shown) {
         // Appear near the middle of the screen, then travel.
         setPointer((p) => ({ ...p, x: window.innerWidth / 2, y: window.innerHeight * 0.55, shown: true, animate: false }))
         await sleep(60)
       }
-      setPointer((p) => ({ ...p, x: to.x, y: to.y, animate: true }))
+      setPointer((p) => ({ ...p, x: to.x, y: to.y, flip: to.flip, animate: true }))
       await sleep(GLIDE_MS)
     }
     const click = async () => {
@@ -252,7 +269,7 @@ export function OnboardingTour() {
         const via = forward.current ? firstVisible(step.via) : null
         if (via && guided) {
           setHole(boxOf(via))
-          await glide(pointOf(via))
+          await glide(restPoint(via))
           if (!alive()) return
           await click()
           if (!alive()) return
@@ -272,7 +289,7 @@ export function OnboardingTour() {
           await sleep(120)
         }
         setHole(boxOf(el))
-        if (guided) await glide(pointOf(el))
+        if (guided) await glide(restPoint(el, step.point))
       } else {
         setHole(null)
         setPointer((p) => ({ ...p, shown: false }))
@@ -357,11 +374,15 @@ export function OnboardingTour() {
   const center = { top: window.innerHeight / 2, left: window.innerWidth / 2, width: 0, height: 0 }
   const spot = hole ?? center
   const showCard = ready && pos
+  // Only the welcome eases in slowly; later steps arrive with a lighter fade.
+  const slow = i === 0 && firstCard.current
+  if (showCard && i > 0) firstCard.current = false
 
   return createPortal(
     <div className="tour-root fixed inset-0 z-[90]" data-tour-step={step.id} data-tour-ready={ready || undefined}>
       {/* Catches clicks so the page can't be changed mid-tour. */}
       <div className="absolute inset-0" aria-hidden />
+      <div className="tour-layer" data-in={entered || undefined}>
       <div
         aria-hidden
         className="tour-spot pointer-events-none fixed rounded-xl"
@@ -372,8 +393,8 @@ export function OnboardingTour() {
           height: spot.height,
           // Same three layers in both states so the transition never interpolates a glow into the dimmer.
           boxShadow: hole
-            ? '0 0 0 2px var(--accent), 0 0 24px 4px color-mix(in oklch, var(--accent) 45%, transparent), 0 0 0 9999px rgb(5 5 9 / 0.66)'
-            : '0 0 0 2px transparent, 0 0 24px 4px transparent, 0 0 0 9999px rgb(5 5 9 / 0.78)',
+            ? '0 0 0 2px var(--success), 0 0 22px 3px color-mix(in oklch, var(--success) 35%, transparent), 0 0 0 9999px var(--tour-dim)'
+            : '0 0 0 2px transparent, 0 0 22px 3px transparent, 0 0 0 9999px var(--tour-dim-statement)',
         }}
       />
 
@@ -384,9 +405,11 @@ export function OnboardingTour() {
         style={{ transform: `translate(${pointer.x}px, ${pointer.y}px)` }}
       >
         {pointer.clicks > 0 && <span key={pointer.clicks} className="tour-ripple absolute -top-4 -left-4 size-8 rounded-full" />}
-        <svg width="22" height="26" viewBox="0 0 22 26" className="drop-shadow-[0_2px_6px_rgb(0_0_0/0.55)]">
+        {/* The arrow's tip sits exactly on the point; mirrored, it points up and to the right. */}
+        <svg width="22" height="26" viewBox="0 0 22 26" className="-mt-0.5 -ml-0.5 drop-shadow-[0_2px_6px_rgb(0_0_0/0.55)]" style={{ transform: pointer.flip ? 'scaleX(-1)' : undefined, transformOrigin: '2px 2px' }}>
           <path d="M2 2 L2 21 L7.2 16.4 L10.6 24 L14 22.5 L10.7 15.1 L17.6 15.1 Z" fill="white" stroke="#141418" strokeWidth="1.6" strokeLinejoin="round" />
         </svg>
+      </div>
       </div>
 
       <div
@@ -399,9 +422,9 @@ export function OnboardingTour() {
         key={step.id}
         style={pos ? { top: pos.top, left: pos.left } : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
         className={cn(
-          'tour-card fixed z-[3] max-h-[calc(100dvh-32px)] overflow-y-auto overscroll-contain rounded-2xl bg-surface text-fg shadow-pop ring-1 ring-border-strong',
+          'tour-card fixed z-[3] max-h-[calc(100dvh-32px)] overflow-y-auto overscroll-contain rounded-2xl text-fg',
           step.id === 'welcome' ? 'w-[min(680px,calc(100vw-32px))] p-5 sm:p-9' : step.id === 'finale' ? 'w-[min(500px,calc(100vw-32px))] p-6 sm:p-8' : 'w-[min(360px,calc(100vw-32px))] p-5',
-          showCard ? 'animate-pop-in' : 'pointer-events-none opacity-0',
+          showCard ? (slow ? 'tour-card-in-slow' : 'tour-card-in') : 'pointer-events-none opacity-0',
         )}
       >
         {step.id !== 'finale' && (
@@ -416,7 +439,7 @@ export function OnboardingTour() {
           <Finale />
         ) : (
           <>
-            <p className="text-[11px] font-semibold tracking-[0.08em] text-accent-fg uppercase">
+            <p className="text-[11px] font-semibold tracking-[0.08em] text-success-fg uppercase">
               Step {i + 1} of {STEPS.length}
             </p>
             <h2 id="tour-title" className="mt-1.5 pr-6 text-[16px] font-semibold tracking-[-0.01em] text-fg">
@@ -474,7 +497,7 @@ function Dots({ i }: { i: number }) {
   return (
     <span className="flex items-center gap-1.5" aria-hidden>
       {STEPS.map((s, n) => (
-        <span key={s.id} className={cn('h-1.5 rounded-full transition-all duration-300', n === i ? 'w-5 bg-accent' : n < i ? 'w-1.5 bg-accent/50' : 'w-1.5 bg-surface-3')} />
+        <span key={s.id} className={cn('h-1.5 rounded-full transition-all duration-300', n === i ? 'w-5 bg-success' : n < i ? 'w-1.5 bg-success/50' : 'w-1.5 bg-fg-faint/40')} />
       ))}
     </span>
   )
