@@ -15,6 +15,7 @@ import { STAGES, stageDef, stageOrder } from '@/config'
 import { usePortfolio, type SolutionInsight } from '@/data/hooks'
 import { useStore } from '@/data/store'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
+import { FavoriteStar } from '@/components/FavoriteStar'
 import { READINESS_BUCKETS, bucketOf, inProductionStage } from '@/domain/portfolio'
 import { cn } from '@/lib/cn'
 import { money } from '@/lib/format'
@@ -77,7 +78,7 @@ export function SolutionsPage() {
   return (
     <Page>
       <PageHeader
-        title="Solutions"
+        title="Solutions Hub"
         subtitle="Every AI initiative in the portfolio, where it is in the lifecycle, and what it needs next."
         actions={
           <>
@@ -188,10 +189,11 @@ function SolutionRow({ item }: { item: SolutionInsight }) {
   const s = item.bundle.solution
   const stageProgress = item.readiness.stageProgress[s.stage]
   return (
-    <li>
+    <li className="relative">
+      <FavoriteStar solutionId={s.id} name={s.name} className="absolute top-[15px] left-3 z-[1]" />
       <Link
         to={`/solutions/${s.id}`}
-        className="grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-surface-2 focus-visible:bg-surface-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_110px_96px_120px_minmax(0,2fr)]"
+        className="grid items-center gap-x-4 gap-y-3 py-4 pr-5 pl-10 transition-colors hover:bg-surface-2 focus-visible:bg-surface-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_110px_96px_120px_minmax(0,2fr)]"
       >
         <div className="min-w-0 sm:col-span-2 xl:col-span-1">
           <Tip content={s.description} delay={500}>
@@ -253,8 +255,10 @@ function Board({ items }: { items: SolutionInsight[] }) {
                 {col.map((i) => {
                   const s = i.bundle.solution
                   return (
-                    <Link key={s.id} to={`/solutions/${s.id}`} className="block rounded-lg bg-surface p-3 shadow-card ring-1 ring-border transition-colors hover:ring-border-strong">
-                      <p className="line-clamp-2 text-[12.5px] leading-snug font-medium text-fg">{s.name}</p>
+                    <div key={s.id} className="relative">
+                    <FavoriteStar solutionId={s.id} name={s.name} className="absolute top-1.5 right-1.5 z-[1]" />
+                    <Link to={`/solutions/${s.id}`} className="block rounded-lg bg-surface p-3 shadow-card ring-1 ring-border transition-colors hover:ring-border-strong">
+                      <p className="line-clamp-2 pr-5 text-[12.5px] leading-snug font-medium text-fg">{s.name}</p>
                       <div className="mt-2 flex items-center justify-between">
                         <HealthPill status={i.health.status} />
                         <span className="text-[12px] font-semibold tabular">{i.readiness.overall}%</span>
@@ -265,6 +269,7 @@ function Board({ items }: { items: SolutionInsight[] }) {
                         <RiskPill tier={s.riskTier} compact />
                       </div>
                     </Link>
+                    </div>
                   )
                 })}
                 {!col.length && <p className="px-2 py-6 text-center text-[11.5px] text-fg-faint">No solutions</p>}

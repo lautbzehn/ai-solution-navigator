@@ -17,6 +17,7 @@ import { useSolutionInsight } from '@/data/hooks'
 import { useStore } from '@/data/store'
 import { useUI } from '@/data/ui'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
+import { FavoriteStar } from '@/components/FavoriteStar'
 import { inProduction } from '@/domain/status'
 import { cn } from '@/lib/cn'
 import { daysBetween, relative } from '@/lib/format'
@@ -52,8 +53,14 @@ export function WorkspacePage() {
   const insight = useSolutionInsight(id)
   const navigate = useNavigate()
   const askAdvisor = useUI((s) => s.askAdvisor)
+  const markViewed = useUI((s) => s.markViewed)
   const [params, setParams] = useSearchParams()
   const tab = TABS.some((t) => t.id === rawTab) ? rawTab : 'overview'
+  // Feeds the sidebar's "Recently viewed" so it reflects what this user opened.
+  const exists = !!insight
+  useEffect(() => {
+    if (id && exists) markViewed(id)
+  }, [id, exists, markViewed])
 
   // Old tab URLs keep working: /decisions and /history open their section, /advisor opens the AI advisor.
   useEffect(() => {
@@ -146,8 +153,9 @@ export function WorkspacePage() {
                 </Tip>
               )}
             </div>
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-1.5">
               <h1 className="text-[24px] leading-tight font-semibold tracking-[-0.025em] text-balance text-fg md:text-[28px]">{solution.name}</h1>
+              <FavoriteStar solutionId={solution.id} name={solution.name} size="md" className="mt-0.5" />
               <Tip content="Edit solution details">
                 <Button variant="ghost" size="icon-sm" className="mt-1" aria-label="Edit solution details" onClick={() => setEditOpen(true)}>
                   <Pencil className="!size-3.5" />

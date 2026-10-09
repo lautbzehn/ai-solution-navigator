@@ -13,13 +13,13 @@ export const GUIDES: Guide[] = [
   {
     id: 'health',
     title: 'Check portfolio health in 30 seconds',
-    steps: ['Open the Dashboard.', 'Read the one-line briefing and the four headline numbers.', 'Open Needs attention to see what is blocked or at risk, and the next step for each.'],
+    steps: ['Open My Overview.', 'Read your one-line briefing, what is yours, and the four headline numbers.', 'Open Needs your attention to see what is blocked or at risk, and the next step for each.'],
     to: '/#attention',
   },
   {
     id: 'blocked',
     title: "Find out why a solution can't advance",
-    steps: ['Open a solution from the Dashboard or Solutions.', 'On Overview, Gate readiness lists every open requirement and who owns it.', 'Select a requirement to open the activity and see exactly what is missing.'],
+    steps: ['Open a solution from My Overview, the Solutions Hub, or your Favorites.', 'On Overview, Gate readiness lists every open requirement and who owns it.', 'Select a requirement to open the activity and see exactly what is missing.'],
     to: '/solutions/s_support',
   },
   {
@@ -58,9 +58,10 @@ export interface Faq {
 }
 
 export const FAQS: Faq[] = [
-  { category: 'Getting around', q: "What's the fastest way to find a solution?", a: 'Press ⌘K (Ctrl K on Windows) anywhere and type its name. Or open Solutions and filter by status, stage, risk, owner, or readiness.' },
+  { category: 'Getting around', q: "What's the fastest way to find a solution?", a: 'Press ⌘K (Ctrl K on Windows) anywhere and type its name, or open the Solutions Hub and filter by status, stage, risk, owner, or readiness. Star the ones you use most and they stay under Favorites in the sidebar.' },
   { category: 'Getting around', q: 'Why are sections folded?', a: 'Each section shows a one-line headline so you can scan a page in seconds. Open only what you need, or use Expand all. The app remembers what you opened.' },
-  { category: 'Getting around', q: 'What are the items under each sidebar page?', a: "They're the sections of the page you're on. Select one to jump straight to it." },
+  { category: 'Getting around', q: 'What are the items under each sidebar page?', a: "They're the sections of that page. Select one to jump straight to it. Use the arrow beside any sidebar group to open or close it at any time; the sidebar remembers your choice." },
+  { category: 'Getting around', q: 'How do I keep a solution handy?', a: 'Select the star beside its name. Starred solutions stay under Favorites in the sidebar; select the star again to remove one. Recently viewed shows the ones you opened last.' },
   { category: 'Lifecycle and gates', q: 'What are the eight stages?', a: 'Discover, Assess, Design, Build, Validate, Deploy, Operate, and Improve / Retire. Each ends in a gate except the last, which is continuous.' },
   { category: 'Lifecycle and gates', q: 'What does a gate check?', a: 'Blocking activities must be complete with approved evidence, plus criteria such as named roles, defined metrics, and mitigated high risks. The gate review explains anything still open.' },
   { category: 'Lifecycle and gates', q: 'Who decides that a solution can advance?', a: 'A named person records the gate decision with a rationale and any conditions. Neither the app nor the AI advisor advances anything on its own.' },

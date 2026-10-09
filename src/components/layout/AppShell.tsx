@@ -17,8 +17,8 @@ import { Sidebar, SidebarContent } from './Sidebar'
 import { AdvisorSlot } from './AdvisorSlot'
 
 const PAGE_NAMES: Record<string, string> = {
-  '': 'Dashboard',
-  solutions: 'Solutions',
+  '': 'My Overview',
+  solutions: 'Solutions Hub',
   reports: 'Portfolio Intelligence',
   framework: 'Lifecycle Framework',
   settings: 'Settings',

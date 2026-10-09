@@ -1,4 +1,4 @@
-/* Core domain model for the AI Solution Navigator.
+/* Core domain model for the Forge AI Solution Navigator.
    Lifecycle methodology lives in config/lifecycle.json; these types describe
    both that configuration and the per-solution records that instantiate it. */
 
@@ -29,6 +29,8 @@ export type Priority = 'high' | 'medium' | 'low'
 export interface StageDef {
   id: StageId
   name: string
+  /** A few words for diagrams: what the stage achieves. */
+  tagline: string
   purpose: string
   keyQuestion: string
   expectedReadiness: number
@@ -93,9 +95,18 @@ export interface GateDef {
   criteria: GateCriterionDef[]
 }
 
+/** A group of consecutive stages (Plan, Deliver, Run) used to explain the flow. */
+export interface PhaseDef {
+  id: string
+  name: string
+  summary: string
+  stages: StageId[]
+}
+
 export interface LifecycleConfig {
   version: string
   name: string
+  phases: PhaseDef[]
   stages: StageDef[]
   riskTiers: RiskTierDef[]
   readinessDimensions: DimensionDef[]

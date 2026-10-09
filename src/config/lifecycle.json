@@ -1,10 +1,16 @@
 {
   "version": "1.0.0",
   "name": "Enterprise AI Implementation Lifecycle",
+  "phases": [
+    { "id": "plan", "name": "Plan", "summary": "Is it worth doing, and what exactly?", "stages": ["discover", "assess", "design"] },
+    { "id": "deliver", "name": "Deliver", "summary": "Build it, prove it, release it", "stages": ["build", "validate", "deploy"] },
+    { "id": "run", "name": "Run", "summary": "Operate, learn, and improve", "stages": ["operate", "improve"] }
+  ],
   "stages": [
     {
       "id": "discover",
       "name": "Discover",
+      "tagline": "Frame the opportunity",
       "purpose": "Frame the opportunity. Confirm the problem is real, valuable, and that AI is plausibly the right tool.",
       "keyQuestion": "Is this a problem worth solving with AI?",
       "expectedReadiness": 10,
@@ -13,6 +19,7 @@
     {
       "id": "assess",
       "name": "Assess",
+      "tagline": "Test feasibility and value",
       "purpose": "Evaluate feasibility, data, risk, and value before committing to a design.",
       "keyQuestion": "Can we do this responsibly, and is it worth it?",
       "expectedReadiness": 25,
@@ -21,6 +28,7 @@
     {
       "id": "design",
       "name": "Design",
+      "tagline": "Define it and how to judge it",
       "purpose": "Define the solution, how it will be evaluated, how humans stay in control, and how success is measured.",
       "keyQuestion": "What exactly are we building, and how will we know it works?",
       "expectedReadiness": 40,
@@ -29,6 +37,7 @@
     {
       "id": "build",
       "name": "Build",
+      "tagline": "Build a traceable version",
       "purpose": "Build a working solution with versioned configuration, a test plan, and documented limitations.",
       "keyQuestion": "Does a working, traceable version exist?",
       "expectedReadiness": 55,
@@ -37,6 +46,7 @@
     {
       "id": "validate",
       "name": "Validate",
+      "tagline": "Prove it works, safely",
       "purpose": "Prove the solution performs, is safe enough to operate, and is accepted by the business.",
       "keyQuestion": "Is the evidence strong enough to put this in front of real users?",
       "expectedReadiness": 70,
@@ -45,6 +55,7 @@
     {
       "id": "deploy",
       "name": "Deploy",
+      "tagline": "Go live with support",
       "purpose": "Release to production with support, training, rollback, and monitoring in place.",
       "keyQuestion": "Are people, process, and monitoring ready for go-live?",
       "expectedReadiness": 82,
@@ -53,6 +64,7 @@
     {
       "id": "operate",
       "name": "Operate",
+      "tagline": "Run, watch, and measure",
       "purpose": "Run the solution, watch for drift and incidents, and measure adoption and realized value.",
       "keyQuestion": "Is it working, being used, and delivering value?",
       "expectedReadiness": 88,
@@ -61,6 +73,7 @@
     {
       "id": "improve",
       "name": "Improve / Retire",
+      "tagline": "Improve or retire",
       "purpose": "Continuously improve the solution, re-assess risk after changes, or retire it responsibly.",
       "keyQuestion": "Should we invest further, change course, or retire?",
       "expectedReadiness": 90,

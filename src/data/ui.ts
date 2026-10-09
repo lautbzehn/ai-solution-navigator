@@ -12,6 +12,15 @@ const readCollapsed = () => {
   }
 }
 
+const readRecent = (): string[] => {
+  try {
+    const raw = window.localStorage.getItem('asn-recent')
+    return raw ? (JSON.parse(raw) as string[]) : []
+  } catch {
+    return []
+  }
+}
+
 interface UIState {
   sidebarCollapsed: boolean
   mobileNavOpen: boolean
@@ -25,6 +34,9 @@ interface UIState {
   endTour(): void
   /** A question queued for the advisor panel, e.g. from a star icon. The id makes repeat clicks count. */
   advisorRequest?: { id: number; question: string; area?: AdvisorArea }
+  /** Solutions this viewer opened, most recent first. */
+  recentlyViewed: string[]
+  markViewed(solutionId: string): void
   toggleSidebar(): void
   setMobileNav(v: boolean): void
   setPalette(v: boolean): void
@@ -41,6 +53,16 @@ interface UIState {
 
 export const useUI = create<UIState>((set, get) => ({
   sidebarCollapsed: readCollapsed(),
+  recentlyViewed: readRecent(),
+  markViewed(solutionId) {
+    const next = [solutionId, ...get().recentlyViewed.filter((x) => x !== solutionId)].slice(0, 8)
+    try {
+      window.localStorage.setItem('asn-recent', JSON.stringify(next))
+    } catch {
+      /* per-viewer convenience only */
+    }
+    set({ recentlyViewed: next })
+  },
   mobileNavOpen: false,
   paletteOpen: false,
   createOpen: false,

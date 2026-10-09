@@ -125,6 +125,7 @@
   --color-accent-soft: var(--accent-soft);
   --color-accent-line: var(--accent-line);
   --color-forge: var(--forge);
+  --color-star: var(--star);
   --color-success: var(--success);
   --color-success-fg: var(--success-fg);
   --color-success-soft: var(--success-soft);
@@ -162,6 +163,7 @@
   --hue-violet: #a78bfa;
   --hue-teal: #2dd4bf;
   --hue-slate: #94a3b8;
+  --star: #facc15;
 }
 [data-theme='light'] {
   --hue-pink: #db2777;
@@ -171,6 +173,7 @@
   --hue-violet: #7c3aed;
   --hue-teal: #0d9488;
   --hue-slate: #64748b;
+  --star: #ca8a04;
 }
 /* A section header in its category color: edge bar, faint wash, caret, and icon. */
 .cat-head {

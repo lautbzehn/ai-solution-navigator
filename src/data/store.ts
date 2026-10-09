@@ -37,6 +37,8 @@ export interface Settings {
   /** 'auto' uses Claude when the server is configured; 'mock' always uses built-in guidance. */
   advisorMode?: 'auto' | 'mock'
   theme: Theme
+  /** Solution ids the user starred, shown first in the sidebar. A personal preference that survives demo resets. */
+  favorites?: string[]
 }
 
 export const DEFAULT_SETTINGS: Settings = { weights: DEFAULT_WEIGHTS, advisorEnabled: true, advisorMode: 'auto', theme: 'dark' }
@@ -78,6 +80,7 @@ interface Actions {
   setAdvisorEnabled(v: boolean): void
   setAdvisorMode(v: 'auto' | 'mock'): void
   setTheme(t: Theme): void
+  toggleFavorite(solutionId: string): void
   resetDemo(): void
 }
 
@@ -534,8 +537,12 @@ export const useStore = create<Store>()(
         setTheme(theme) {
           set({ settings: { ...get().settings, theme } })
         },
+        toggleFavorite(solutionId) {
+          const favs = get().settings.favorites ?? []
+          set({ settings: { ...get().settings, favorites: favs.includes(solutionId) ? favs.filter((f) => f !== solutionId) : [...favs, solutionId] } })
+        },
         resetDemo() {
-          set({ ...buildSeed(), settings: { ...DEFAULT_SETTINGS, theme: get().settings.theme } })
+          set({ ...buildSeed(), settings: { ...DEFAULT_SETTINGS, theme: get().settings.theme, favorites: get().settings.favorites } })
         },
       }
     },

@@ -1,4 +1,4 @@
-# AI Solution Navigator
+# Forge AI Solution Navigator
 
 **Live demo: [navigator.icarianforge.com](https://navigator.icarianforge.com)**
 

@@ -13,9 +13,11 @@ import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { toneText } from '@/components/ui/Pill'
 import { MiniRing } from '@/components/ui/Progress'
 import { InfoTip, Tip } from '@/components/ui/Tooltip'
-import { stageDef } from '@/config'
+import { stageDef, stageOrder } from '@/config'
+import { CURRENT_USER_ID } from '@/data/seed/people'
 import { usePortfolio, type SolutionInsight } from '@/data/hooks'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
+import { FavoriteStar } from '@/components/FavoriteStar'
 import { useStore } from '@/data/store'
 import { RISK_TIER } from '@/domain/labels'
 import { readinessDistribution, readinessTrend, riskDistribution, stageCompletion, stageDistribution, summarize } from '@/domain/portfolio'
@@ -31,6 +33,8 @@ export function DashboardPage() {
   const snapshots = useStore((s) => s.snapshots)
   const navigate = useNavigate()
   const sections = useSections('dashboard', SECTIONS)
+  const me = useStore((s) => s.people.find((p) => p.id === CURRENT_USER_ID))
+  const decisions = useStore((s) => s.decisions)
 
   const summary = useMemo(() => summarize(items, gateAttempts), [items, gateAttempts])
   const trend = useMemo(() => readinessTrend(snapshots, items.map((i) => i.bundle.solution.id)), [snapshots, items])
@@ -47,6 +51,17 @@ export function DashboardPage() {
   const realizedPct = summary.expectedValue ? Math.round((summary.realizedValue / summary.expectedValue) * 100) : 0
   const busiest = [...stages].sort((a, b) => b.count - a.count)[0]
   const highRisk = risks.find((r) => r.tier === 'high')?.count ?? 0
+  // What is personally yours, so the page opens on your work rather than a generic portfolio.
+  const mine = useMemo(() => {
+    const owned = items.filter((i) => i.bundle.solution.ownerId === CURRENT_USER_ID)
+    const work = items.flatMap((i) =>
+      i.bundle.activities
+        .filter((a) => a.ownerId === CURRENT_USER_ID && a.required && (a.status === 'not_started' || a.status === 'in_progress' || a.status === 'blocked') && stageOrder(a.stage) <= stageOrder(i.bundle.solution.stage) + 1)
+        .map((a) => ({ a, solutionId: i.bundle.solution.id })),
+    )
+    const waiting = decisions.filter((d) => d.ownerId === CURRENT_USER_ID && d.outcome === 'pending')
+    return { owned, work, waiting }
+  }, [items, decisions])
   const valueRows = [...items]
     .sort((a, b) => b.bundle.solution.expectedValue - a.bundle.solution.expectedValue)
     .map((i) => ({ name: shortName(i.bundle.solution.name), id: i.bundle.solution.id, expected: i.bundle.solution.expectedValue, realized: i.bundle.solution.realizedValue }))
@@ -54,9 +69,14 @@ export function DashboardPage() {
   return (
     <Page>
       <PageHeader
-        eyebrow={<p className="text-[11px] font-semibold tracking-[0.08em] text-fg-subtle uppercase">Dunder Mifflin · fictional demo portfolio</p>}
-        title="AI Solution Portfolio"
-        subtitle={<Briefing avg={summary.avgReadiness} delta={delta} attention={attention} total={summary.total} />}
+        eyebrow={<p className="text-[11px] font-semibold tracking-[0.08em] text-fg-subtle uppercase">My Overview · Dunder Mifflin AI portfolio (fictional demo)</p>}
+        title={`${greeting()}, ${me?.name.split(' ')[0] ?? 'there'}`}
+        subtitle={
+          <>
+            <Briefing avg={summary.avgReadiness} delta={delta} attention={attention} total={summary.total} />
+            <YourWork owned={mine.owned} work={mine.work} waiting={mine.waiting} />
+          </>
+        }
         actions={
           <>
             <ExpandAllButton sections={sections} />
@@ -124,7 +144,7 @@ export function DashboardPage() {
           actions={<AdvisorSpark area="attention" />}
           icon={attention.length ? <CircleAlert /> : <CircleCheck />}
           tone={summary.blocked ? 'danger' : summary.atRisk ? 'warning' : 'success'}
-          title="Needs attention"
+          title="Needs your attention"
           summary={
             attention.length ? (
               <>
@@ -160,7 +180,8 @@ export function DashboardPage() {
               {[...items]
                 .sort((a, b) => b.bundle.solution.updatedAt.localeCompare(a.bundle.solution.updatedAt))
                 .map((i) => (
-                  <li key={i.bundle.solution.id}>
+                  <li key={i.bundle.solution.id} className="relative">
+                    <FavoriteStar solutionId={i.bundle.solution.id} name={i.bundle.solution.name} className="absolute top-[11px] left-3 z-[1]" />
                     <SolutionRow item={i} />
                   </li>
                 ))}
@@ -307,6 +328,33 @@ export function DashboardPage() {
   )
 }
 
+const greeting = (h = new Date().getHours()) => (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening')
+
+/** The user's own slice of the portfolio: what they own, what is assigned to them, what waits on them. */
+function YourWork({ owned, work, waiting }: { owned: SolutionInsight[]; work: { a: { id: string; name: string }; solutionId: string }[]; waiting: { id: string; title: string; solutionId: string }[] }) {
+  const workTo = new Set(work.map((w) => w.solutionId)).size === 1 ? `/solutions/${work[0].solutionId}/work` : `/solutions?owner=${CURRENT_USER_ID}`
+  const chip = 'inline-flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-[12px] text-fg-muted ring-1 ring-border transition-colors hover:bg-surface-2 hover:text-fg'
+  return (
+    <span className="mt-3 flex flex-wrap gap-1.5" aria-label="Your work">
+      <Tip content="Solutions where you are the accountable owner">
+        <Link to={`/solutions?owner=${CURRENT_USER_ID}`} className={chip}>
+          You own <b className="font-semibold text-fg">{pluralize(owned.length, 'solution')}</b>
+        </Link>
+      </Tip>
+      <Tip content="Required activities assigned to you in the current or next stage">
+        <Link to={workTo} className={chip}>
+          <b className="font-semibold text-fg">{pluralize(work.length, 'open activity', 'open activities')}</b> assigned to you
+        </Link>
+      </Tip>
+      <Tip content={waiting.length ? waiting.map((d) => d.title).join(' · ') : 'No decisions are waiting on you'}>
+        <Link to={waiting[0] ? `/solutions/${waiting[0].solutionId}/decisions` : `/solutions?owner=${CURRENT_USER_ID}`} className={cn(chip, waiting.length > 0 && 'ring-warning/40')}>
+          <b className={cn('font-semibold', waiting.length ? 'text-warning-fg' : 'text-fg')}>{pluralize(waiting.length, 'decision')}</b> waiting on you
+        </Link>
+      </Tip>
+    </span>
+  )
+}
+
 /** One plain-English sentence that answers "how are we doing?" before any chart. */
 function Briefing({ avg, delta, attention, total }: { avg: number; delta?: number; attention: SolutionInsight[]; total: number }) {
   const blocked = attention.filter((i) => i.health.status === 'blocked').map((i) => shortName(i.bundle.solution.name))
@@ -314,7 +362,7 @@ function Briefing({ avg, delta, attention, total }: { avg: number; delta?: numbe
   const parts = [blocked.length && `${list(blocked)} ${blocked.length === 1 ? 'is' : 'are'} blocked`, atRisk.length && `${list(atRisk)} ${atRisk.length === 1 ? 'is' : 'are'} at risk`].filter(Boolean)
   return (
     <span className="block max-w-3xl leading-relaxed">
-      {total} AI solutions with average readiness at <b className="font-semibold text-fg">{avg}%</b>
+      Across your portfolio of {total} AI solutions, average readiness is <b className="font-semibold text-fg">{avg}%</b>
       {delta !== undefined && delta !== 0 && <>, {delta > 0 ? 'up' : 'down'} {Math.abs(delta)} pts in 4 weeks</>}.{' '}
       {attention.length ? (
         <>
@@ -352,7 +400,7 @@ function AttentionCard({ item: i }: { item: SolutionInsight }) {
 function SolutionRow({ item: i }: { item: SolutionInsight }) {
   const s = i.bundle.solution
   return (
-    <Link to={`/solutions/${s.id}`} className="grid items-center gap-x-4 gap-y-2 px-5 py-3 transition-colors hover:bg-surface-2 md:grid-cols-[minmax(0,2fr)_150px_minmax(0,2fr)_120px]">
+    <Link to={`/solutions/${s.id}`} className="grid items-center gap-x-4 gap-y-2 py-3 pr-5 pl-10 transition-colors hover:bg-surface-2 md:grid-cols-[minmax(0,2fr)_150px_minmax(0,2fr)_120px]">
       <div className="min-w-0">
         <p className="truncate text-[13px] font-medium text-fg">{s.name}</p>
         <div className="mt-1 flex items-center gap-2 text-[12px]">

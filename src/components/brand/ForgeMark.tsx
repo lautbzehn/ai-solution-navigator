@@ -44,3 +44,12 @@ export function ForgeFooter() {
     </footer>
   )
 }
+
+/** The product name: "Forge" in Icarian Forge amber, the rest in the surrounding text color. */
+export function BrandName({ className }: { className?: string }) {
+  return (
+    <span className={className}>
+      <span className="text-forge">Forge</span> AI Solution Navigator
+    </span>
+  )
+}

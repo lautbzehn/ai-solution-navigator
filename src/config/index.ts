@@ -15,6 +15,7 @@ import type {
 export const lifecycle = raw as LifecycleConfig
 
 export const STAGES: StageDef[] = lifecycle.stages
+export const PHASES = lifecycle.phases
 export const STAGE_IDS: StageId[] = STAGES.map((s) => s.id)
 
 const stageIndex = new Map(STAGE_IDS.map((id, i) => [id, i]))

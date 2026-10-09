@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { ArrowLeft, ArrowRight, Check, LayoutDashboard, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
+import { BrandName } from '@/components/brand/ForgeMark'
 import { Button } from '@/components/ui/Button'
 import { useUI } from '@/data/ui'
 import { cn } from '@/lib/cn'
@@ -47,7 +48,7 @@ const STEPS: Step[] = [
     targets: ['#attention', 'main [data-section-header]'],
     side: 'bottom',
     title: 'Start with what needs attention',
-    body: "The Dashboard opens with a one-line briefing. Needs attention shows what's blocked or at risk, why, and the next step for each.",
+    body: "My Overview opens with your briefing and what is yours. Needs your attention shows what's blocked or at risk, why, and the next step for each.",
   },
   {
     id: 'solution',
@@ -514,7 +515,7 @@ function Welcome() {
     <div className="text-center">
       <div className="flex items-center justify-center gap-2.5">
         <Logo size={30} />
-        <span className="text-[13px] font-semibold tracking-[-0.01em] text-fg-muted">AI Solution Navigator</span>
+        <BrandName className="text-[13px] font-semibold tracking-[-0.01em] text-fg-muted" />
       </div>
       <h2 id="tour-title" className="mx-auto mt-4 max-w-[560px] text-[24px] leading-[1.15] font-semibold tracking-[-0.03em] text-balance text-fg sm:mt-5 sm:text-[34px]">
         Move AI from promising pilot to proven production.
@@ -550,7 +551,7 @@ function Finale() {
       <div id="tour-body" className="mt-3 grid gap-3">
         <p className="text-[16px] leading-relaxed text-fg">Now go navigate and explore on your own. Have at it.</p>
         <p className="text-[13px] leading-relaxed text-fg-subtle">
-          A good first stop: what Needs attention on the Dashboard. Help has guides, answers, and this tour whenever you want it again.
+          A good first stop: Needs your attention on My Overview. Star the solutions you care about to keep them in your sidebar. Help has guides, answers, and this tour anytime.
         </p>
       </div>
     </div>

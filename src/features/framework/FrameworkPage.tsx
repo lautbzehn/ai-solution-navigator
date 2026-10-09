@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Check, Layers, Minus, RotateCcw, Scale, ShieldAlert, SlidersHorizontal, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Page, PageHeader } from '@/components/layout/Page'
@@ -12,6 +13,7 @@ import { DEFAULT_WEIGHTS, DIMENSIONS, evidenceTemplate, gateFor, lifecycle, risk
 import { useStore } from '@/data/store'
 import type { DimensionId, RiskTier, StageId } from '@/domain/types'
 import { cn } from '@/lib/cn'
+import { FrameworkFlow } from './FrameworkFlow'
 
 const TIERS: RiskTier[] = ['low', 'moderate', 'high']
 const SECTIONS = ['stages', 'tiers', 'weights', 'roles'] as const
@@ -24,6 +26,7 @@ export function FrameworkPage() {
   const sections = useSections('framework', SECTIONS)
   const gates = STAGES.filter((s) => gateFor(s.id)).length
   const highExtra = riskBasedControls('high').length
+  const navigate = useNavigate()
 
   return (
     <Page>
@@ -31,6 +34,14 @@ export function FrameworkPage() {
         title="Lifecycle Framework"
         subtitle={`${lifecycle.name} · v${lifecycle.version}. The methodology every solution is planned and gated against, defined in configuration rather than hard-coded.`}
         actions={<ExpandAllButton sections={sections} />}
+      />
+
+      <FrameworkFlow
+        selected={stage}
+        onSelect={(s) => {
+          setStage(s)
+          navigate({ hash: 'stages' }) // opens the Stages and gates section and brings it into view
+        }}
       />
 
       <SectionStack>
