@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { Dialog } from 'radix-ui'
-import { BarChart3, BookOpenCheck, CornerDownLeft, FolderKanban, LayoutDashboard, Plus, Search, Settings } from 'lucide-react'
+import { BarChart3, BookOpenCheck, Coffee, CornerDownLeft, FolderKanban, LayoutDashboard, Plus, Search, Settings } from 'lucide-react'
 import { stageDef } from '@/config'
 import { useStore } from '@/data/store'
 import { useUI } from '@/data/ui'
@@ -44,6 +44,7 @@ export function CommandPalette() {
       { id: 'sol', label: 'Solutions Hub', icon: <FolderKanban className="size-4" />, group: 'Go to', run: go('/solutions') },
       { id: 'rep', label: 'Portfolio Intelligence', icon: <BarChart3 className="size-4" />, group: 'Go to', run: go('/reports') },
       { id: 'fw', label: 'Lifecycle Framework', icon: <BookOpenCheck className="size-4" />, group: 'Go to', run: go('/framework') },
+      { id: 'about', label: 'About this project', icon: <Coffee className="size-4" />, group: 'Go to', run: go('/about') },
       { id: 'set', label: 'Settings', icon: <Settings className="size-4" />, group: 'Go to', run: go('/settings') },
     ]
     const q = query.trim().toLowerCase()

@@ -1,6 +1,6 @@
 import { useCallback, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useMatch, type Location } from 'react-router'
-import { BarChart3, BookOpenCheck, ChevronRight, FolderKanban, LayoutDashboard, Settings, Star, type LucideIcon } from 'lucide-react'
+import { BarChart3, BookOpenCheck, ChevronRight, Coffee, FolderKanban, LayoutDashboard, Settings, Star, type LucideIcon } from 'lucide-react'
 import { stageDef } from '@/config'
 import { usePortfolio } from '@/data/hooks'
 import { useStore } from '@/data/store'
@@ -326,6 +326,7 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
       </nav>
 
       <div className={cn('mt-auto flex flex-col gap-0.5 border-t border-border px-3 py-3', collapsed && 'px-2')}>
+        <Item item={{ to: '/about', label: 'About this project', icon: Coffee, hint: 'Who built this, and why' }} collapsed={collapsed} onNavigate={onNavigate} nav={nav} />
         <Item item={{ to: '/settings', label: 'Settings', icon: Settings, hint: 'Theme, AI advisor mode, and demo data reset' }} collapsed={collapsed} onNavigate={onNavigate} nav={nav} />
         <div className={cn('mt-2 flex items-center gap-2.5 rounded-lg px-1.5 py-1.5', collapsed && 'justify-center px-0')}>
           <Avatar person={me} size="md" />

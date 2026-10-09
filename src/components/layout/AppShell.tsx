@@ -22,6 +22,7 @@ const PAGE_NAMES: Record<string, string> = {
   reports: 'Portfolio Intelligence',
   framework: 'Lifecycle Framework',
   settings: 'Settings',
+  about: 'About this project',
 }
 
 function Breadcrumbs() {
