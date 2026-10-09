@@ -7,7 +7,8 @@ import { Sheet } from '@/components/ui/Dialog'
 import { Kbd } from '@/components/ui/misc'
 import { useUI } from '@/data/ui'
 import { cn } from '@/lib/cn'
-import { FAQ_CATEGORIES, FAQS, GUIDES, type FaqCategory, type Guide } from './content'
+import { hueVar } from '@/components/layout/Section'
+import { FAQ_CATEGORIES, FAQ_HUE, FAQS, GUIDES, type FaqCategory, type Guide } from './content'
 
 /** The Help menu: a quick how-to guide first, then answers by topic, shortcuts, and the tour. */
 export function HelpCenter() {
@@ -83,12 +84,12 @@ export function HelpCenter() {
           {guides.length ? (
             <Accordion.Root type="multiple" value={query ? guides.map((g) => g.id) : openGuides} onValueChange={setOpenGuides} className="grid gap-1.5">
               {guides.map((g, i) => (
-                <Accordion.Item key={g.id} value={g.id} className="overflow-hidden rounded-xl bg-surface-2 ring-1 ring-border">
+                <Accordion.Item key={g.id} value={g.id} className="cat-head overflow-hidden rounded-xl bg-surface-2 ring-1 ring-border" style={{ '--cat': hueVar(g.hue) } as React.CSSProperties}>
                   <Accordion.Header>
                     <Accordion.Trigger className="group flex w-full items-center gap-3 px-3.5 py-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset">
-                      <span className="grid size-5 shrink-0 place-items-center rounded-full bg-surface-3 text-[11px] font-semibold text-fg-muted tabular">{i + 1}</span>
+                      <span className="cat-icon grid size-5 shrink-0 place-items-center rounded-full text-[11px] font-semibold tabular">{i + 1}</span>
                       <span className="flex-1 text-[13px] font-medium text-fg">{g.title}</span>
-                      <ChevronDown className="size-4 shrink-0 text-fg-subtle transition-transform group-data-[state=open]:rotate-180" />
+                      <ChevronDown className="size-4 shrink-0 text-[var(--cat)] transition-transform group-data-[state=open]:rotate-180" />
                     </Accordion.Trigger>
                   </Accordion.Header>
                   <Accordion.Content className="animate-fade-in px-3.5 pb-3.5">
@@ -123,6 +124,7 @@ export function HelpCenter() {
                   cat === c ? 'bg-surface-3 font-medium text-fg ring-border-strong' : 'text-fg-subtle ring-border hover:text-fg',
                 )}
               >
+                {c !== 'All' && <span aria-hidden className="mr-1.5 inline-block size-2 rounded-full align-[1px]" style={{ background: hueVar(FAQ_HUE[c]) }} />}
                 {c}
               </button>
             ))}
@@ -130,14 +132,14 @@ export function HelpCenter() {
           {faqs.length ? (
             <Accordion.Root type="single" collapsible className="divide-y divide-border rounded-xl ring-1 ring-border">
               {faqs.map((f) => (
-                <Accordion.Item key={f.q} value={f.q}>
+                <Accordion.Item key={f.q} value={f.q} className="cat-head" style={{ '--cat': hueVar(FAQ_HUE[f.category]) } as React.CSSProperties}>
                   <Accordion.Header>
                     <Accordion.Trigger className="group flex w-full items-start gap-3 px-3.5 py-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset">
                       <span className="flex-1">
                         <span className="block text-[13px] font-medium text-fg">{f.q}</span>
-                        {cat === 'All' && <span className="block text-[11px] text-fg-faint">{f.category}</span>}
+                        {cat === 'All' && <span className="block text-[11px] text-[var(--cat)]">{f.category}</span>}
                       </span>
-                      <ChevronDown className="mt-0.5 size-4 shrink-0 text-fg-subtle transition-transform group-data-[state=open]:rotate-180" />
+                      <ChevronDown className="mt-0.5 size-4 shrink-0 text-[var(--cat)] transition-transform group-data-[state=open]:rotate-180" />
                     </Accordion.Trigger>
                   </Accordion.Header>
                   <Accordion.Content className="animate-fade-in px-3.5 pb-3 text-[12.5px] leading-relaxed text-fg-muted">{f.a}</Accordion.Content>

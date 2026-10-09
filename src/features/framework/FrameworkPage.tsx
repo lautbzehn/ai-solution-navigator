@@ -34,7 +34,7 @@ export function FrameworkPage() {
       />
 
       <SectionStack>
-        <Section {...sections.bind('stages')} icon={<Layers />} title="Stages and gates" summary={`${STAGES.length} stages · ${gates} gates · ${lifecycle.activityTemplates.length} activity templates. Pick a stage to see its work and exit criteria.`}>
+        <Section {...sections.bind('stages')} hue="blue" icon={<Layers />} title="Stages and gates" summary={`${STAGES.length} stages · ${gates} gates · ${lifecycle.activityTemplates.length} activity templates. Pick a stage to see its work and exit criteria.`}>
           <p className="mb-3 flex items-center gap-1.5 text-[13px] text-fg-subtle">Every solution moves through the same stages; each one ends in a gate. <InfoTip term="lifecycle" /></p>
           <div className="-mx-1 mb-4 overflow-x-auto px-1">
             <div className="flex min-w-[760px] gap-1.5" role="tablist" aria-label="Lifecycle stage">
@@ -118,7 +118,7 @@ export function FrameworkPage() {
           </div>
         </Section>
 
-        <Section {...sections.bind('tiers')} icon={<Scale />} title="Risk tiers" summary={`Low, Moderate, and High. Higher risk adds controls (High adds ${highExtra}) and stronger gate criteria.`}>
+        <Section {...sections.bind('tiers')} hue="pink" icon={<Scale />} title="Risk tiers" summary={`Low, Moderate, and High. Higher risk adds controls (High adds ${highExtra}) and stronger gate criteria.`}>
           <p className="mb-3 flex items-center gap-1.5 text-[13px] text-fg-subtle">Changing a solution's tier reshapes its plan automatically. <InfoTip term="riskTier" /></p>
           <div className="grid gap-3 md:grid-cols-3">
             {lifecycle.riskTiers.map((t) => {
@@ -139,7 +139,7 @@ export function FrameworkPage() {
 
         <WeightsEditor sections={sections} />
 
-        <Section {...sections.bind('roles')} icon={<Users />} title="Roles" summary={`${lifecycle.roles.length} roles own the work across the lifecycle, from Executive Sponsor to Operations.`}>
+        <Section {...sections.bind('roles')} hue="slate" icon={<Users />} title="Roles" summary={`${lifecycle.roles.length} roles own the work across the lifecycle, from Executive Sponsor to Operations.`}>
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {lifecycle.roles.map((r) => {
               const owns = lifecycle.activityTemplates.filter((a) => a.ownerRole === r.id).length
@@ -185,7 +185,7 @@ function WeightsEditor({ sections }: { sections: SectionsState }) {
   }
 
   return (
-    <Section {...sections.bind('weights')} icon={<SlidersHorizontal />} title="Readiness dimensions and weights" summary={`${DIMENSIONS.length} weighted dimensions make up every readiness score · ${isDefault ? 'using the default weights' : 'custom weights in use'}`}>
+    <Section {...sections.bind('weights')} hue="teal" icon={<SlidersHorizontal />} title="Readiness dimensions and weights" summary={`${DIMENSIONS.length} weighted dimensions make up every readiness score · ${isDefault ? 'using the default weights' : 'custom weights in use'}`}>
       <Card>
         <CardBody className="pt-4">
           <p className="mb-4 text-[13px] text-fg-subtle">Implementation readiness <InfoTip term="readiness" className="align-[-3px]" /> is a weighted average of seven dimensions. Adjust the weights to match your organization's priorities; every solution's score updates immediately.</p>

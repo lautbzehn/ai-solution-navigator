@@ -135,7 +135,7 @@ export function ReportsPage() {
           <SectionStack>
             {/* Health */}
             <Section
-              {...sections.bind('health')}
+              {...sections.bind('health')} hue="cyan"
               actions={<AdvisorSpark area="health" />}
               icon={<HeartPulse />}
               title="Portfolio health"
@@ -185,7 +185,7 @@ export function ReportsPage() {
 
             {/* Delivery: performance and bottlenecks */}
             <Section
-              {...sections.bind('delivery')}
+              {...sections.bind('delivery')} hue="blue"
               actions={<AdvisorSpark area="delivery" />}
               icon={<Timer />}
               title="Delivery"
@@ -261,7 +261,7 @@ export function ReportsPage() {
 
             {/* Risk */}
             <Section
-              {...sections.bind('risk')}
+              {...sections.bind('risk')} hue="pink"
               actions={<AdvisorSpark area="portfolio-risk" />}
               icon={<ShieldAlert />}
               tone={risk.critical.length ? 'danger' : undefined}
@@ -333,7 +333,7 @@ export function ReportsPage() {
 
             {/* Value and adoption */}
             <Section
-              {...sections.bind('value')}
+              {...sections.bind('value')} hue="lime"
               actions={<AdvisorSpark area="value" />}
               icon={<TrendingUp />}
               title="Value & adoption"
@@ -430,7 +430,7 @@ export function ReportsPage() {
 
             {/* AI quality */}
             <Section
-              {...sections.bind('ai')}
+              {...sections.bind('ai')} hue="violet"
               actions={<AdvisorSpark area="ai-quality" />}
               icon={<BrainCircuit />}
               title="AI quality"

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Activity, ArrowDown, ArrowUp, BrainCircuit, Briefcase, CircleDollarSign, Gauge, Package, Plus, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Sparkline } from '@/components/charts/Charts'
-import { Section, SectionStack, useSections } from '@/components/layout/Section'
+import { Section, SectionStack, useSections, type Hue } from '@/components/layout/Section'
 import { PersonChip } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -22,6 +22,7 @@ import { useWorkspace } from '../context'
 
 const HEALTH_TONE: Record<MetricHealth, Tone> = { met: 'success', on_track: 'success', watch: 'warning', off_track: 'danger', no_data: 'muted' }
 const CATEGORY_ORDER: MetricCategory[] = ['business', 'financial', 'adoption', 'ai_performance', 'product', 'operational']
+const CATEGORY_HUE: Record<MetricCategory, Hue> = { business: 'cyan', financial: 'lime', adoption: 'blue', ai_performance: 'violet', product: 'pink', operational: 'slate' }
 const CATEGORY_ICON: Record<MetricCategory, React.ReactNode> = { business: <Briefcase />, financial: <CircleDollarSign />, adoption: <Users />, ai_performance: <BrainCircuit />, product: <Package />, operational: <Activity /> }
 const KEYS: { value: MetricKey; label: string }[] = [
   { value: 'eligible_users', label: 'Eligible users' },
@@ -69,6 +70,7 @@ export function MetricsTab() {
               <Section
                 key={g.c}
                 {...sections.bind(g.c)}
+                hue={CATEGORY_HUE[g.c]}
                 icon={CATEGORY_ICON[g.c]}
                 tone={off ? 'danger' : watch ? 'warning' : undefined}
                 title={METRIC_CATEGORY[g.c]}

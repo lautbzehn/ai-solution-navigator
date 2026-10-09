@@ -1,4 +1,5 @@
 /* Help center content. Kept as data so the guide, FAQ, and search stay in sync. */
+import type { Hue } from '@/components/layout/Section'
 
 export interface Guide {
   id: string
@@ -7,41 +8,49 @@ export interface Guide {
   /** Where "Show me" goes: a route, or an action the help panel performs. */
   to?: string
   action?: 'create'
+  /** Category color, matching the area of the app the guide covers. */
+  hue: Hue
 }
 
 export const GUIDES: Guide[] = [
   {
     id: 'health',
+    hue: 'pink',
     title: 'Check portfolio health in 30 seconds',
     steps: ['Open the Dashboard.', 'Read the one-line briefing and the four headline numbers.', 'Open Needs attention to see what is blocked or at risk, and the next step for each.'],
     to: '/#attention',
   },
   {
     id: 'blocked',
+    hue: 'blue',
     title: "Find out why a solution can't advance",
     steps: ['Open a solution from the Dashboard or Solutions.', 'On Overview, Gate readiness lists every open requirement and who owns it.', 'Select a requirement to open the activity and see exactly what is missing.'],
     to: '/solutions/s_support',
   },
   {
     id: 'advance',
+    hue: 'cyan',
     title: 'Move a solution to the next stage',
     steps: ['In Work, complete the gate activities and attach their evidence.', 'Get each piece of evidence approved. A checked box alone does not count.', 'Select Advance in the header to run the gate review and record the decision.'],
     to: '/solutions/s_support/work',
   },
   {
     id: 'advisor',
+    hue: 'violet',
     title: 'Get an AI analysis of any area',
     steps: ['Find the star icon on a section header.', 'Select it. The AI advisor opens with an analysis of just that area.', 'Ask follow-up questions in the advisor panel.'],
     to: '/solutions/s_support',
   },
   {
     id: 'create',
+    hue: 'teal',
     title: 'Start a new AI initiative',
     steps: ['Select New solution in the top bar.', 'Describe the problem, the users, and how AI will help.', 'Review the recommended risk tier. The plan and gates are generated to match it.'],
     action: 'create',
   },
   {
     id: 'report',
+    hue: 'lime',
     title: 'Report to leadership',
     steps: ['Open Reports.', 'Read the three key insights, then open only the section you need.', 'Filter by date range, lifecycle stage, or risk tier.'],
     to: '/reports',
@@ -50,6 +59,15 @@ export const GUIDES: Guide[] = [
 
 export const FAQ_CATEGORIES = ['Getting around', 'Lifecycle and gates', 'Readiness', 'Risk and evidence', 'Reports', 'AI advisor', 'Demo data'] as const
 export type FaqCategory = (typeof FAQ_CATEGORIES)[number]
+export const FAQ_HUE: Record<FaqCategory, Hue> = {
+  'Getting around': 'slate',
+  'Lifecycle and gates': 'blue',
+  Readiness: 'cyan',
+  'Risk and evidence': 'pink',
+  Reports: 'lime',
+  'AI advisor': 'violet',
+  'Demo data': 'teal',
+}
 
 export interface Faq {
   category: FaqCategory

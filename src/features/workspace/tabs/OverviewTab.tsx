@@ -46,7 +46,7 @@ export function OverviewTab() {
   return (
     <SectionStack>
       <Section
-        {...sections.bind('gate')}
+        {...sections.bind('gate')} hue="blue"
         icon={<Target />}
         tone={gate.isFinal ? undefined : gate.canAdvance ? 'success' : undefined}
         title={gate.isFinal ? 'Continuous improvement' : <>Gate readiness · {gateLabel(solution.stage)}</>}
@@ -112,7 +112,7 @@ export function OverviewTab() {
       </Section>
 
       <Section
-        {...sections.bind('readiness')}
+        {...sections.bind('readiness')} hue="cyan"
         icon={<Gauge />}
         tone={readiness.pace === 'well_behind' ? 'danger' : readiness.pace === 'behind' ? 'warning' : undefined}
         title="Readiness"
@@ -136,7 +136,7 @@ export function OverviewTab() {
       </Section>
 
       <Section
-        {...sections.bind('risks')}
+        {...sections.bind('risks')} hue="pink"
         icon={<ShieldAlert />}
         tone={unmitigated.length || blockers.length ? 'danger' : undefined}
         title="Risks, decisions, and blockers"
@@ -211,7 +211,7 @@ export function OverviewTab() {
       </Section>
 
       <Section
-        {...sections.bind('case')}
+        {...sections.bind('case')} hue="lime"
         icon={<Briefcase />}
         title="Business case"
         summary={
@@ -250,7 +250,7 @@ export function OverviewTab() {
       </Section>
 
       <Section
-        {...sections.bind('activity')}
+        {...sections.bind('activity')} hue="slate"
         icon={<History />}
         title="Recent activity"
         summary={latest ? <>Latest {relative(latest.ts)}: {people.find((p) => p.id === latest.actorId)?.name ?? 'Someone'} {describe(latest)}</> : 'No activity yet. Changes you make appear here.'}

@@ -120,7 +120,7 @@ export function DashboardPage() {
 
       <SectionStack className="mt-6">
         <Section
-          {...sections.bind('attention')}
+          {...sections.bind('attention')} hue="pink"
           actions={<AdvisorSpark area="attention" />}
           icon={attention.length ? <CircleAlert /> : <CircleCheck />}
           tone={summary.blocked ? 'danger' : summary.atRisk ? 'warning' : 'success'}
@@ -149,7 +149,7 @@ export function DashboardPage() {
         </Section>
 
         <Section
-          {...sections.bind('solutions')}
+          {...sections.bind('solutions')} hue="cyan"
           actions={<AdvisorSpark area="portfolio" />}
           icon={<FolderKanban />}
           title="All solutions"
@@ -176,7 +176,7 @@ export function DashboardPage() {
         </Section>
 
         <Section
-          {...sections.bind('progress')}
+          {...sections.bind('progress')} hue="blue"
           actions={<AdvisorSpark area="progress" />}
           icon={<TrendingUp />}
           title="Progress & readiness"
@@ -245,7 +245,7 @@ export function DashboardPage() {
         </Section>
 
         <Section
-          {...sections.bind('risk-value')}
+          {...sections.bind('risk-value')} hue="lime"
           actions={<AdvisorSpark area="risk-value" />}
           icon={<Scale />}
           title="Risk & value"

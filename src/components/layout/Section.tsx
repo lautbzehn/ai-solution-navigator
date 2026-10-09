@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { useLocation } from 'react-router'
 import { ChevronRight, ChevronsDownUp, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -100,6 +100,7 @@ export function Section({
   onToggle,
   children,
   tone,
+  hue = 'slate',
 }: {
   id: string
   title: ReactNode
@@ -111,17 +112,19 @@ export function Section({
   open: boolean
   onToggle: () => void
   children: ReactNode
-  /** Tints the icon when the section needs attention. */
+  /** Tints the icon when the section needs attention. Status wins over the category color. */
   tone?: 'danger' | 'warning' | 'success'
+  /** The section's category color (see index.css). */
+  hue?: Hue
 }) {
   const contentId = `${id}-content`
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20">
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20" style={{ '--cat': hueVar(hue) } as CSSProperties} data-hue={hue}>
       <div
         data-section-header
         className={cn(
-          'flex items-center gap-1 rounded-xl bg-surface pr-2 shadow-card ring-1 transition-colors',
-          open ? 'ring-border-strong' : 'ring-border hover:bg-surface-2/60',
+          'cat-head flex items-center gap-1 rounded-xl bg-surface pr-2 shadow-card ring-1 transition-colors',
+          open ? 'ring-[color-mix(in_oklch,var(--cat)_38%,transparent)]' : 'ring-border hover:bg-surface-2/60',
         )}
       >
         <h2 className="min-w-0 flex-1">
@@ -133,12 +136,12 @@ export function Section({
             onClick={onToggle}
             className="flex w-full items-center gap-3 rounded-xl py-3 pl-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ChevronRight className={cn('size-4 shrink-0 text-fg-subtle transition-transform duration-200', open && 'rotate-90 text-fg-muted')} aria-hidden />
+            <ChevronRight className={cn('size-4 shrink-0 text-[var(--cat)] transition-transform duration-200', open && 'rotate-90')} aria-hidden />
             {icon && (
               <span
                 className={cn(
                   'grid size-8 shrink-0 place-items-center rounded-lg ring-1 [&_svg]:size-4',
-                  tone === 'danger' ? 'bg-danger-soft text-danger-fg ring-danger/20' : tone === 'warning' ? 'bg-warning-soft text-warning-fg ring-warning/20' : tone === 'success' ? 'bg-success-soft text-success-fg ring-success/20' : 'bg-surface-2 text-fg-muted ring-border',
+                  tone === 'danger' ? 'bg-danger-soft text-danger-fg ring-danger/20' : tone === 'warning' ? 'bg-warning-soft text-warning-fg ring-warning/20' : tone === 'success' ? 'bg-success-soft text-success-fg ring-success/20' : 'cat-icon ring-0',
                 )}
                 aria-hidden
               >
@@ -154,13 +157,17 @@ export function Section({
         {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}
       </div>
       {open && (
-        <div id={contentId} className="mt-3 mb-3 animate-rise">
+        <div id={contentId} className="cat-body mt-3 mb-3 animate-rise">
           {children}
         </div>
       )}
     </section>
   )
 }
+
+/** Category hue for a section: one color per kind of information, used across the app. */
+export type Hue = 'pink' | 'cyan' | 'blue' | 'lime' | 'violet' | 'teal' | 'slate'
+export const hueVar = (h: Hue) => `var(--hue-${h})`
 
 /** Vertical stack of sections with consistent spacing. */
 export function SectionStack({ children, className }: { children: ReactNode; className?: string }) {

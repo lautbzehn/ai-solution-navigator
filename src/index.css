@@ -147,6 +147,60 @@
   --animate-rise: rise 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Category colors: each kind of information keeps one hue everywhere, so functional
+   areas stand apart at a glance. Deliberately distinct from the status colors
+   (red blocked, amber at risk, emerald done) and used only as marks, never fills.
+   pink = attention and risk · cyan = portfolio and readiness · blue = lifecycle,
+   gates, and delivery · lime = value and outcomes · violet = AI · teal = setup
+   and data · slate = people, history, and reference. */
+:root,
+[data-theme='dark'] {
+  --hue-pink: #f472b6;
+  --hue-cyan: #22d3ee;
+  --hue-blue: #60a5fa;
+  --hue-lime: #a3e635;
+  --hue-violet: #a78bfa;
+  --hue-teal: #2dd4bf;
+  --hue-slate: #94a3b8;
+}
+[data-theme='light'] {
+  --hue-pink: #db2777;
+  --hue-cyan: #0891b2;
+  --hue-blue: #2563eb;
+  --hue-lime: #65a30d;
+  --hue-violet: #7c3aed;
+  --hue-teal: #0d9488;
+  --hue-slate: #64748b;
+}
+/* A section header in its category color: edge bar, faint wash, caret, and icon. */
+.cat-head {
+  position: relative;
+  background-image: linear-gradient(90deg, color-mix(in oklch, var(--cat) 10%, transparent) 0%, transparent 46%);
+}
+.cat-head::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--cat);
+}
+.cat-icon {
+  background: color-mix(in oklch, var(--cat) 14%, transparent);
+  color: var(--cat);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--cat) 30%, transparent);
+}
+/* The open section's content hangs from a rail in the same color. */
+.cat-body {
+  border-left: 2px solid color-mix(in oklch, var(--cat) 38%, transparent);
+  padding-left: 12px;
+}
+@media (min-width: 640px) {
+  .cat-body { padding-left: 16px; }
+}
+
 /* Product tour: a quiet layer over the app. Balloons are neutral graphite,
    set apart from the page by contrast and elevation rather than hue (a green
    fill would read as a success state). Emerald lives only in the hairline,
@@ -323,7 +377,7 @@
 .if-logo { display: inline-block; width: 1.3em; height: 1.3em; margin-right: 0.4em; vertical-align: -0.3em; overflow: visible; }
 .if-logo .sun { color: var(--forge); fill: currentColor; }
 @media (prefers-reduced-motion: no-preference) {
-  .if-logo .sun { animation: if-sun-pulse 5s ease-in-out infinite; }
+  .if-logo .sun { animation: if-sun-pulse 6.7s ease-in-out infinite; }
 }
 @keyframes if-sun-pulse {
   0%, 100% { color: var(--forge); filter: drop-shadow(0 0 3.75px currentColor) drop-shadow(0 0 9px color-mix(in srgb, currentColor 65%, transparent)); }

@@ -9,11 +9,14 @@ import { cn } from '@/lib/cn'
 import { Avatar } from '../ui/Avatar'
 import { Tip } from '../ui/Tooltip'
 import { ForgeMark } from '../brand/ForgeMark'
+import { hueVar, type Hue } from './Section'
 import { Logo } from './Logo'
 
 interface SubItem {
   label: string
   to: string
+  /** Matches the color of the section it opens. */
+  hue: Hue
   active: (l: Location) => boolean
   badge?: number
   tone?: 'danger'
@@ -82,6 +85,7 @@ function Item({ item, collapsed, onNavigate }: { item: NavItem; collapsed: boole
                     active ? 'bg-surface-2 font-medium text-fg' : 'text-fg-subtle hover:bg-surface-2 hover:text-fg-muted',
                   )}
                 >
+                  <span aria-hidden className={cn('h-3.5 w-[3px] shrink-0 rounded-full transition-opacity', active ? 'opacity-100' : 'opacity-70')} style={{ background: hueVar(sub.hue) }} />
                   <span className="flex-1 truncate">{sub.label}</span>
                   {sub.badge !== undefined && sub.badge > 0 && (
                     <span className={cn('rounded-full px-1.5 text-[10.5px] font-medium tabular', sub.tone === 'danger' ? 'bg-danger-soft text-danger-fg' : 'bg-surface-3 text-fg-subtle')}>{sub.badge}</span>
@@ -113,10 +117,10 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
       end: true,
       hint: 'Portfolio status at a glance, and what needs attention',
       subs: [
-        { label: 'Needs attention', to: '/#attention', active: atHash('attention'), badge: attention, tone: 'danger' },
-        { label: 'All solutions', to: '/#solutions', active: atHash('solutions') },
-        { label: 'Progress & readiness', to: '/#progress', active: atHash('progress') },
-        { label: 'Risk & value', to: '/#risk-value', active: atHash('risk-value') },
+        { label: 'Needs attention', hue: 'pink', to: '/#attention', active: atHash('attention'), badge: attention, tone: 'danger' },
+        { label: 'All solutions', hue: 'cyan', to: '/#solutions', active: atHash('solutions') },
+        { label: 'Progress & readiness', hue: 'blue', to: '/#progress', active: atHash('progress') },
+        { label: 'Risk & value', hue: 'lime', to: '/#risk-value', active: atHash('risk-value') },
       ],
     },
     {
@@ -126,10 +130,10 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
       badge: solutions.length,
       hint: 'Every AI initiative. Filter, sort, and open a workspace',
       subs: [
-        { label: 'All solutions', to: '/solutions', active: (l) => l.pathname === '/solutions' && !l.search },
-        { label: 'Needs attention', to: '/solutions?status=attention', active: (l) => l.pathname === '/solutions' && search(l).get('status') === 'attention', badge: attention, tone: 'danger' },
-        { label: 'In production', to: '/solutions?stage=production', active: (l) => l.pathname === '/solutions' && search(l).get('stage') === 'production' },
-        { label: 'Board by stage', to: '/solutions?view=board', active: (l) => l.pathname === '/solutions' && search(l).get('view') === 'board' },
+        { label: 'All solutions', hue: 'cyan', to: '/solutions', active: (l) => l.pathname === '/solutions' && !l.search },
+        { label: 'Needs attention', hue: 'pink', to: '/solutions?status=attention', active: (l) => l.pathname === '/solutions' && search(l).get('status') === 'attention', badge: attention, tone: 'danger' },
+        { label: 'In production', hue: 'lime', to: '/solutions?stage=production', active: (l) => l.pathname === '/solutions' && search(l).get('stage') === 'production' },
+        { label: 'Board by stage', hue: 'blue', to: '/solutions?view=board', active: (l) => l.pathname === '/solutions' && search(l).get('view') === 'board' },
       ],
     },
     {
@@ -138,11 +142,11 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
       icon: BarChart3,
       hint: 'Executive reporting on health, delivery, risk, value, and AI quality',
       subs: [
-        { label: 'Portfolio health', to: '/reports#health', active: atHash('health') },
-        { label: 'Delivery', to: '/reports#delivery', active: atHash('delivery', 'performance', 'bottlenecks') },
-        { label: 'Risk', to: '/reports#risk', active: atHash('risk') },
-        { label: 'Value & adoption', to: '/reports#value', active: atHash('value', 'adoption') },
-        { label: 'AI quality', to: '/reports#ai', active: atHash('ai') },
+        { label: 'Portfolio health', hue: 'cyan', to: '/reports#health', active: atHash('health') },
+        { label: 'Delivery', hue: 'blue', to: '/reports#delivery', active: atHash('delivery', 'performance', 'bottlenecks') },
+        { label: 'Risk', hue: 'pink', to: '/reports#risk', active: atHash('risk') },
+        { label: 'Value & adoption', hue: 'lime', to: '/reports#value', active: atHash('value', 'adoption') },
+        { label: 'AI quality', hue: 'violet', to: '/reports#ai', active: atHash('ai') },
       ],
     },
   ]
@@ -153,10 +157,10 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
       icon: BookOpenCheck,
       hint: 'The stages, gates, risk tiers, and weights behind every plan',
       subs: [
-        { label: 'Stages and gates', to: '/framework#stages', active: atHash('stages') },
-        { label: 'Risk tiers', to: '/framework#tiers', active: atHash('tiers') },
-        { label: 'Readiness weights', to: '/framework#weights', active: atHash('weights') },
-        { label: 'Roles', to: '/framework#roles', active: atHash('roles') },
+        { label: 'Stages and gates', hue: 'blue', to: '/framework#stages', active: atHash('stages') },
+        { label: 'Risk tiers', hue: 'pink', to: '/framework#tiers', active: atHash('tiers') },
+        { label: 'Readiness weights', hue: 'teal', to: '/framework#weights', active: atHash('weights') },
+        { label: 'Roles', hue: 'slate', to: '/framework#roles', active: atHash('roles') },
       ],
     },
   ]

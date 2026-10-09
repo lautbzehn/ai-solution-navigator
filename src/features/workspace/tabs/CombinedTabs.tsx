@@ -23,7 +23,7 @@ export function RisksAndDecisionsTab() {
   return (
     <SectionStack>
       <Section
-        {...sections.bind('risks')}
+        {...sections.bind('risks')} hue="pink"
         icon={<ShieldAlert />}
         tone={unmitigated.length ? 'danger' : undefined}
         title="Risk register"
@@ -37,7 +37,7 @@ export function RisksAndDecisionsTab() {
         <RisksTab />
       </Section>
       <Section
-        {...sections.bind('decisions')}
+        {...sections.bind('decisions')} hue="blue"
         icon={<Gavel />}
         tone={pending ? 'warning' : undefined}
         title="Decision log"
@@ -63,7 +63,7 @@ export function TeamAndHistoryTab() {
   return (
     <SectionStack>
       <Section
-        {...sections.bind('team')}
+        {...sections.bind('team')} hue="cyan"
         icon={<Users />}
         title="Team"
         summary={`${pluralize(people, 'person', 'people')} across ${pluralize(roles, 'role')}. Every activity names one accountable owner.`}
@@ -72,7 +72,7 @@ export function TeamAndHistoryTab() {
         <TeamTab />
       </Section>
       <Section
-        {...sections.bind('history')}
+        {...sections.bind('history')} hue="slate"
         icon={<History />}
         title="Change log and history"
         summary={
