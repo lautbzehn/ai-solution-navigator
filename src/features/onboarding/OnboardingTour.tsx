@@ -414,6 +414,7 @@ export function OnboardingTour() {
 
       <div
         ref={card}
+        data-theme="dark"
         role="dialog"
         aria-modal="true"
         aria-labelledby="tour-title"
@@ -524,7 +525,7 @@ function Welcome() {
       </div>
       <ul className="mt-5 grid gap-2 text-left sm:mt-6 sm:grid-cols-3 sm:gap-2.5">
         {points.map((p) => (
-          <li key={p.title} className="flex gap-3 rounded-xl bg-surface-2 p-3 ring-1 ring-border sm:block sm:p-3.5">
+          <li key={p.title} className="flex gap-3 rounded-xl bg-black/20 p-3 ring-1 ring-white/[0.06] sm:block sm:p-3.5">
             <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent-fg ring-1 ring-accent-line [&_svg]:size-4">{p.icon}</span>
             <span className="block min-w-0">
               <span className="block text-[13px] font-semibold text-fg sm:mt-2.5">{p.title}</span>
