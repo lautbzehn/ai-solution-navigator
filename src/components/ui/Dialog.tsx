@@ -47,13 +47,14 @@ export function Modal({ open, onOpenChange, title, description, children, footer
 }
 
 /** Right-side drawer for editing records without leaving the current view. */
-export function Sheet({ open, onOpenChange, title, description, children, footer, className, width = 520 }: BaseProps & { width?: number }) {
+export function Sheet({ open, onOpenChange, title, description, children, footer, className, width = 520, onEscapeKeyDown }: BaseProps & { width?: number; onEscapeKeyDown?: (e: KeyboardEvent) => void }) {
   return (
     <RDialog.Root open={open} onOpenChange={onOpenChange}>
       <RDialog.Portal>
         <RDialog.Overlay className="fixed inset-0 z-50 animate-fade-in bg-black/45" />
         <RDialog.Content
           style={{ width: `min(${width}px, 100vw)` }}
+          onEscapeKeyDown={onEscapeKeyDown}
           className={cn('fixed top-0 right-0 bottom-0 z-50 flex animate-slide-in-right flex-col border-l border-border bg-surface shadow-pop', className)}
         >
           <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
