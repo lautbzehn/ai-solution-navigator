@@ -317,3 +317,21 @@
     animation: pulse-ring 2.2s ease-out infinite;
   }
 }
+
+/* The Icarian Forge logo beside "An Icarian Forge product". Its light pulses
+   from the Icarian Forge amber to emerald and back, as on icarianforge.com. */
+.if-logo { display: inline-block; width: 1.3em; height: 1.3em; margin-right: 0.4em; vertical-align: -0.3em; overflow: visible; }
+.if-logo .sun { color: var(--forge); fill: currentColor; }
+@media (prefers-reduced-motion: no-preference) {
+  .if-logo .sun { animation: if-sun-pulse 5s ease-in-out infinite; }
+}
+@keyframes if-sun-pulse {
+  0%, 100% { color: var(--forge); filter: drop-shadow(0 0 3.75px currentColor) drop-shadow(0 0 9px color-mix(in srgb, currentColor 65%, transparent)); }
+  12.5% { color: color-mix(in oklch, var(--forge) 75%, var(--success-fg)); }
+  25% { color: color-mix(in oklch, var(--forge) 50%, var(--success-fg)); filter: drop-shadow(0 0 1.2px currentColor) drop-shadow(0 0 3px color-mix(in srgb, currentColor 40%, transparent)); }
+  37.5% { color: color-mix(in oklch, var(--forge) 25%, var(--success-fg)); }
+  50% { color: var(--success-fg); filter: drop-shadow(0 0 3.75px currentColor) drop-shadow(0 0 9px color-mix(in srgb, currentColor 65%, transparent)); }
+  62.5% { color: color-mix(in oklch, var(--forge) 25%, var(--success-fg)); }
+  75% { color: color-mix(in oklch, var(--forge) 50%, var(--success-fg)); filter: drop-shadow(0 0 1.2px currentColor) drop-shadow(0 0 3px color-mix(in srgb, currentColor 40%, transparent)); }
+  87.5% { color: color-mix(in oklch, var(--forge) 75%, var(--success-fg)); }
+}
