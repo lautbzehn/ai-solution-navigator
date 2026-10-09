@@ -1,6 +1,8 @@
 # Forge AI Solution Navigator
 
-**Live demo: [navigator.icarianforge.com](https://navigator.icarianforge.com)**
+[![CI](https://github.com/lautbzehn/ai-solution-navigator/actions/workflows/ci.yml/badge.svg)](https://github.com/lautbzehn/ai-solution-navigator/actions/workflows/ci.yml)
+
+**Live demo: [navigator.icarianforge.com](https://navigator.icarianforge.com)** · **[Product case study](docs/case-study_v1.0_10.09.2026.md)**: the problem, key decisions, trade-offs, and how I'd measure success
 
 **A Product Manager's workspace for taking AI solutions from opportunity to production.**
 
