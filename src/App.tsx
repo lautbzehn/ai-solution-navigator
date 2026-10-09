@@ -15,6 +15,7 @@ const SolutionsPage = lazy(() => import('@/features/solutions/SolutionsPage').th
 const WorkspacePage = lazy(() => import('@/features/workspace/WorkspacePage').then((m) => ({ default: m.WorkspacePage })))
 const ReportsPage = lazy(() => import('@/features/reports/ReportsPage').then((m) => ({ default: m.ReportsPage })))
 const FrameworkPage = lazy(() => import('@/features/framework/FrameworkPage').then((m) => ({ default: m.FrameworkPage })))
+const AboutPage = lazy(() => import('@/features/about/AboutPage').then((m) => ({ default: m.AboutPage })))
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
 const page = (el: ReactNode) => <Suspense fallback={<PageSkeleton />}>{el}</Suspense>
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
       { path: 'reports', element: page(<ReportsPage />) },
       { path: 'framework', element: page(<FrameworkPage />) },
       { path: 'settings', element: page(<SettingsPage />) },
+      { path: 'about', element: page(<AboutPage />) },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

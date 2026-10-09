@@ -1,12 +1,23 @@
 # Forge AI Solution Navigator
 
-**Live demo: [navigator.icarianforge.com](https://navigator.icarianforge.com)**
+[![CI](https://github.com/lautbzehn/ai-solution-navigator/actions/workflows/ci.yml/badge.svg)](https://github.com/lautbzehn/ai-solution-navigator/actions/workflows/ci.yml)
+
+**Live demo: [navigator.icarianforge.com](https://navigator.icarianforge.com)** · **[The story behind it](docs/case-study_v1.2_10.09.2026.md)**: why I built it and the choices I made along the way
 
 **A Product Manager's workspace for taking AI solutions from opportunity to production.**
 
-A Lead Product Manager orchestrates an AI implementation; specialists do the work. The Navigator shows, at every moment, *where an AI initiative is, what needs to happen next, who needs to do it, what evidence is required, what could block it, and whether it's actually ready to move forward.*
+![The portfolio overview: every AI project at a glance, with the two that need help up front](docs/screenshots/dashboard.png)
 
-It operationalizes an 8-stage enterprise AI lifecycle (Discover → Assess → Design → Build → Validate → Deploy → Operate → Improve/Retire) with continuous, risk-based governance, without becoming a GRC platform.
+<p>
+  <img src="docs/screenshots/workspace.png" width="49%" alt="One project's workspace: where it is, how ready it is, and what to do next">
+  <img src="docs/screenshots/gate-blocked.png" width="49%" alt="A blocked stage gate: exactly what's missing, who owns it, and a link to fix it">
+</p>
+
+*Left: one project's workspace, with where it is and what to do next. Right: when a project can't move forward yet, it shows exactly what's missing and who can help.*
+
+Hi, I'm Dan West. If you've ever watched an AI pilot stall somewhere between "this works" and "this is live," this is for you. The Navigator shows, for every AI project at once, *where it is, what's next, who owns it, what proof is still missing, and whether it's really ready to move forward.*
+
+It follows 8 stages (Discover → Assess → Design → Build → Validate → Deploy → Operate → Improve/Retire), with checks that get stricter as the risk goes up. It's meant to sit alongside your compliance tools, not replace them. Inside the app, **About this project** tells the story and how to reach me.
 
 > All people, companies, solutions, and figures are fictional demo data (Dunder Mifflin, with The Office cast).
 

@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { cn } from '@/lib/cn'
 
 /* "An Icarian Forge product", shared with every Icarian Forge product: the I and
@@ -40,7 +41,11 @@ function ForgeLogo() {
 export function ForgeFooter() {
   return (
     <footer className="px-4 pt-2 pb-6 text-center text-[11.5px] text-fg-faint md:px-8">
-      <ForgeMark /> · © 2026 Icarian Forge. All rights reserved.
+      <ForgeMark /> · Built by{' '}
+      <Link to="/about" className="transition-colors hover:text-fg">
+        Dan West
+      </Link>{' '}
+      · © 2026 Icarian Forge. All rights reserved.
     </footer>
   )
 }
