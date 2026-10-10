@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Dialog as RDialog } from 'radix-ui'
-import { ArrowRight, X } from 'lucide-react'
+import { ArrowRight, Info, Users, X } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
 import { useUI } from '@/data/ui'
 
@@ -128,18 +128,24 @@ export function IntroDialog() {
                 </div>
               ))}
             </dl>
-            <div className="intro-note mt-4 rounded-xl px-5 py-3.5 text-center">
-              <p className="text-[14px] font-semibold text-[#fff3ea]">You're the audience, not a customer</p>
-              <p className="mt-0.5 text-[13px] leading-relaxed text-fg-muted">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="intro-note flex flex-col items-center justify-center rounded-xl px-5 py-4 text-center">
+                <p className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#fff3ea]">
+                  <Users className="size-4 text-[#f4a27e]" aria-hidden /> You're the audience, not a customer
+                </p>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-fg-muted">
                 This isn't a product I'm selling. It's a proof of concept, plus a little more. Click anything, approve things, even break things. It all stays in your browser.
               </p>
-              <figure className="intro-dwight mt-3 pt-3">
-                <figcaption className="text-[11px] font-semibold tracking-[0.09em] text-[#fff3ea]/75 uppercase">Disclaimer: all of the data is made up</figcaption>
+              </div>
+              <figure className="intro-disclaimer flex flex-col items-center justify-center rounded-xl px-5 py-4 text-center">
+                <figcaption className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.09em] text-[#f58bb2] uppercase">
+                  <Info className="size-3.5" aria-hidden /> Disclaimer: all of the data is made up
+                </figcaption>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-fg-muted">
                   Every person, project and number in here is fictional. The cast is borrowed from The Office's Dunder Mifflin, so yes, Dwight Schrute may be the one
                   blocking your gate.
                 </p>
-                <blockquote className="mt-2.5 text-[15px] leading-snug text-[#fff3ea] italic">“Identity theft is not a joke, Jim! Millions of families suffer every year!”</blockquote>
+                <blockquote className="mt-2.5 text-[14.5px] leading-snug text-[#fff3ea] italic">“Identity theft is not a joke, Jim! Millions of families suffer every year!”</blockquote>
                 <p className="intro-dwight-by mt-1 text-[12px]">Dwight Schrute, The Office, on us borrowing everyone's names</p>
               </figure>
             </div>
