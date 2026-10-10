@@ -77,6 +77,7 @@ export const FAQS: Faq[] = [
   { category: 'AI advisor', q: 'Does the AI advisor make decisions?', a: 'No. It analyzes, recommends, and explains. Approvals, gate decisions, and legal or security determinations stay with your team.' },
   { category: 'AI advisor', q: 'Is it a live AI model?', a: 'By default it uses built-in guidance computed in your browser from the live data. When a server key is configured it answers with Claude, and falls back automatically if that is unavailable.' },
   { category: 'Demo data', q: 'Is this real data?', a: 'No. Every person, solution, and number is fictional demo data.' },
-  { category: 'Demo data', q: 'Who built this?', a: 'Dan West, an AI product and CX leader. About this project, at the bottom of the sidebar, has the story behind it and how to get in touch.' },
+  { category: 'Demo data', q: 'Who built this?', a: 'Dan West, an AI strategy and adoption leader. About this project, at the bottom of the sidebar, has the story behind it and how to get in touch.' },
+  { category: 'Demo data', q: "What's Icarian Forge?", a: "Dan's personal AI lab, where he builds and tests what he advises on. This app is one of its projects." },
   { category: 'Demo data', q: 'Are my changes saved?', a: 'Yes, in this browser only. Nobody else sees them. Settings, then Reset demo data, restores the original portfolio.' },
 ]
