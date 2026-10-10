@@ -237,6 +237,23 @@
   /* Keyboard focus inside the balloon follows the tour's emerald, not the app's violet. */
   --ring: color-mix(in oklch, var(--success) 75%, transparent);
 }
+.intro-card {
+  /* Dan's note: warm ink with an ember edge, set apart from the app's graphite and the tour's emerald. */
+  background: #17120f;
+  border: 1px solid color-mix(in oklch, var(--forge) 55%, transparent);
+  box-shadow:
+    0 0 0 4px color-mix(in oklch, var(--forge) 8%, transparent),
+    0 30px 80px -20px rgb(0 0 0 / 0.7);
+  --ring: color-mix(in oklch, var(--forge) 75%, transparent);
+  animation: tour-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.intro-band {
+  background: linear-gradient(135deg, #fb8d62 0%, #f97343 48%, #ea6331 100%);
+  color: #1a0f08;
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro-card { animation: none; }
+}
 .tour-card-in {
   animation: tour-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

@@ -29,8 +29,13 @@ interface UIState {
   advisorOpen: boolean
   helpOpen: boolean
   tourOpen: boolean
+  /** The step the tour opens on. The intro hands on past the tour's own welcome. */
+  tourFrom: number
+  /** The note from Dan that greets a new session. */
+  introOpen: boolean
+  setIntro(v: boolean): void
   setHelp(v: boolean): void
-  startTour(): void
+  startTour(from?: number): void
   endTour(): void
   /** A question queued for the advisor panel, e.g. from a star icon. The id makes repeat clicks count. */
   advisorRequest?: { id: number; question: string; area?: AdvisorArea }
@@ -69,9 +74,14 @@ export const useUI = create<UIState>((set, get) => ({
   advisorOpen: false,
   helpOpen: false,
   tourOpen: false,
+  tourFrom: 0,
+  introOpen: false,
+  setIntro: (introOpen) => set({ introOpen }),
   setHelp: (helpOpen) => set({ helpOpen }),
   // The tour needs a clear stage: close anything that could cover what it points at.
-  startTour: () => set({ tourOpen: true, helpOpen: false, advisorOpen: false, paletteOpen: false, mobileNavOpen: false }),
+  // Handlers pass a click event here, so only a real number picks the starting step.
+  startTour: (from?: unknown) =>
+    set({ tourOpen: true, tourFrom: typeof from === 'number' ? from : 0, introOpen: false, helpOpen: false, advisorOpen: false, paletteOpen: false, mobileNavOpen: false }),
   endTour: () => set({ tourOpen: false }),
   toggleSidebar() {
     const next = !get().sidebarCollapsed

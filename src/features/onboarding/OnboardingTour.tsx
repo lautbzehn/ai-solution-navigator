@@ -8,15 +8,14 @@ import { Button } from '@/components/ui/Button'
 import { useUI } from '@/data/ui'
 import { cn } from '@/lib/cn'
 
-/* An eight-step product tour that opens every new browser session, so each
-   visitor to the demo starts with the purpose before exploring. The first and
+/* An eight-step product tour. A new browser session first sees the note from Dan
+   (IntroDialog), whose "Take the tour" opens this past its welcome step. The first and
    last steps are centered statements. The six between travel the product:
    a pointer glides to where the tour is heading and "clicks" the sidebar to
    change pages, then the spotlight settles and the callout appears.
-   Skip ends it for the session; Help replays it.
-   Add ?tour=off to a URL to suppress it (screenshots, tests). */
+   Skip ends it; Help and the About page replay it from the start.
+   ?tour=on in a URL opens it straight away; ?tour=off keeps both it and the intro away. */
 
-const SESSION_KEY = 'asn-tour'
 const DEMO = '/solutions/s_support'
 /** Pace of the guided motion. Deliberately unhurried so the eye can follow. */
 const GLIDE_MS = 1100
@@ -100,32 +99,6 @@ const STEPS: Step[] = [
   { id: 'finale', route: '/', via: ['nav[aria-label="Primary"] a[href="/"]'] },
 ]
 
-/** Opens the tour once per browser session. */
-export function useSessionTour() {
-  const startTour = useUI((s) => s.startTour)
-  useEffect(() => {
-    const param = new URLSearchParams(window.location.search).get('tour')
-    let seen = false
-    try {
-      seen = window.sessionStorage.getItem(SESSION_KEY) === 'seen'
-      if (param === 'off') window.sessionStorage.setItem(SESSION_KEY, 'seen')
-    } catch {
-      /* storage blocked: still show the tour */
-    }
-    if (param === 'off' || (seen && param !== 'on')) return
-    // Mark it when it actually opens, so a strict-mode double mount can't swallow it.
-    const timer = window.setTimeout(() => {
-      try {
-        window.sessionStorage.setItem(SESSION_KEY, 'seen')
-      } catch {
-        /* ignore */
-      }
-      startTour()
-    }, 1200)
-    return () => window.clearTimeout(timer)
-  }, [startTour])
-}
-
 const visible = (el: Element | null): el is HTMLElement => {
   if (!el) return false
   const r = el.getBoundingClientRect()
@@ -194,6 +167,7 @@ interface Pointer {
 export function OnboardingTour() {
   const open = useUI((s) => s.tourOpen)
   const endTour = useUI((s) => s.endTour)
+  const from = useUI((s) => s.tourFrom)
   const navigate = useNavigate()
   const location = useLocation()
   const [i, setI] = useState(0)
@@ -224,7 +198,7 @@ export function OnboardingTour() {
     }
     firstCard.current = true
     const t = window.setTimeout(() => setEntered(true), 30)
-    setI(0)
+    setI(useUI.getState().tourFrom)
     setReady(true)
     setHole(null)
     target.current = null
@@ -263,7 +237,7 @@ export function OnboardingTour() {
     }
 
     ;(async () => {
-      if (i === 0) return
+      if (!step.route && !step.targets) return
       setReady(false)
       // 1. Travel: show the click that gets to this step's page.
       if (step.route && !samePath(path.current, step.route)) {
@@ -337,7 +311,7 @@ export function OnboardingTour() {
   const back = useCallback(() => {
     if (!ready) return
     forward.current = false
-    setI((n) => Math.max(0, n - 1))
+    setI((n) => Math.max(from, n - 1))
   }, [ready])
 
   useEffect(() => {
@@ -377,7 +351,7 @@ export function OnboardingTour() {
   const showCard = ready && pos
   // Only the welcome eases in slowly; later steps arrive with a lighter fade.
   const slow = i === 0 && firstCard.current
-  if (showCard && i > 0) firstCard.current = false
+  if (showCard && i > from) firstCard.current = false
 
   return createPortal(
     <div className="tour-root fixed inset-0 z-[90]" data-tour-step={step.id} data-tour-ready={ready || undefined}>
@@ -442,7 +416,7 @@ export function OnboardingTour() {
         ) : (
           <>
             <p className="text-[11px] font-semibold tracking-[0.08em] text-success-fg uppercase">
-              Step {i + 1} of {STEPS.length}
+              Step {i + 1 - from} of {STEPS.length - from}
             </p>
             <h2 id="tour-title" className="mt-1.5 pr-6 text-[16px] font-semibold tracking-[-0.01em] text-fg">
               {step.title}
@@ -454,14 +428,14 @@ export function OnboardingTour() {
         )}
 
         <div className={cn('mt-5 flex items-center gap-3', statement && 'sm:mt-7', statement ? 'justify-center' : 'justify-between')}>
-          {!statement && <Dots i={i} />}
+          {!statement && <Dots i={i} from={from} />}
           <div className={cn('flex items-center gap-2', statement && 'flex-col-reverse sm:flex-row')}>
             {step.id === 'welcome' && (
               <Button variant="ghost" onClick={endTour}>
                 Skip the tour
               </Button>
             )}
-            {!statement && i > 0 && (
+            {!statement && i > from && (
               <Button variant="ghost" size="sm" onClick={back} aria-label="Previous step">
                 <ArrowLeft /> Back
               </Button>
@@ -483,11 +457,11 @@ export function OnboardingTour() {
         </div>
         {statement && (
           <div className="mt-5 flex justify-center">
-            <Dots i={i} />
+            <Dots i={i} from={from} />
           </div>
         )}
         <p className="sr-only" aria-live="polite">
-          {showCard ? `Step ${i + 1} of ${STEPS.length}` : ''}
+          {showCard ? `Step ${i + 1 - from} of ${STEPS.length - from}` : ''}
         </p>
       </div>
     </div>,
@@ -495,12 +469,15 @@ export function OnboardingTour() {
   )
 }
 
-function Dots({ i }: { i: number }) {
+function Dots({ i, from = 0 }: { i: number; from?: number }) {
   return (
     <span className="flex items-center gap-1.5" aria-hidden>
-      {STEPS.map((s, n) => (
-        <span key={s.id} className={cn('h-1.5 rounded-full transition-all duration-300', n === i ? 'w-5 bg-success' : n < i ? 'w-1.5 bg-success/50' : 'w-1.5 bg-fg-faint/40')} />
-      ))}
+      {STEPS.slice(from).map((s, k) => {
+        const n = k + from
+        return (
+          <span key={s.id} className={cn('h-1.5 rounded-full transition-all duration-300', n === i ? 'w-5 bg-success' : n < i ? 'w-1.5 bg-success/50' : 'w-1.5 bg-fg-faint/40')} />
+        )
+      })}
     </span>
   )
 }
