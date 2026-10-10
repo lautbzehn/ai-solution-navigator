@@ -237,6 +237,37 @@
   /* Keyboard focus inside the balloon follows the tour's emerald, not the app's violet. */
   --ring: color-mix(in oklch, var(--success) 75%, transparent);
 }
+.intro-card {
+  /* Dan's note: warm ink with an ember edge, set apart from the app's graphite and the tour's emerald. */
+  background: #17120f;
+  border: 1px solid color-mix(in oklch, var(--forge) 55%, transparent);
+  box-shadow:
+    0 0 0 4px color-mix(in oklch, var(--forge) 8%, transparent),
+    0 30px 80px -20px rgb(0 0 0 / 0.7);
+  --ring: color-mix(in oklch, var(--forge) 75%, transparent);
+  animation: tour-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.intro-band {
+  /* Deep ember with a warm light from the top left: distinct, but quieter than the button. */
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgb(255 170 120 / 0.22), transparent 55%),
+    linear-gradient(135deg, #b4461c 0%, #8f3414 55%, #6f2810 100%);
+  color: #fff3ea;
+  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.06);
+}
+.intro-note {
+  background: rgb(255 255 255 / 0.035);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+.intro-dwight {
+  /* Beet red, for Dwight: one small accent on a hairline. */
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+}
+.intro-dwight figcaption { color: #f58bb2; }
+.intro-live { box-shadow: 0 0 0 3px rgb(52 211 153 / 0.18); }
+@media (prefers-reduced-motion: reduce) {
+  .intro-card { animation: none; }
+}
 .tour-card-in {
   animation: tour-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

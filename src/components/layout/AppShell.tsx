@@ -8,7 +8,8 @@ import { cn } from '@/lib/cn'
 import { ForgeFooter } from '@/components/brand/ForgeMark'
 import { CreateSolutionWizard } from '@/features/create/CreateSolutionWizard'
 import { HelpCenter } from '@/features/help/HelpCenter'
-import { OnboardingTour, useSessionTour } from '@/features/onboarding/OnboardingTour'
+import { OnboardingTour } from '@/features/onboarding/OnboardingTour'
+import { IntroDialog, useSessionIntro } from '@/features/onboarding/IntroDialog'
 import { Button } from '../ui/Button'
 import { Kbd } from '../ui/misc'
 import { Tip } from '../ui/Tooltip'
@@ -119,10 +120,10 @@ function MobileNav() {
 export function AppShell() {
   const setPalette = useUI((s) => s.setPalette)
   const advisorOpen = useUI((s) => s.advisorOpen)
-  useSessionTour()
+  useSessionIntro()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !useUI.getState().tourOpen) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !useUI.getState().tourOpen && !useUI.getState().introOpen) {
         e.preventDefault()
         setPalette(true)
       }
@@ -154,6 +155,7 @@ export function AppShell() {
       <CreateSolutionWizard />
       <HelpCenter />
       <OnboardingTour />
+      <IntroDialog />
       {/* Key by path: fresh page loads otherwise share one key and inherit each other's scroll position. */}
       <ScrollRestoration getKey={(location) => location.pathname} />
     </div>

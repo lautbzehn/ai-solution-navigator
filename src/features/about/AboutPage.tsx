@@ -84,7 +84,7 @@ export function AboutPage() {
             icon={<Play />}
             title="See it for yourself in five minutes"
             actions={
-              <Button size="sm" variant="secondary" onClick={startTour}>
+              <Button size="sm" variant="secondary" onClick={() => startTour()}>
                 Take the guided tour
               </Button>
             }
