@@ -134,16 +134,13 @@ export function IntroDialog() {
                 This isn't a product I'm selling. It's a proof of concept, plus a little more. Click anything, approve things, even break things. It all stays in your browser.
               </p>
               <figure className="intro-dwight mt-3 pt-3">
-                <figcaption className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.09em] uppercase">
-                  <span className="size-1.5 rounded-full bg-[#e0457f]" aria-hidden />
-                  Important disclaimer from Dwight Schrute
-                </figcaption>
-                <p className="mt-1.5 text-[13.5px] leading-relaxed text-fg">
-                  Every name and number in here is made-up Dunder Mifflin data. Do not report it to corporate. For the record, I oppose this whole AI shift. I also use the AI
-                  advisor every single day. You may click anything. My method, for reference:
+                <figcaption className="text-[11px] font-semibold tracking-[0.09em] text-[#fff3ea]/75 uppercase">Disclaimer: all of the data is made up</figcaption>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-fg-muted">
+                  Every person, project and number in here is fictional. The cast is borrowed from The Office's Dunder Mifflin, so yes, Dwight Schrute may be the one
+                  blocking your gate.
                 </p>
-                <blockquote className="mt-2 text-[15px] leading-snug text-[#fff3ea] italic">“Whenever I'm about to do something, I think, ‘Would an idiot do that?’”</blockquote>
-                <p className="mt-1.5 text-[12px] text-fg-subtle">Dwight Schrute, Assistant (to the) Regional Manager</p>
+                <blockquote className="mt-2.5 text-[15px] leading-snug text-[#fff3ea] italic">“Identity theft is not a joke, Jim! Millions of families suffer every year!”</blockquote>
+                <p className="intro-dwight-by mt-1 text-[12px]">Dwight Schrute, The Office, on us borrowing everyone's names</p>
               </figure>
             </div>
           </div>
