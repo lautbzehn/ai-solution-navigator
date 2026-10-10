@@ -128,15 +128,16 @@ export function IntroDialog() {
             <div className="mt-4 rounded-xl bg-success-soft px-4 py-3 text-center ring-1 ring-success/30">
               <p className="text-[13.5px] font-semibold text-success-fg">You're the audience, not a customer</p>
               <p className="mt-0.5 text-[13px] leading-relaxed text-fg-muted">
-                This isn't a product I'm selling. It's a proof of concept, plus a little more, running on made-up data from The Office's Dunder Mifflin. Click anything, approve
-                things, even break things. It all stays in your browser.
+                This isn't a product I'm selling. It's a proof of concept, plus a little more. Click anything, approve things, even break things. It all stays in your browser.
               </p>
-              <figure className="intro-dwight mt-3 rounded-lg px-3.5 py-2.5">
-                <figcaption className="text-[10.5px] font-semibold tracking-[0.09em] uppercase">A word from the demo data</figcaption>
-                <blockquote className="mt-1 text-[14.5px] leading-snug text-fg italic">“Whenever I'm about to do something, I think, ‘Would an idiot do that?’”</blockquote>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-fg-muted">
-                  Dwight Schrute, Assistant (to the) Regional Manager. Officially against this whole AI shift. Uses the AI advisor every single day.
+              <figure className="intro-dwight mt-3 rounded-lg px-4 py-3">
+                <figcaption className="text-[11px] font-semibold tracking-[0.09em] uppercase">Important disclaimer from Dwight Schrute</figcaption>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-fg">
+                  Every name and number in here is made-up Dunder Mifflin data. Do not report it to corporate. For the record, I oppose this whole AI shift. I also use the AI
+                  advisor every single day. You may click anything. My method, for reference:
                 </p>
+                <blockquote className="mt-2 text-[15px] leading-snug text-fg italic">“Whenever I'm about to do something, I think, ‘Would an idiot do that?’”</blockquote>
+                <p className="mt-1.5 text-[12px] text-fg-subtle">Dwight Schrute, Assistant (to the) Regional Manager</p>
               </figure>
             </div>
           </div>
