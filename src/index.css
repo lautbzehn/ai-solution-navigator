@@ -259,11 +259,12 @@
   background: rgb(255 255 255 / 0.035);
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
 }
-.intro-dwight {
-  /* Beet red, for Dwight: one small accent on a hairline. */
-  border-top: 1px solid rgb(255 255 255 / 0.08);
+.intro-disclaimer {
+  /* The data disclaimer: its own panel with a beet tint, so it never reads as part of Dan's note. */
+  background: rgb(224 69 127 / 0.07);
+  box-shadow: inset 0 0 0 1px rgb(224 69 127 / 0.32);
 }
-.intro-dwight figcaption { color: #f58bb2; }
+.intro-dwight-by { color: #f58bb2; }
 .intro-live { box-shadow: 0 0 0 3px rgb(52 211 153 / 0.18); }
 @media (prefers-reduced-motion: reduce) {
   .intro-card { animation: none; }
