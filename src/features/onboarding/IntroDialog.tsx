@@ -105,10 +105,10 @@ export function IntroDialog() {
                 Live demo
               </span>
             </div>
-            <RDialog.Title className="mt-2.5 text-[21px] leading-[1.15] font-semibold tracking-[-0.025em] text-balance sm:mt-3 sm:text-[25px]">
+            <RDialog.Title className="mt-2.5 text-center text-[21px] leading-[1.15] font-semibold tracking-[-0.025em] text-balance sm:mt-3 sm:text-[25px]">
               Hi, I'm Dan West. I built this from zero, plus a lot of coffee.
             </RDialog.Title>
-            <p id="intro-lede" className="mt-1.5 max-w-[640px] text-[13px] leading-normal text-[#fff3ea]/80 sm:text-[13.5px]">
+            <p id="intro-lede" className="mx-auto mt-1.5 max-w-[640px] text-center text-[13px] leading-normal text-[#fff3ea]/80 sm:text-[13.5px]">
               I'm an AI strategy and adoption leader with nearly 20 years in IT. Here's the short version of why this exists.
             </p>
             <RDialog.Close
