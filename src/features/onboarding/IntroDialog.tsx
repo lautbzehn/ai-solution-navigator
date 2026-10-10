@@ -98,19 +98,22 @@ export function IntroDialog() {
             <div className="flex items-center gap-2.5 pr-8">
               <Logo size={26} />
               <span className="text-[12.5px] font-semibold tracking-[-0.01em]">
-                <b className="font-bold">Forge</b> AI Solution Navigator
+                <b className="font-bold text-[#ffb48a]">Forge</b> AI Solution Navigator
               </span>
-              <span className="ml-1 shrink-0 rounded-full bg-[#1a0f08]/85 px-2 py-0.5 whitespace-nowrap text-[10.5px] font-semibold tracking-[0.08em] text-[#7ef0c0] uppercase">Live demo</span>
+              <span className="ml-1 inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/30 px-2 py-0.5 text-[10.5px] font-semibold tracking-[0.08em] whitespace-nowrap text-[#fff3ea] uppercase ring-1 ring-white/10">
+                <span className="intro-live size-1.5 rounded-full bg-[#34d399]" aria-hidden />
+                Live demo
+              </span>
             </div>
             <RDialog.Title className="mt-3.5 text-[24px] leading-[1.12] font-semibold tracking-[-0.03em] text-balance sm:mt-4 sm:text-[30px]">
               Hi, I'm Dan West. I built this from zero, plus a lot of coffee.
             </RDialog.Title>
-            <p id="intro-lede" className="mt-2 max-w-[560px] text-[14px] leading-relaxed text-[#1a0f08]/80 sm:text-[14.5px]">
+            <p id="intro-lede" className="mt-2 max-w-[560px] text-[14px] leading-relaxed text-[#fff3ea]/80 sm:text-[14.5px]">
               I'm an AI strategy and adoption leader with nearly 20 years in IT. Here's the short version of why this exists.
             </p>
             <RDialog.Close
               aria-label="Close the intro"
-              className="absolute top-3 right-3 rounded-md p-1.5 text-[#1a0f08]/70 transition-colors hover:bg-[#1a0f08]/10 hover:text-[#1a0f08] sm:top-4 sm:right-4"
+              className="absolute top-3 right-3 rounded-md p-1.5 text-[#fff3ea]/70 transition-colors hover:bg-white/10 hover:text-[#fff3ea] sm:top-4 sm:right-4"
             >
               <X className="size-4" />
             </RDialog.Close>
@@ -120,23 +123,26 @@ export function IntroDialog() {
             <dl className="grid gap-x-7 gap-y-3.5 sm:grid-cols-2">
               {POINTS.map((p) => (
                 <div key={p.label}>
-                  <dt className="text-[11px] font-semibold tracking-[0.09em] text-forge uppercase">{p.label}</dt>
+                  <dt className="text-[11px] font-semibold tracking-[0.09em] text-[#f4a27e] uppercase">{p.label}</dt>
                   <dd className="mt-1 text-[13.5px] leading-relaxed text-fg-muted">{p.body}</dd>
                 </div>
               ))}
             </dl>
-            <div className="mt-4 rounded-xl bg-success-soft px-4 py-3 text-center ring-1 ring-success/30">
-              <p className="text-[13.5px] font-semibold text-success-fg">You're the audience, not a customer</p>
+            <div className="intro-note mt-4 rounded-xl px-5 py-3.5 text-center">
+              <p className="text-[14px] font-semibold text-[#fff3ea]">You're the audience, not a customer</p>
               <p className="mt-0.5 text-[13px] leading-relaxed text-fg-muted">
                 This isn't a product I'm selling. It's a proof of concept, plus a little more. Click anything, approve things, even break things. It all stays in your browser.
               </p>
-              <figure className="intro-dwight mt-3 rounded-lg px-4 py-3">
-                <figcaption className="text-[11px] font-semibold tracking-[0.09em] uppercase">Important disclaimer from Dwight Schrute</figcaption>
+              <figure className="intro-dwight mt-3 pt-3">
+                <figcaption className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.09em] uppercase">
+                  <span className="size-1.5 rounded-full bg-[#e0457f]" aria-hidden />
+                  Important disclaimer from Dwight Schrute
+                </figcaption>
                 <p className="mt-1.5 text-[13.5px] leading-relaxed text-fg">
                   Every name and number in here is made-up Dunder Mifflin data. Do not report it to corporate. For the record, I oppose this whole AI shift. I also use the AI
                   advisor every single day. You may click anything. My method, for reference:
                 </p>
-                <blockquote className="mt-2 text-[15px] leading-snug text-fg italic">“Whenever I'm about to do something, I think, ‘Would an idiot do that?’”</blockquote>
+                <blockquote className="mt-2 text-[15px] leading-snug text-[#fff3ea] italic">“Whenever I'm about to do something, I think, ‘Would an idiot do that?’”</blockquote>
                 <p className="mt-1.5 text-[12px] text-fg-subtle">Dwight Schrute, Assistant (to the) Regional Manager</p>
               </figure>
             </div>
