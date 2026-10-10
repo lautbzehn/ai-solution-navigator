@@ -27,7 +27,7 @@ const POINTS = [
     body: "Nobody's quite sure what stage a project is in, what's still missing, or whose turn it is. The Navigator answers that plainly, for every AI project at once.",
   },
   {
-    label: 'Why I built it from scratch',
+    label: 'Why I started from zero',
     body: 'Ticket tools track tasks. Governance tools track compliance. Neither answers what the product manager carries, so I designed it myself and built it by directing Claude Code.',
   },
   {
@@ -92,9 +92,9 @@ export function IntroDialog() {
         <RDialog.Content
           data-theme="dark"
           aria-describedby="intro-lede"
-          className="intro-card fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-24px)] w-[min(720px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl text-fg"
+          className="intro-card fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-24px)] w-[min(760px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl text-fg"
         >
-          <div className="intro-band relative shrink-0 px-5 pt-4 pb-5 sm:px-8 sm:pt-6 sm:pb-7">
+          <div className="intro-band relative shrink-0 px-5 pt-4 pb-5 sm:px-8 sm:pt-5 sm:pb-6">
             <div className="flex items-center gap-2.5 pr-8">
               <Logo size={26} />
               <span className="text-[12.5px] font-semibold tracking-[-0.01em]">
@@ -102,10 +102,10 @@ export function IntroDialog() {
               </span>
               <span className="ml-1 shrink-0 rounded-full bg-[#1a0f08]/85 px-2 py-0.5 whitespace-nowrap text-[10.5px] font-semibold tracking-[0.08em] text-[#7ef0c0] uppercase">Live demo</span>
             </div>
-            <RDialog.Title className="mt-4 text-[24px] leading-[1.12] font-semibold tracking-[-0.03em] text-balance sm:mt-5 sm:text-[32px]">
-              Hi, I'm Dan West. I built this from scratch.
+            <RDialog.Title className="mt-3.5 text-[24px] leading-[1.12] font-semibold tracking-[-0.03em] text-balance sm:mt-4 sm:text-[30px]">
+              Hi, I'm Dan West. I built this from zero, plus a lot of coffee.
             </RDialog.Title>
-            <p id="intro-lede" className="mt-2 max-w-[560px] text-[14px] leading-relaxed text-[#1a0f08]/80 sm:text-[15px]">
+            <p id="intro-lede" className="mt-2 max-w-[560px] text-[14px] leading-relaxed text-[#1a0f08]/80 sm:text-[14.5px]">
               I'm an AI strategy and adoption leader with nearly 20 years in IT. Here's the short version of why this exists.
             </p>
             <RDialog.Close
@@ -116,8 +116,8 @@ export function IntroDialog() {
             </RDialog.Close>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-8 sm:py-6">
-            <dl className="grid gap-x-7 gap-y-4 sm:grid-cols-2">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-8 sm:py-5">
+            <dl className="grid gap-x-7 gap-y-3.5 sm:grid-cols-2">
               {POINTS.map((p) => (
                 <div key={p.label}>
                   <dt className="text-[11px] font-semibold tracking-[0.09em] text-forge uppercase">{p.label}</dt>
@@ -125,15 +125,19 @@ export function IntroDialog() {
                 </div>
               ))}
             </dl>
-            <div className="mt-5 rounded-xl bg-success-soft px-4 py-3 ring-1 ring-success/30">
+            <div className="mt-4 rounded-xl bg-success-soft px-4 py-3 text-center ring-1 ring-success/30">
               <p className="text-[13.5px] font-semibold text-success-fg">You're the audience, not a customer</p>
               <p className="mt-0.5 text-[13px] leading-relaxed text-fg-muted">
                 This isn't a product I'm selling. It's a proof of concept, plus a little more, running on made-up data from The Office's Dunder Mifflin. Click anything, approve
                 things, even break things. It all stays in your browser.
               </p>
-              <p className="mt-2 text-[12.5px] leading-relaxed text-fg-subtle italic">
-                Dwight Schrute would like it noted that he opposes this whole AI shift. Question: has he used the AI advisor anyway? Every single day.
-              </p>
+              <figure className="intro-dwight mt-3 rounded-lg px-3.5 py-2.5">
+                <figcaption className="text-[10.5px] font-semibold tracking-[0.09em] uppercase">A word from the demo data</figcaption>
+                <blockquote className="mt-1 text-[14.5px] leading-snug text-fg italic">“Whenever I'm about to do something, I think, ‘Would an idiot do that?’”</blockquote>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-fg-muted">
+                  Dwight Schrute, Assistant (to the) Regional Manager. Officially against this whole AI shift. Uses the AI advisor every single day.
+                </p>
+              </figure>
             </div>
           </div>
 
