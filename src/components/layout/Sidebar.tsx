@@ -2,6 +2,7 @@ import { useCallback, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useMatch, type Location } from 'react-router'
 import { BarChart3, BookOpenCheck, ChevronRight, Coffee, FolderKanban, LayoutDashboard, Settings, Star, type LucideIcon } from 'lucide-react'
 import { stageDef } from '@/config'
+import { needsAttention } from '@/domain/status'
 import { usePortfolio } from '@/data/hooks'
 import { useStore } from '@/data/store'
 import { CURRENT_USER_ID } from '@/data/seed/people'
@@ -197,7 +198,7 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
   const viewed = useUI((s) => s.recentlyViewed)
   const me = useStore((s) => s.people.find((p) => p.id === CURRENT_USER_ID))
   const location = useLocation()
-  const attention = usePortfolio().filter((i) => i.health.status !== 'on_track').length
+  const attention = usePortfolio().filter((i) => needsAttention(i.health.status)).length
   const nav = useNavOpen()
 
   const byId = new Map(solutions.map((s) => [s.id, s]))

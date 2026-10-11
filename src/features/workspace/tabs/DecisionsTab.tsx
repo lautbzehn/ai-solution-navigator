@@ -10,7 +10,7 @@ import { EmptyState } from '@/components/ui/misc'
 import { Pill, type Tone } from '@/components/ui/Pill'
 import { STAGES, stageDef } from '@/config'
 import { useStore } from '@/data/store'
-import { DECISION_OUTCOME, DECISION_TYPE, EVIDENCE_STATUS } from '@/domain/labels'
+import { DECISION_OUTCOME, DECISION_TYPE, EVIDENCE_STATUS, MANUAL_DECISION_OUTCOMES } from '@/domain/labels'
 import type { Decision, DecisionOutcome, DecisionType, StageId } from '@/domain/types'
 import { hasErrors, meaningful, validDate, type Errors } from '@/domain/validation'
 import { cn } from '@/lib/cn'
@@ -18,7 +18,20 @@ import { fromDateInput, longDate, toDateInput } from '@/lib/format'
 import { useForm } from '@/lib/useForm'
 import { useWorkspace } from '../context'
 
-export const OUTCOME_TONE: Record<DecisionOutcome, Tone> = { pending: 'warning', approved: 'success', approved_with_conditions: 'success', rejected: 'danger', deferred: 'neutral' }
+export const OUTCOME_TONE: Record<DecisionOutcome, Tone> = {
+  pending: 'warning',
+  approved: 'success',
+  approved_with_conditions: 'success',
+  rejected: 'danger',
+  deferred: 'neutral',
+  iterate: 'accent',
+  pivot: 'accent',
+  roll_back: 'warning',
+  park: 'info',
+  stop: 'muted',
+  sustain: 'success',
+  retire: 'muted',
+}
 
 export function DecisionsTab() {
   const { insight } = useWorkspace()
@@ -37,7 +50,7 @@ export function DecisionsTab() {
           <EmptyState
             icon={<Gavel />}
             title="No decisions have been recorded yet"
-            body="Decisions become important during Assess and Design. Record the first decision when your team agrees on the solution approach."
+            body="Decisions start at the first gate. Record one whenever the team agrees on scope, design, or risk."
             action={<Button variant="primary" onClick={() => setEditing('new')}><Plus /> Record a decision</Button>}
           />
         </Card>
@@ -165,7 +178,7 @@ function DecisionSheet({ decision, onClose }: { decision: Decision | 'new' | nul
         </div>
         <Field label="Decision owner" required error={errors.ownerId}>{(p) => <Select {...p} value={v.ownerId} onChange={(e) => set('ownerId', e.target.value)}>{team.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>}</Field>
         <Field label="Recommendation" required error={errors.recommendation} hint="What the team recommends, before the decision is made.">{(p) => <Textarea {...p} rows={2} value={v.recommendation} onChange={(e) => set('recommendation', e.target.value)} />}</Field>
-        <Field label="Outcome">{(p) => <Select {...p} value={v.outcome} onChange={(e) => set('outcome', e.target.value as DecisionOutcome)}>{Object.entries(DECISION_OUTCOME).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select>}</Field>
+        <Field label="Outcome">{(p) => <Select {...p} value={v.outcome} onChange={(e) => set('outcome', e.target.value as DecisionOutcome)}>{(MANUAL_DECISION_OUTCOMES.includes(v.outcome) ? MANUAL_DECISION_OUTCOMES : [...MANUAL_DECISION_OUTCOMES, v.outcome]).map((k) => <option key={k} value={k}>{DECISION_OUTCOME[k]}</option>)}</Select>}</Field>
         <Field label="Rationale" required={v.outcome !== 'pending'} error={errors.rationale}>{(p) => <Textarea {...p} rows={2} value={v.rationale} onChange={(e) => set('rationale', e.target.value)} />}</Field>
         <Field label="Conditions" required={v.outcome === 'approved_with_conditions'} error={errors.conditions}>{(p) => <Textarea {...p} rows={2} value={v.conditions} onChange={(e) => set('conditions', e.target.value)} />}</Field>
         <Field label="Impact" optionalLabel>{(p) => <Textarea {...p} rows={2} value={v.impact} onChange={(e) => set('impact', e.target.value)} />}</Field>

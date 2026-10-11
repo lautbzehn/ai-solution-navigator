@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router'
-import { ArrowRight, Calendar, Lock, Pencil } from 'lucide-react'
+import { Archive, ArrowRight, Calendar, Lock, Pause, Pencil, Play, Square } from 'lucide-react'
+import { toast } from 'sonner'
 import { LifecycleRail } from '@/components/lifecycle/LifecycleRail'
 import { Page } from '@/components/layout/Page'
 import { HEALTH_TONE, HealthPill, paceTone, RiskPill, StagePill } from '@/components/status'
@@ -22,11 +23,12 @@ import { inProduction } from '@/domain/status'
 import { cn } from '@/lib/cn'
 import { daysBetween, relative } from '@/lib/format'
 import { NotFoundPage } from '../NotFoundPage'
-import { WorkspaceContext, type WorkspaceCtx } from './context'
+import { useWorkspace, WorkspaceContext, type WorkspaceCtx } from './context'
 import { ActivityDrawer } from './drawers/ActivityDrawer'
 import { EditSolutionSheet } from './forms/EditSolutionSheet'
 import { GateModal } from './GateModal'
 import { NextActionCard } from './NextActionCard'
+import { CharterSheet, ResultsSheet } from './proof/ProofSheets'
 import { RisksAndDecisionsTab, TeamAndHistoryTab } from './tabs/CombinedTabs'
 import { EvidenceTab } from './tabs/EvidenceTab'
 import { LifecycleTab } from './tabs/LifecycleTab'
@@ -73,6 +75,8 @@ export function WorkspacePage() {
   }, [rawTab, id, navigate, askAdvisor])
   const [gateOpen, setGateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [proofEditor, setProofEditor] = useState<'charter' | 'results' | null>(null)
+  const resumeSolution = useStore((s) => s.resumeSolution)
   const sponsorId = insight?.bundle.solution.team.find((m) => m.roleId === 'executive_sponsor')?.personId
 
   const activityId = params.get('activity') ?? undefined
@@ -98,6 +102,7 @@ export function WorkspacePage() {
             openActivity,
             openGate: () => setGateOpen(true),
             goTab: (t: string) => navigate(`/solutions/${insight.bundle.solution.id}/${MERGED[t] ?? t}`),
+            openProof: (editor: 'charter' | 'results') => setProofEditor(editor),
           }
         : null,
     [insight, openActivity, navigate],
@@ -115,8 +120,9 @@ export function WorkspacePage() {
   const { solution } = insight.bundle
   const { readiness, gate, health } = insight
   const stage = stageDef(solution.stage)
-  const visit = solution.stageHistory.find((v) => v.stage === solution.stage && !v.exitedAt)
-  const daysInStage = visit ? daysBetween(visit.enteredAt) : 0
+  // A stopped or retired solution's last visit is closed; count up to when it ended.
+  const visit = solution.stageHistory.findLast((v) => v.stage === solution.stage)
+  const daysInStage = visit ? daysBetween(visit.enteredAt, visit.exitedAt ?? Date.now()) : 0
   const next = gate.nextStage ? stageDef(gate.nextStage) : undefined
   const tone = paceTone(readiness.overall, readiness.expected)
   const tabBadge: Record<string, { n: number; tip: string } | undefined> = {
@@ -146,7 +152,8 @@ export function WorkspacePage() {
                   ))}
                 </ul>
               </HoverCard>
-              {inProduction(solution.stage) && <Pill tone="success" dot>In production</Pill>}
+              {gate.active && inProduction(solution.stage) && <Pill tone="success" dot>In production</Pill>}
+              {gate.active && solution.stage === 'launch' && <Pill tone="info" dot>Piloting</Pill>}
               {solution.demo && (
                 <Tip content="Fictional demo data">
                   <span><Pill tone="muted">Demo</Pill></span>
@@ -166,7 +173,7 @@ export function WorkspacePage() {
             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12.5px] text-fg-subtle">
               <span className="flex items-center gap-1.5">Owner <PersonChip id={solution.ownerId} /></span>
               {sponsorId && <span className="flex items-center gap-1.5">Sponsor <PersonChip id={sponsorId} /></span>}
-              <span className="flex items-center gap-1.5"><Calendar className="size-3.5" /> {daysInStage} days in {stage.name}</span>
+              <span className="flex items-center gap-1.5"><Calendar className="size-3.5" /> {daysInStage} {daysInStage === 1 ? 'day' : 'days'} in {stage.name}</span>
               <span>Updated {relative(solution.updatedAt)}</span>
             </div>
           </div>
@@ -177,24 +184,37 @@ export function WorkspacePage() {
             </Ring>
             <div className="min-w-[150px]">
               <p className="flex items-center gap-1 text-[12px] text-fg-subtle">Readiness <InfoTip term="readiness" /></p>
-              <p className={cn('text-[12px]', toneText[tone])}>{readiness.pace === 'on_pace' ? 'On pace' : readiness.pace === 'behind' ? 'Behind pace' : 'Well behind'} · expected ≥{readiness.expected}</p>
-              {next ? (
-                <Tip content={gate.canAdvance ? `Every requirement is met. Open the gate review to record the decision.` : `See what's still open before ${next.name}, and who owns it`}>
+              {gate.active && <p className={cn('text-[12px]', toneText[tone])}>{readiness.pace === 'on_pace' ? 'On pace' : readiness.pace === 'behind' ? 'Behind pace' : 'Well behind'} · expected ≥{readiness.expected}</p>}
+              {!gate.active ? (
+                solution.state === 'parked' ? (
+                  <Button variant="primary" size="sm" className="mt-2 w-full" onClick={() => { resumeSolution(solution.id); toast.success(`${solution.name.replace(/^AI /, '')} resumed`) }}>
+                    <Play /> Resume work
+                  </Button>
+                ) : (
+                  <p className="mt-2 text-[12px] text-fg-subtle">{solution.state === 'stopped' ? 'Stopped' : 'Retired'} · see the decision log</p>
+                )
+              ) : next ? (
+                <Tip content={gate.canAdvance ? 'Every requirement is met. Record the gate decision.' : `See what's still open before ${next.name}, and who owns it. You can also park or stop it here.`}>
                   <Button variant={gate.canAdvance ? 'primary' : 'secondary'} size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
-                    {gate.canAdvance ? <>Advance to {next.name} <ArrowRight /></> : <><Lock className="!size-3.5" /> Advance to {next.name}</>}
+                    {gate.canAdvance ? <>Request decision <ArrowRight /></> : <><Lock className="!size-3.5" /> Check gate · {gate.unmet.length} open</>}
                   </Button>
                 </Tip>
               ) : (
-                <p className="mt-2 text-[12px] text-fg-subtle">Final stage</p>
+                <Button variant="secondary" size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
+                  Quarterly value review
+                </Button>
               )}
-              {next && !gate.canAdvance && (
-                <p className="mt-1 text-center text-[11px] text-warning-fg tabular">{gate.unmet.length} gate {gate.unmet.length === 1 ? 'requirement' : 'requirements'} open</p>
+              {gate.active && next && (
+                <p className="mt-1 text-center text-[11px] text-fg-subtle">{gate.gate?.name}</p>
               )}
             </div>
           </div>
         </header>
 
-        <NextActionCard className="mt-6" />
+        {!gate.active && <StateBanner />}
+
+        {/* A closed or parked solution's banner already says where it ended and what's next. */}
+        {gate.active && <NextActionCard className="mt-6" />}
 
         <section aria-label="Lifecycle" className="mt-5">
           <LifecycleRail current={solution.stage} progress={readiness.stageProgress} gate={gate} selected={railSelected} onSelect={(s) => navigate(`/solutions/${solution.id}/lifecycle?stage=${s}`)} />
@@ -231,7 +251,7 @@ export function WorkspacePage() {
           </ul>
         </nav>
 
-        <div className="mt-6 animate-fade-in" key={tab}>
+        <div className="mt-6 animate-fade-in" key={`${solution.id}:${tab}`}>
           {tab === 'overview' && <OverviewTab />}
           {tab === 'lifecycle' && <LifecycleTab />}
           {tab === 'work' && <WorkTab />}
@@ -245,7 +265,40 @@ export function WorkspacePage() {
       <GateModal open={gateOpen} onOpenChange={setGateOpen} />
       <ActivityDrawer activityId={activityId} onClose={closeActivity} />
       <EditSolutionSheet open={editOpen} onOpenChange={setEditOpen} />
+      <CharterSheet open={proofEditor === 'charter'} onOpenChange={(o) => setProofEditor(o ? 'charter' : null)} />
+      <ResultsSheet open={proofEditor === 'results'} onOpenChange={(o) => setProofEditor(o ? 'results' : null)} />
     </WorkspaceContext.Provider>
+  )
+}
+
+/** Why a parked, stopped, or retired solution is where it is. */
+function StateBanner() {
+  const { insight, goTab } = useWorkspace()
+  const { solution } = insight.bundle
+  const resumeSolution = useStore((s) => s.resumeSolution)
+  const state = solution.state ?? 'active'
+  const Icon = state === 'parked' ? Pause : state === 'stopped' ? Square : Archive
+  const title = state === 'parked' ? 'Parked' : state === 'stopped' ? `Stopped at the ${insight.gate.gate?.name ?? 'gate'}` : 'Retired'
+  return (
+    <section aria-label="Solution status" className={cn('mt-6 flex flex-col gap-3 rounded-2xl p-4 ring-1 sm:flex-row sm:items-start', state === 'parked' ? 'bg-info-soft ring-info/25' : 'bg-surface ring-border')}>
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-fg-muted ring-1 ring-border [&_svg]:size-4"><Icon /></span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[14px] font-semibold text-fg">
+          {title}
+          {solution.stateChangedAt && <span className="font-normal text-fg-subtle"> · {relative(solution.stateChangedAt)}</span>}
+        </p>
+        {solution.stateReason && <p className="mt-1 max-w-3xl text-[13.5px] leading-relaxed text-fg-muted">{state === 'stopped' ? 'Lesson: ' : ''}{solution.stateReason}</p>}
+        {state === 'stopped' && <p className="mt-1.5 text-[12.5px] text-fg-subtle">Stopping early is a good outcome: the budget goes to ideas that proved themselves.</p>}
+      </div>
+      <div className="flex shrink-0 gap-2">
+        <Button variant="ghost" size="sm" onClick={() => goTab('risks#decisions')}>Decision log</Button>
+        {state === 'parked' && (
+          <Button variant="primary" size="sm" onClick={() => { resumeSolution(solution.id); toast.success(`${solution.name.replace(/^AI /, '')} resumed`) }}>
+            <Play /> Resume
+          </Button>
+        )}
+      </div>
+    </section>
   )
 }
 

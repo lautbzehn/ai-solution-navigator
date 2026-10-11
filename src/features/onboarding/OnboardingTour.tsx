@@ -64,7 +64,7 @@ const STEPS: Step[] = [
     targets: ['#gate', 'main [data-section-header]'],
     side: 'top',
     title: "See exactly why it can't advance",
-    body: 'Each gate lists every open requirement and its owner. Select one to open the work and see what is missing. A checked box only counts once its evidence is approved.',
+    body: 'Each gate lists every open requirement and its owner. Select one to open the work and see what is missing. A checked box only counts once its evidence is approved, and any gate can also park or stop a project.',
   },
   {
     id: 'advisor',
@@ -484,8 +484,8 @@ function Dots({ i, from = 0 }: { i: number; from?: number }) {
 
 function Welcome() {
   const points = [
-    { icon: <LayoutDashboard />, title: 'See the whole portfolio', body: 'Readiness, risk, and value for every AI initiative on one screen.' },
-    { icon: <ShieldCheck />, title: 'Know what blocks each gate', body: 'Gates explain themselves, with an owner and the next best action.' },
+    { icon: <LayoutDashboard />, title: 'Prove it small first', body: 'Every idea gets a time-boxed PoC. Nothing gets build money until the Proof gate says scale.' },
+    { icon: <ShieldCheck />, title: 'Know what blocks each gate', body: 'Gates explain themselves, and any gate can park or stop a project.' },
     { icon: <Sparkles />, title: 'Ask the AI advisor', body: 'An analysis of any area in one click. Decisions stay with your team.' },
   ]
   return (

@@ -6,6 +6,8 @@ export interface WorkspaceCtx {
   openActivity: (id: string) => void
   openGate: () => void
   goTab: (tab: string) => void
+  /** Open the PoC charter or results editor. */
+  openProof: (editor: 'charter' | 'results') => void
 }
 
 export const WorkspaceContext = createContext<WorkspaceCtx | null>(null)

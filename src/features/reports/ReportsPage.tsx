@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { ArrowUpRight, BrainCircuit, HeartPulse, Lightbulb, ShieldAlert, Timer, TrendingUp, X } from 'lucide-react'
+import { ArrowUpRight, BrainCircuit, FlaskConical, HeartPulse, Lightbulb, ShieldAlert, Timer, TrendingUp, X } from 'lucide-react'
 import { AreaTrend, BarCompare, Donut } from '@/components/charts/Charts'
 import { Page, PageHeader } from '@/components/layout/Page'
 import { ExpandAllButton, Section, SectionStack, useSections } from '@/components/layout/Section'
@@ -33,9 +33,10 @@ import {
 } from '@/domain/reports'
 import type { Metric, RiskCategory, RiskTier } from '@/domain/types'
 import { cn } from '@/lib/cn'
+import { ProofFunnelPanel, proofHeadline } from '@/features/dashboard/ProofFunnelPanel'
 import { money, num, pluralize, withUnit } from '@/lib/format'
 
-const SECTIONS = ['health', 'delivery', 'risk', 'value', 'ai'] as const
+const SECTIONS = ['health', 'proof', 'delivery', 'risk', 'value', 'ai'] as const
 /* Older deep links (e.g. /reports#performance) still land in the right place. */
 const ALIASES = { performance: 'delivery', bottlenecks: 'delivery', adoption: 'value' }
 const HEALTH_TONE: Record<MetricHealth, Tone> = { met: 'success', on_track: 'success', watch: 'warning', off_track: 'danger', no_data: 'muted' }
@@ -141,7 +142,7 @@ export function ReportsPage() {
               title="Portfolio health"
               summary={
                 <>
-                  Average readiness {summary.avgReadiness}% · <span className={summary.blocked ? 'text-danger-fg' : undefined}>{summary.blocked} blocked</span> · <span className={summary.atRisk ? 'text-warning-fg' : undefined}>{summary.atRisk} at risk</span> · {items.length - summary.blocked - summary.atRisk} on track
+                  Average readiness {summary.avgReadiness}% · <span className={summary.blocked ? 'text-danger-fg' : undefined}>{summary.blocked} blocked</span> · <span className={summary.atRisk ? 'text-warning-fg' : undefined}>{summary.atRisk} at risk</span> · {summary.total - summary.blocked - summary.atRisk} on track
                 </>
               }
             >
@@ -183,6 +184,16 @@ export function ReportsPage() {
               </div>
             </Section>
 
+            {/* Proof of concept: the funnel, kill rate, and time to stop */}
+            <Section
+              {...sections.bind('proof')} hue="violet"
+              icon={<FlaskConical />}
+              title="Proof of concept"
+              summary={proofHeadline(items)}
+            >
+              <ProofFunnelPanel items={items} />
+            </Section>
+
             {/* Delivery: performance and bottlenecks */}
             <Section
               {...sections.bind('delivery')} hue="blue"
@@ -196,7 +207,7 @@ export function ReportsPage() {
               }
             >
               <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-                <Tile label="Avg. time to production" value={perf.avgToProduction ? `${perf.avgToProduction}d` : '—'} hint="Days from creation to entering Operate." />
+                <Tile label="Avg. time to production" value={perf.avgToProduction ? `${perf.avgToProduction}d` : '—'} hint="Days from framing to entering Run." />
                 <Tile label="Gate pass rate" value={perf.passRate !== undefined ? `${perf.passRate}%` : '—'} term="gatePassRate" sub={pluralize(perf.attempts, 'attempt')} />
                 <Tile label="Activities completed" value={perf.completed} sub={perf.blocked ? `${perf.blocked} blocked right now` : 'none blocked'} subTone={perf.blocked ? 'danger' : undefined} hint="Lifecycle activities finished in the selected date range." />
                 <Tile label="Rework rate" value={`${num(perf.reworkRate)}%`} term="reworkRate" sub={`${perf.reopened} reopened`} />

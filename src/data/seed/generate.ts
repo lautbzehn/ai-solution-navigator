@@ -1,4 +1,5 @@
 import { evidenceTemplate, isBlocking, isRequired, lifecycle, stageOrder, STAGE_IDS } from '@/config'
+import { defaultCharter } from '@/domain/proof'
 import type {
   Activity,
   ActivityStatus,
@@ -9,10 +10,13 @@ import type {
   Evidence,
   EvidenceStatus,
   Metric,
+  PocCharter,
+  PocResults,
   Risk,
   RiskTier,
   RoleId,
   Solution,
+  SolutionState,
   StageId,
   StageVisit,
 } from '@/domain/types'
@@ -57,6 +61,13 @@ export interface SolutionSeed {
   decisions: (Omit<Decision, 'id' | 'solutionId' | 'date' | 'evidenceIds'> & { daysAgo: number; evidenceTemplates?: string[] })[]
   metrics: (Omit<Metric, 'id' | 'solutionId' | 'history'> & { trend?: 'improving' | 'flat' })[]
   changes: (Omit<Change, 'id' | 'solutionId' | 'date'> & { daysAgo: number })[]
+  /** PoC charter; anything left out takes the methodology's defaults. */
+  charter?: Partial<PocCharter> & { hypothesis: string }
+  proof?: PocResults
+  state?: SolutionState
+  stateReason?: string
+  /** For a stopped or retired solution: days since the decision. */
+  stateDaysAgo?: number
 }
 
 export interface Generated {
@@ -73,7 +84,8 @@ export interface Generated {
 export function generateSolution(seed: SolutionSeed, now: number): Generated {
   const iso = (offsetDays: number) => new Date(now + offsetDays * DAY).toISOString()
   const currentIdx = stageOrder(seed.stage)
-  const totalDays = seed.stageDays.reduce((n, d) => n + d, 0) + seed.daysInCurrent
+  const closedDays = seed.state === 'stopped' || seed.state === 'retired' ? (seed.stateDaysAgo ?? 0) : 0
+  const totalDays = seed.stageDays.reduce((n, d) => n + d, 0) + seed.daysInCurrent + closedDays
   const createdOffset = -totalDays
 
   // Stage history.
@@ -83,7 +95,9 @@ export function generateSolution(seed: SolutionSeed, now: number): Generated {
   STAGE_IDS.slice(0, currentIdx + 1).forEach((stage, i) => {
     const len = i < currentIdx ? seed.stageDays[i] : seed.daysInCurrent
     windows[stage] = [cursor, cursor + len]
-    stageHistory.push({ stage, enteredAt: iso(cursor), exitedAt: i < currentIdx ? iso(cursor + len) : undefined })
+    // A stopped or retired solution's last visit ended when the decision was made.
+    const ended = i < currentIdx || closedDays > 0
+    stageHistory.push({ stage, enteredAt: iso(cursor), exitedAt: ended ? iso(cursor + len) : undefined })
     cursor += len
   })
 
@@ -191,6 +205,11 @@ export function generateSolution(seed: SolutionSeed, now: number): Generated {
     realizedValue: seed.realizedValue,
     team: seed.team.map(([personId, roleId]) => ({ personId, roleId })),
     stageHistory,
+    state: seed.state ?? 'active',
+    stateChangedAt: seed.stateDaysAgo !== undefined ? iso(-seed.stateDaysAgo) : undefined,
+    stateReason: seed.stateReason,
+    charter: seed.charter ? { ...defaultCharter(seed), ...seed.charter } : undefined,
+    proof: seed.proof,
     createdAt: iso(createdOffset),
     updatedAt: iso(-1),
     demo: true,

@@ -1,5 +1,6 @@
 import { STAGES, stageOrder } from '@/config'
 import type { SolutionInsight } from './insight'
+import { isClosed } from './status'
 import type { GateAttempt, ReadinessSnapshot, RiskTier, StageId } from './types'
 
 const DAY = 86_400_000
@@ -14,40 +15,46 @@ export type ReadinessBucket = (typeof READINESS_BUCKETS)[number]['key']
 
 export const bucketOf = (score: number): ReadinessBucket => READINESS_BUCKETS.find((b) => score >= b.min && score <= b.max)!.key
 
-export const inProductionStage = (s: StageId) => stageOrder(s) >= stageOrder('operate')
+export const inProductionStage = (s: StageId) => stageOrder(s) >= stageOrder('run')
 
+/** Portfolio totals. Stopped and retired solutions are counted apart, so the
+    active numbers describe the work that is still going on. */
 export function summarize(items: SolutionInsight[], gateAttempts: GateAttempt[]) {
-  const n = items.length || 1
-  const production = items.filter((i) => inProductionStage(i.bundle.solution.stage))
+  const active = items.filter((i) => !isClosed(i.health.status))
+  const n = active.length || 1
+  const production = active.filter((i) => inProductionStage(i.bundle.solution.stage))
   const implDays = production
     .map((i) => {
-      const op = i.bundle.solution.stageHistory.find((v) => v.stage === 'operate')
+      const op = i.bundle.solution.stageHistory.find((v) => v.stage === 'run')
       return op ? (new Date(op.enteredAt).getTime() - new Date(i.bundle.solution.createdAt).getTime()) / DAY : undefined
     })
     .filter((x): x is number => x !== undefined)
   const ids = new Set(items.map((i) => i.bundle.solution.id))
   const attempts = gateAttempts.filter((g) => ids.has(g.solutionId))
+  const counted = items.filter((i) => i.health.status !== 'stopped')
   return {
-    total: items.length,
-    inAssessment: items.filter((i) => i.bundle.solution.stage === 'assess').length,
-    early: items.filter((i) => stageOrder(i.bundle.solution.stage) <= stageOrder('assess')).length,
-    inValidation: items.filter((i) => i.bundle.solution.stage === 'validate').length,
+    total: active.length,
     production: production.length,
-    blocked: items.filter((i) => i.health.status === 'blocked').length,
-    atRisk: items.filter((i) => i.health.status === 'at_risk').length,
-    avgReadiness: Math.round(items.reduce((t, i) => t + i.readiness.overall, 0) / n),
+    proving: active.filter((i) => stageOrder(i.bundle.solution.stage) <= stageOrder('prove')).length,
+    parked: items.filter((i) => i.health.status === 'parked').length,
+    stopped: items.filter((i) => i.health.status === 'stopped').length,
+    retired: items.filter((i) => i.health.status === 'retired').length,
+    blocked: active.filter((i) => i.health.status === 'blocked').length,
+    atRisk: active.filter((i) => i.health.status === 'at_risk').length,
+    avgReadiness: Math.round(active.reduce((t, i) => t + i.readiness.overall, 0) / n),
     avgImplementationDays: implDays.length ? Math.round(implDays.reduce((a, b) => a + b, 0) / implDays.length) : 0,
-    expectedValue: items.reduce((t, i) => t + i.bundle.solution.expectedValue, 0),
+    expectedValue: counted.reduce((t, i) => t + i.bundle.solution.expectedValue, 0),
     realizedValue: items.reduce((t, i) => t + i.bundle.solution.realizedValue, 0),
     gatePassRate: attempts.length ? Math.round((attempts.filter((a) => a.passed).length / attempts.length) * 100) : 100,
   }
 }
 
 export function stageDistribution(items: SolutionInsight[]) {
+  const live = items.filter((i) => !isClosed(i.health.status))
   return STAGES.map((s) => ({
     stage: s.id,
-    name: s.name === 'Improve / Retire' ? 'Improve' : s.name,
-    count: items.filter((i) => i.bundle.solution.stage === s.id).length,
+    name: s.name,
+    count: live.filter((i) => i.bundle.solution.stage === s.id).length,
   }))
 }
 
@@ -65,7 +72,7 @@ export function stageCompletion(items: SolutionInsight[]) {
   return STAGES.map((s) => {
     const reached = items.filter((i) => stageOrder(i.bundle.solution.stage) >= stageOrder(s.id))
     const avg = reached.length ? Math.round(reached.reduce((t, i) => t + i.readiness.stageProgress[s.id], 0) / reached.length) : 0
-    return { stage: s.id, name: s.name === 'Improve / Retire' ? 'Improve' : s.name, completion: avg, solutions: reached.length }
+    return { stage: s.id, name: s.name, completion: avg, solutions: reached.length }
   })
 }
 

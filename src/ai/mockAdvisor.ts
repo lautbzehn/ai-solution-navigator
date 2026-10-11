@@ -96,7 +96,7 @@ function questionsFor(role: string, c: SolutionContext): string[] {
     Finance: ['Do you agree with the value hypothesis and how it will be measured?', 'What evidence would you need to report realized value?', 'Are there costs (model usage, support) missing from the business case?'],
     Operations: ['Is the monitoring plan specific enough: signals, thresholds, and who responds?', 'Is the support runbook ready for day one, including how to disable the AI?', 'What volume and latency should we plan for at full rollout?'],
     'UX / Research': ['Does the human review moment fit the real workflow under load?', 'What did users misunderstand in testing?', 'How will users know when not to trust the AI?'],
-    'QA / Evaluation': ['Did evaluation results meet the thresholds set in Design?', 'What happens at production scale that the offline set doesn\'t cover?', 'Which failure modes should be monitored after launch?'],
+    'QA / Evaluation': ['Did evaluation results meet the thresholds set in the PoC charter?', 'What happens at production scale that the offline set doesn\'t cover?', 'Which failure modes should be monitored after launch?'],
     'Executive Sponsor': [`Are you comfortable accepting the residual risk for ${s}?`, 'What conditions would you attach to the gate decision (pilot size, review cadence)?', 'Is the expected value still a priority this quarter?'],
     'Governance / Risk': ['Is the risk tier still correct given recent changes?', 'Which risks need explicit acceptance before deployment?', 'Is the evidence pack sufficient for the gate?'],
     Engineering: ['Is the configuration versioned so results can be traced and rolled back?', 'Is the rollback path tested?', 'Any technical debt that changes the known limitations?'],
@@ -163,7 +163,7 @@ export function answerSolution(question: string, c: SolutionContext, area?: Advi
     case 'risks': {
       const recs: AdvisorRecommendation[] = openRisks.slice(0, 5).map((r) => ({
         title: r.mitigation === 'None recorded' ? `Define a mitigation for "${r.title}"` : r.status === 'Open' ? `Start mitigating "${r.title}"` : `Confirm the mitigation for "${r.title}" is working`,
-        why: `${r.severity} severity, ${r.likelihood.toLowerCase()} likelihood (${r.category}). ${r.mitigation === 'None recorded' ? 'Without a mitigation it lowers Risk & Governance readiness and blocks the Validate gate.' : `Current mitigation: ${r.mitigation}`}`,
+        why: `${r.severity} severity, ${r.likelihood.toLowerCase()} likelihood (${r.category}). ${r.mitigation === 'None recorded' ? 'Without a mitigation it lowers Risk & Governance readiness and blocks the Proof and Release readiness gates.' : `Current mitigation: ${r.mitigation}`}`,
         owner: r.owner,
         impact: r.severity === 'Critical' || r.severity === 'High' ? 'Affects Risk & Governance readiness and gate eligibility' : 'Keeps the register current for the risk review',
         blocking: r.mitigation === 'None recorded' && (r.severity === 'High' || r.severity === 'Critical'),
@@ -346,7 +346,7 @@ export function answerPortfolio(question: string, c: PortfolioContext, area?: Ad
   const q = question.toLowerCase()
   const n = c.solutions.length
   const blank: AdvisorAnswer = { summary: '', recommendations: [], risksToDiscuss: [], questionsForStakeholders: [], gateOutlook: '' }
-  const attention = c.solutions.filter((s) => s.status !== 'on_track').sort((a, b) => (a.status === 'blocked' ? -1 : 1) - (b.status === 'blocked' ? -1 : 1))
+  const attention = c.solutions.filter((s) => s.status === 'blocked' || s.status === 'at_risk').sort((a, b) => (a.status === 'blocked' ? -1 : 1) - (b.status === 'blocked' ? -1 : 1))
   const behind = c.solutions.filter((s) => s.readiness < s.expected).sort((a, b) => a.readiness - a.expected - (b.readiness - b.expected))
   const toRec = (s: PortfolioContext['solutions'][number]): AdvisorRecommendation => ({
     title: `${s.name}: ${s.nextBestAction}`,
@@ -391,7 +391,7 @@ export function answerPortfolio(question: string, c: PortfolioContext, area?: Ad
         : 'No open risks are recorded across the portfolio.',
       recommendations: focus.slice(0, 5).map((r) => ({
         title: r.mitigation === 'None recorded' ? `Define a mitigation for "${r.title}"` : `Confirm the mitigation for "${r.title}" is working`,
-        why: `${r.severity} risk on ${r.solution}. ${r.mitigation === 'None recorded' ? 'Without a mitigation it lowers Risk & Governance readiness and blocks the Validate gate.' : `Current mitigation: ${r.mitigation}`}`,
+        why: `${r.severity} risk on ${r.solution}. ${r.mitigation === 'None recorded' ? 'Without a mitigation it lowers Risk & Governance readiness and blocks the Proof and Release readiness gates.' : `Current mitigation: ${r.mitigation}`}`,
         owner: r.owner,
         impact: 'Affects Risk & Governance readiness and gate eligibility',
         blocking: r.mitigation === 'None recorded',
@@ -404,7 +404,7 @@ export function answerPortfolio(question: string, c: PortfolioContext, area?: Ad
 
   switch (area) {
     case 'portfolio': {
-      const prod = c.solutions.filter((s) => s.stage === 'Operate' || s.stage === 'Improve / Retire')
+      const prod = c.solutions.filter((s) => s.stage === 'Run')
       return {
         ...blank,
         summary: `${n} solutions: ${prod.length} in production and ${n - prod.length} in flight. ${n - behind.length} ${n - behind.length === 1 ? 'is' : 'are'} at or above the readiness their stage expects; ${behind.length} ${behind.length === 1 ? 'is' : 'are'} behind${behind[0] ? `, furthest behind ${behind[0].name} (${behind[0].readiness}% vs ≥${behind[0].expected})` : ''}.`,
@@ -462,7 +462,7 @@ export function answerPortfolio(question: string, c: PortfolioContext, area?: Ad
         recommendations: off.length + watch.length
           ? [...off, ...watch].slice(0, 5).map((x) => ({ title: `Investigate ${x.name} on ${x.solution}`, why: `${x.health}: currently ${x.current}${x.unit === '%' ? '%' : ` ${x.unit}`} against a target of ${x.target}${x.unit === '%' ? '%' : ` ${x.unit}`}.`, owner: `${x.solution} owner`, impact: 'Protects AI quality and user trust', blocking: false, priority: x.health === 'Off track' ? ('high' as const) : ('medium' as const), activityId: null }))
           : c.solutions
-              .filter((s) => ['Validate', 'Deploy'].includes(s.stage) && m.some((x) => x.solution === s.name))
+              .filter((s) => ['Build', 'Launch'].includes(s.stage) && m.some((x) => x.solution === s.name))
               .map((s) => ({ title: `Re-measure ${s.name} at production scale`, why: `Offline evaluation results often drift under real traffic. The pilot should re-check ${m.filter((x) => x.solution === s.name).map((x) => x.name.toLowerCase()).slice(0, 3).join(', ')} before go-live.`, owner: `${s.name} owner`, impact: 'Keeps quality evidence current for the Deploy gate', blocking: false, priority: 'medium' as const, activityId: null })),
       }
     }

@@ -32,7 +32,7 @@ const POINTS = [
   },
   {
     label: 'The value',
-    body: 'Projects move when the proof is approved, not when a box is ticked. Small projects stay light, risky ones get more care, and the AI advises while people decide.',
+    body: 'Every idea starts with a small, time-boxed proof, and stopping early counts as a win. Projects move when the proof is approved, not when a box is ticked, and the AI advises while people decide.',
   },
 ]
 

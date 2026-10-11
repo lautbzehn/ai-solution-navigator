@@ -11,7 +11,7 @@ let statusPromise: Promise<AdvisorStatus> | undefined
 export function fetchAdvisorStatus(): Promise<AdvisorStatus> {
   statusPromise ??= fetch('/api/advisor', { headers: { Accept: 'application/json' } })
     .then((r) => (r.ok ? r.json() : { live: false }))
-    .then((j: AdvisorStatus) => ({ live: !!j.live, model: j.model }))
+    .then((j: AdvisorStatus) => ({ live: !!j.live, model: j.model, budget: j.budget, limits: j.limits }))
     .catch(() => ({ live: false }))
   return statusPromise
 }
@@ -47,7 +47,8 @@ export async function askAdvisor(opts: { question: string; context: AdvisorConte
   try {
     const res = await fetch('/api/advisor', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      // Marks the request as coming from the app itself; the server refuses calls without it.
+      headers: { 'Content-Type': 'application/json', 'X-Navigator-Client': 'web' },
       body: JSON.stringify({ question, context: opts.context, history: opts.history }),
     })
     const json = await res.json().catch(() => ({}))

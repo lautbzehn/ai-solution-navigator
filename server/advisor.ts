@@ -1,23 +1,63 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { AdvisorAnswer, AdvisorContext, AdvisorStatus } from '../src/ai/types'
+import { budgetFrom, costOf, LIMITS, MemoryGuard, type AdvisorGuard } from './guard'
 
 /* Server-side AI advisor.
    The API key stays on the server. Live mode is opt-in: it runs only when
-   ANTHROPIC_API_KEY is set in the server environment, so a fresh checkout or
-   a public demo never incurs API charges. Shared by the Vite dev middleware
-   and the Cloudflare Worker in /worker. */
+   ANTHROPIC_API_KEY is set in the server environment, so a fresh checkout
+   never incurs API charges. Because the endpoint is public, every call is
+   checked before it reaches the model: it must come from the app's own pages,
+   stay under a size cap, and pass the per-visitor rate limit and the daily
+   spend cap (see guard.ts). Every call is logged with tokens, cost, and
+   latency. Shared by the Vite dev middleware and the Cloudflare Worker. */
 
 /** Server configuration. Node (Vite dev) reads process.env; the Cloudflare Worker passes its env bindings. */
 export interface AdvisorEnv {
   ANTHROPIC_API_KEY?: string
   ADVISOR_MODEL?: string
+  /** Site-wide daily spend cap in USD (default 5). */
+  ADVISOR_DAILY_BUDGET_USD?: string
+  /** Extra comma-separated origins allowed to call the advisor (the live site and localhost always are). */
+  ADVISOR_ALLOWED_ORIGINS?: string
 }
+
+/** Who is calling, as the transport layer (Worker or dev server) sees it. */
+export interface RequestMeta {
+  origin?: string | null
+  /** The app's own fetches send `X-Navigator-Client: web`. */
+  clientHeader?: string | null
+  /** Anonymous visitor id for rate limiting (a hash, never a raw IP). */
+  clientId?: string
+  /** Size of the raw request body in bytes. */
+  bodyBytes?: number
+}
+
+/** The slice of the SDK this handler uses, so tests can pass a stand-in. */
+type MessagesClient = { beta: { messages: { create: Anthropic['beta']['messages']['create'] } } }
+
+export interface AdvisorDeps {
+  guard?: AdvisorGuard
+  meta?: RequestMeta
+  createClient?: (apiKey: string) => MessagesClient
+  log?: (line: Record<string, unknown>) => void
+  now?: () => number
+}
+
+/** Requests larger than this are refused before they are parsed or sent anywhere. */
+export const MAX_BODY_BYTES = 64 * 1024
+export const LIVE_ORIGINS = ['https://navigator.icarianforge.com', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:4173']
+export const CLIENT_HEADER = 'x-navigator-client'
+
+// Local development shares one in-memory guard per process.
+let devGuard: MemoryGuard | undefined
+const defaultGuard = (env: AdvisorEnv) => (devGuard ??= new MemoryGuard(budgetFrom(env.ADVISOR_DAILY_BUDGET_USD)))
+const defaultLog = (line: Record<string, unknown>) => console.log(JSON.stringify(line))
 const nodeEnv = (): AdvisorEnv => (typeof process !== 'undefined' ? process.env : {})
 const model = (env: AdvisorEnv) => env.ADVISOR_MODEL || 'claude-opus-5-5'
 
 const SYSTEM_PROMPT = `You are an AI implementation advisor supporting a Lead Product Manager.
 
-Your role is to help the PM successfully move an AI solution through an enterprise implementation lifecycle (Discover, Assess, Design, Build, Validate, Deploy, Operate, Improve/Retire). Governance is continuous across the lifecycle, and higher-risk solutions require more evidence and stronger gate criteria.
+Your role is to help the PM successfully move an AI solution through a five-stage implementation lifecycle: Frame, Prove, Build, Launch, Run. The rule at its heart is "prove it small before you build it big": Frame ends when the sponsor funds a time-boxed proof of concept against an agreed charter (hypothesis, timebox, budget cap, pilot user cap, quality, value, and cost thresholds), and the Proof gate decides scale, iterate, pivot, park, or stop by reading the results against that charter. Every gate can park or stop a solution, and stopping early is a good outcome, not a failure. Governance is continuous across the lifecycle, and higher-risk solutions require more evidence and stronger gate criteria.
 
 You receive a JSON snapshot of the solution (or of the whole portfolio) and the PM's question. Base every statement on that snapshot.
 
@@ -91,25 +131,54 @@ export interface AdvisorRequestBody {
 export interface HandlerResult {
   status: number
   body: unknown
+  headers?: Record<string, string>
 }
 
 const UNAVAILABLE = 'The AI advisor is temporarily unavailable. You can continue managing the implementation manually.'
 
-export function advisorStatus(env: AdvisorEnv = nodeEnv()): AdvisorStatus {
-  return env.ANTHROPIC_API_KEY ? { live: true, model: model(env) } : { live: false }
+export async function advisorStatus(env: AdvisorEnv = nodeEnv(), guard?: AdvisorGuard): Promise<AdvisorStatus> {
+  if (!env.ANTHROPIC_API_KEY) return { live: false }
+  const usage = await (guard ?? defaultGuard(env)).usage().catch(() => undefined)
+  return { live: true, model: model(env), budget: usage && { dailyUsd: usage.budgetUsd, spentTodayUsd: Math.round(usage.spentUsd * 100) / 100 }, limits: { perMinute: LIMITS.perMinute, perDay: LIMITS.perDay } }
 }
 
-export async function handleAdvisor(method: string, body: unknown, env: AdvisorEnv = nodeEnv()): Promise<HandlerResult> {
-  if (method === 'GET') return { status: 200, body: advisorStatus(env) }
+const allowedOrigins = (env: AdvisorEnv) => [...LIVE_ORIGINS, ...(env.ADVISOR_ALLOWED_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean)]
+
+export async function handleAdvisor(method: string, body: unknown, env: AdvisorEnv = nodeEnv(), deps: AdvisorDeps = {}): Promise<HandlerResult> {
+  const guard = deps.guard ?? defaultGuard(env)
+  const log = deps.log ?? defaultLog
+  const now = deps.now ?? Date.now
+  if (method === 'GET') return { status: 200, body: await advisorStatus(env, guard) }
   if (method !== 'POST') return { status: 405, body: { error: 'Method not allowed' } }
 
   const apiKey = env.ANTHROPIC_API_KEY
   if (!apiKey) return { status: 503, body: { error: 'Live advisor is not configured on this server.' } }
 
+  // Only the app's own pages may call the live model.
+  const meta = deps.meta ?? {}
+  if (!meta.origin || !allowedOrigins(env).includes(meta.origin) || meta.clientHeader !== 'web') {
+    return { status: 403, body: { error: 'The live advisor only answers questions asked from the Navigator itself.' } }
+  }
+  if ((meta.bodyBytes ?? 0) > MAX_BODY_BYTES || JSON.stringify(body ?? '').length > MAX_BODY_BYTES) {
+    return { status: 413, body: { error: 'That request is too large for the advisor. Try asking about one solution at a time.' } }
+  }
+
   const parsed = parseBody(body)
   if (!parsed) return { status: 400, body: { error: 'Ask a question about the current solution.' } }
 
-  const client = new Anthropic({ apiKey })
+  // No guard, no spend: if the counters can't be reached, refuse and let the app use built-in guidance.
+  const verdict = await guard.check(meta.clientId ?? 'anonymous').catch(() => undefined)
+  if (!verdict) {
+    log({ event: 'advisor_guard_error', level: 'error' })
+    return { status: 503, body: { error: UNAVAILABLE } }
+  }
+  if (!verdict.ok) {
+    log({ event: 'advisor_refused', reason: verdict.error, client: meta.clientId ?? 'anonymous' })
+    return { status: 429, body: { error: verdict.error }, headers: { 'Retry-After': String(verdict.retryAfterSeconds) } }
+  }
+
+  const client = deps.createClient ? deps.createClient(apiKey) : new Anthropic({ apiKey })
+  const started = now()
   const history = (parsed.history ?? []).slice(-4).flatMap((h) => [
     { role: 'user' as const, content: h.question },
     { role: 'assistant' as const, content: h.summary },
@@ -132,6 +201,28 @@ export async function handleAdvisor(method: string, body: unknown, env: AdvisorE
       ],
     })
 
+    const cost = costOf(response.model, response.usage)
+    // The answer is already paid for, so a bookkeeping hiccup is logged rather than thrown away.
+    const usage = await guard
+      .record(cost)
+      .then(() => guard.usage())
+      .catch(() => (log({ event: 'advisor_guard_error', level: 'error', stage: 'record', cost_usd: cost }), { spentUsd: cost, budgetUsd: Infinity }))
+    log({
+      event: 'advisor_call',
+      model: response.model,
+      stop_reason: response.stop_reason,
+      input_tokens: response.usage.input_tokens,
+      output_tokens: response.usage.output_tokens,
+      cache_read_tokens: response.usage.cache_read_input_tokens ?? 0,
+      cache_write_tokens: response.usage.cache_creation_input_tokens ?? 0,
+      cost_usd: cost,
+      spent_today_usd: Math.round(usage.spentUsd * 10_000) / 10_000,
+      latency_ms: now() - started,
+    })
+    const before = usage.spentUsd - cost
+    if (before < usage.budgetUsd * LIMITS.alertAt && usage.spentUsd >= usage.budgetUsd * LIMITS.alertAt) {
+      log({ event: 'advisor_budget_alert', level: 'warn', message: `Live advisor spend passed ${Math.round(LIMITS.alertAt * 100)}% of today's $${usage.budgetUsd} cap.`, spent_today_usd: usage.spentUsd })
+    }
     if (response.stop_reason === 'refusal') return { status: 422, body: { error: 'The advisor could not answer that question. Try rephrasing it around the implementation.' } }
     const text = response.content.find((b) => b.type === 'text')
     if (!text || text.type !== 'text') return { status: 502, body: { error: UNAVAILABLE } }
@@ -139,6 +230,7 @@ export async function handleAdvisor(method: string, body: unknown, env: AdvisorE
     if (!answer) return { status: 502, body: { error: UNAVAILABLE } }
     return { status: 200, body: { answer, source: 'live', model: response.model } }
   } catch (error) {
+    log({ event: 'advisor_error', kind: error instanceof Anthropic.APIError ? `api_${error.status ?? 'unknown'}` : error instanceof SyntaxError ? 'bad_json' : 'unexpected', latency_ms: now() - started })
     if (error instanceof Anthropic.AuthenticationError) return { status: 503, body: { error: 'The live advisor is misconfigured (invalid API key). Using built-in guidance instead.' } }
     if (error instanceof Anthropic.RateLimitError) return { status: 503, body: { error: 'The live advisor is busy right now. Try again in a moment.' } }
     if (error instanceof Anthropic.APIError) return { status: 503, body: { error: UNAVAILABLE } }

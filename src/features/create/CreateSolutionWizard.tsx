@@ -35,11 +35,12 @@ interface State {
   overrideReason: string
   ownerId: string
   sponsorId: string
+  hypothesis: string
 }
 
 const BLANK: State = {
   name: '', businessProblem: '', targetUsers: '', audience: 'internal', desiredOutcome: '', aiPatterns: [], whyAI: '', autonomous: false,
-  dataSources: '', sensitivity: 'internal', expectedValue: '', criticality: 'important', riskTier: '', overrideReason: '', ownerId: CURRENT_USER_ID, sponsorId: 'p_michael',
+  dataSources: '', sensitivity: 'internal', expectedValue: '', criticality: 'important', riskTier: '', overrideReason: '', ownerId: CURRENT_USER_ID, sponsorId: 'p_michael', hypothesis: '',
 }
 
 const STEPS = [
@@ -94,6 +95,7 @@ export function CreateSolutionWizard() {
     if (i === 5) {
       const [err] = numeric(s.expectedValue, 'Expected annual value', { min: 0, max: 1_000_000_000 })
       e.expectedValue = err
+      if (s.hypothesis.trim() && s.hypothesis.trim().length < 15) e.hypothesis = 'Say what the test should prove in a full sentence, or leave it blank for now.'
     }
     if (i === 6) {
       if (lowered && s.overrideReason.trim().length < 15) e.overrideReason = `Explain why a lower tier than recommended (${RISK_TIER[rec.tier]}) is appropriate.`
@@ -125,10 +127,11 @@ export function CreateSolutionWizard() {
       expectedValue: value ?? 0,
       ownerId: s.ownerId,
       sponsorId: s.sponsorId || undefined,
+      hypothesis: s.hypothesis.trim(),
     })
     setCreate(false)
     navigate(`/solutions/${id}`)
-    toast.success('Solution created in Discover', { description: `${RISK_TIER[tier]}-risk plan generated from the lifecycle framework. Your answers already satisfy the first Discover activities.` })
+    toast.success('Solution created in Frame', { description: `${RISK_TIER[tier]}-risk plan generated from the lifecycle framework. Next: agree a small, time-boxed PoC with your sponsor.` })
   }
 
   const progress = ((step + 1) / STEPS.length) * 100
@@ -215,6 +218,7 @@ export function CreateSolutionWizard() {
         {step === 5 && (
           <div className="grid gap-4">
             <Field label="Expected annual value (USD)" optionalLabel error={errors.expectedValue} hint="Hours saved × loaded cost, revenue protected, or cost avoided.">{(p) => <Input {...p} autoFocus inputMode="numeric" value={s.expectedValue} onChange={(e) => set('expectedValue', e.target.value)} placeholder="420000" />}</Field>
+            <Field label="What should a small proof show?" optionalLabel error={errors.hypothesis} hint="This becomes your PoC hypothesis. You can refine it, with the thresholds, before the Frame gate.">{(p) => <Textarea {...p} rows={2} value={s.hypothesis} onChange={(e) => set('hypothesis', e.target.value)} placeholder="e.g. Flagging non-standard clauses cuts review time by 40% while catching 90% of what lawyers flag." />}</Field>
             <ChoiceGroup label="How critical is the workflow it supports?" value={s.criticality} onChange={(v) => set('criticality', v)} options={[
               { value: 'helpful', label: 'Helpful', hint: 'Convenience; easy to work around' },
               { value: 'important', label: 'Important', hint: 'Noticeable impact if it fails' },
@@ -239,7 +243,7 @@ export function CreateSolutionWizard() {
             {lowered && <Field label="Why is a lower tier appropriate?" required error={errors.overrideReason}>{(p) => <Textarea {...p} rows={2} value={s.overrideReason} onChange={(e) => set('overrideReason', e.target.value)} />}</Field>}
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Solution owner" required error={errors.ownerId}>{(p) => <Select {...p} value={s.ownerId} onChange={(e) => set('ownerId', e.target.value)}>{people.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</Select>}</Field>
-              <Field label="Executive sponsor" optionalLabel hint="Required to pass the Discover gate.">{(p) => <Select {...p} value={s.sponsorId} onChange={(e) => set('sponsorId', e.target.value)}><option value="">Not yet identified</option>{people.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</Select>}</Field>
+              <Field label="Executive sponsor" optionalLabel hint="Required to pass the first gate, Commit to a test.">{(p) => <Select {...p} value={s.sponsorId} onChange={(e) => set('sponsorId', e.target.value)}><option value="">Not yet identified</option>{people.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</Select>}</Field>
             </div>
             <Summary s={s} tier={tier} />
           </div>

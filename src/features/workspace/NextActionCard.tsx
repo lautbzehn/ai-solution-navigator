@@ -8,15 +8,15 @@ import { cn } from '@/lib/cn'
 import { useWorkspace } from './context'
 
 export function NextActionCard({ className }: { className?: string }) {
-  const { insight, openActivity, openGate, goTab } = useWorkspace()
+  const { insight, openActivity, openGate, goTab, openProof } = useWorkspace()
   const n = insight.next
 
   return (
     <section
       aria-label="Next best action"
       className={cn(
-        'relative overflow-hidden rounded-2xl p-5 ring-1 ring-accent-line',
-        'bg-[linear-gradient(135deg,var(--accent-soft)_0%,transparent_55%),linear-gradient(var(--surface),var(--surface))]',
+        'relative overflow-hidden rounded-2xl p-5 ring-1',
+        'bg-[linear-gradient(135deg,var(--accent-soft)_0%,transparent_55%),linear-gradient(var(--surface),var(--surface))] ring-accent-line',
         className,
       )}
     >
@@ -50,9 +50,14 @@ export function NextActionCard({ className }: { className?: string }) {
               Open activity <ArrowRight />
             </Button>
           )}
-          {n.kind === 'advance' && (
+          {(n.kind === 'advance' || n.kind === 'decide' || n.kind === 'sustain') && (
             <Button variant="primary" onClick={openGate}>
-              Review gate <ArrowRight />
+              {n.kind === 'sustain' ? 'Hold the review' : n.kind === 'decide' ? 'Open the Proof gate' : 'Request decision'} <ArrowRight />
+            </Button>
+          )}
+          {n.kind === 'proof' && (
+            <Button variant="primary" onClick={() => openProof(n.proofEditor ?? 'charter')}>
+              {n.proofEditor === 'results' ? 'Record results' : 'Write the charter'} <ArrowRight />
             </Button>
           )}
           {n.kind === 'gate_criterion' && n.tab && n.tab !== 'overview' && (
@@ -60,7 +65,7 @@ export function NextActionCard({ className }: { className?: string }) {
               Go to {n.tab[0].toUpperCase() + n.tab.slice(1)} <ArrowRight />
             </Button>
           )}
-          {n.kind === 'gate_criterion' && (
+          {(n.kind === 'gate_criterion' || n.kind === 'proof') && (
             <Button variant="secondary" onClick={openGate}>
               View gate requirements
             </Button>
