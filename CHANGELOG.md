@@ -7,6 +7,9 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 ### Changed
 - The welcome note reads like Dan talking to a friend: "Hi, I'm Dan West. Thanks for stopping by.", why he built it, what it does, who decides, what it's based on, and an invitation to explore.
 
+### Security
+- A strict Content Security Policy: the browser runs only the app's own scripts, and nothing can load from other sites except Cloudflare Web Analytics. Also adds `Cross-Origin-Opener-Policy` and extends HSTS to subdomains.
+
 ## [1.2.0] · 2026-10-10
 
 ### Added

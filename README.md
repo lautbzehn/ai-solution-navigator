@@ -126,7 +126,7 @@ Layers flow one way: UI → domain → data → AI integration. The domain is pu
 - **Type safety:** TypeScript in strict mode end to end, including the Worker.
 - **Server-side checks:** the store re-validates every gate decision; the UI is never trusted.
 - **Advisor guardrails** (`server/guard.ts`): only the app's own pages may call it, requests over 64 KB are refused, each visitor (an anonymous hash, never a raw IP) gets 6 questions a minute and 20 a day, and the whole site has a daily spend cap (`ADVISOR_DAILY_BUDGET_USD`, default $5) enforced in a Durable Object.
-- **Browser hardening:** HSTS, `nosniff`, framing restricted to the same origin, a strict referrer policy, and camera, microphone, location, and payment access turned off.
+- **Browser hardening:** a strict content security policy (only the app's own scripts run), HSTS, `nosniff`, framing restricted to the same origin, cross-origin window isolation, a strict referrer policy, and camera, microphone, location, and payment access turned off.
 - **Secrets:** none in the repository. Deploy credentials are GitHub repository secrets; the Claude key is a Cloudflare secret. See [SECURITY.md](SECURITY.md).
 - **Accessibility:** keyboard-first dialogs (Radix), visible focus, reduced-motion support, and hidden data tables behind charts for screen readers.
 </details>
