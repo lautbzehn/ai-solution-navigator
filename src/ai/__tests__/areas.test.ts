@@ -7,7 +7,6 @@ import { buildSeed } from '@/data/seed'
 import { bundleFor } from '@/domain/db'
 import { insightFor } from '@/domain/insight'
 import { implementationPerformance, portfolioInsights } from '@/domain/reports'
-import { MAX_BODY_BYTES } from '../../../server/advisor'
 
 const db = buildSeed()
 const insights = db.solutions.map((s) => insightFor(bundleFor(db, s.id)!, DEFAULT_WEIGHTS))
@@ -36,26 +35,9 @@ describe('AI advisor star icons', () => {
   })
 
   test('the area decides the analysis, not the wording', () => {
-    expect(answerSolution('anything at all', support, 'lifecycle').summary).toMatch(/required Build activities are complete/)
-    expect(answerSolution('anything at all', support, 'brief').summary).toMatch(/is in Build/)
+    expect(answerSolution('anything at all', support, 'lifecycle').summary).toMatch(/required Validate activities are complete/)
+    expect(answerSolution('anything at all', support, 'brief').summary).toMatch(/is in Validate/)
     expect(answerPortfolio('anything at all', portfolio, 'portfolio-risk').summary).toMatch(/open risks across the portfolio/)
     expect(answerPortfolio('anything at all', portfolio, 'delivery').summary).toMatch(/Gate pass rate/)
-  })
-})
-
-describe('what the live advisor sees', () => {
-  const bytes = (v: unknown) => new TextEncoder().encode(JSON.stringify({ question: 'What should I do next?', context: v })).length
-
-  test('every request fits comfortably under the server size cap', () => {
-    for (const i of insights) expect(bytes(buildSolutionContext(i, db.people)), i.bundle.solution.id).toBeLessThan(MAX_BODY_BYTES / 2)
-    expect(bytes(portfolio)).toBeLessThan(MAX_BODY_BYTES / 2)
-  })
-
-  test('the proof of concept travels with the solution', () => {
-    const contracts = buildSolutionContext(insights.find((i) => i.bundle.solution.id === 's_contracts')!, db.people)
-    expect(contracts.proof?.charter.qualityTargetPct).toBe(90)
-    expect(contracts.proof?.scalePotential).toMatchObject({ score: 57, band: 'Promising' })
-    expect(buildSolutionContext(insights.find((i) => i.bundle.solution.id === 's_minutes')!, db.people).lifecycleState.state).toBe('stopped')
-    expect(portfolio.proofFunnel?.killRatePct).toBe(13)
   })
 })

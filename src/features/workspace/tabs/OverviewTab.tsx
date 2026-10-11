@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ArrowRight, Ban, Briefcase, Check, CircleX, FlaskConical, Gauge, Gavel, History, ShieldAlert, Target } from 'lucide-react'
+import { ArrowRight, Ban, Briefcase, Check, CircleX, Gauge, Gavel, History, ShieldAlert, Target } from 'lucide-react'
 import { Section, SectionStack, useSections } from '@/components/layout/Section'
 import { DimensionBars, ReadinessGauge } from '@/components/readiness/Readiness'
 import { SeverityPill } from '@/components/status'
@@ -9,7 +9,7 @@ import { Card, CardBody, CardHeader, SectionLabel } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/misc'
 import { Pill } from '@/components/ui/Pill'
 import { InfoTip } from '@/components/ui/Tooltip'
-import { stageDef, stageOrder } from '@/config'
+import { stageDef } from '@/config'
 import { useStore } from '@/data/store'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { gateLabel } from '@/domain/gates'
@@ -17,25 +17,19 @@ import { AI_PATTERN, RISK_CATEGORY, SEVERITY_ORDER } from '@/domain/labels'
 import { sortUnmet } from '@/domain/nextAction'
 import { cn } from '@/lib/cn'
 import { money, pluralize, relative } from '@/lib/format'
-import { charterGaps, MAX_PROOF_ATTEMPTS, proveClock, scalePotential, SCALE_BAND } from '@/domain/proof'
-import { ProofPanel } from '../proof/ProofPanel'
 import { useWorkspace } from '../context'
 import { AuditFeed, describe } from '../shared/AuditFeed'
 
-/* Early on (Frame, Prove) the proof of concept leads and starts open; later the
-   gate leads and the PoC moves down as history. The first section starts open. */
-const EARLY_SECTIONS = ['proof', 'gate', 'readiness', 'risks', 'case', 'activity'] as const
-const LATER_SECTIONS = ['gate', 'readiness', 'proof', 'risks', 'case', 'activity'] as const
+const SECTIONS = ['gate', 'readiness', 'risks', 'case', 'activity'] as const
 const PACE = { on_pace: 'on pace', behind: 'behind pace', well_behind: 'well behind pace' } as const
 
 export function OverviewTab() {
-  const { insight, openActivity, openGate, goTab, openProof } = useWorkspace()
+  const { insight, openActivity, openGate, goTab } = useWorkspace()
   const { solution, risks, decisions, activities } = insight.bundle
   const { gate, readiness } = insight
   const audit = useStore((s) => s.audit)
   const people = useStore((s) => s.people)
-  const early = stageOrder(solution.stage) <= stageOrder('prove')
-  const sections = useSections(early ? 'overview-early' : 'overview', early ? EARLY_SECTIONS : LATER_SECTIONS)
+  const sections = useSections('overview', SECTIONS)
   const recent = useMemo(() => audit.filter((a) => a.solutionId === solution.id).slice(0, 8), [audit, solution.id])
 
   const active = risks.filter((r) => r.status === 'open' || r.status === 'mitigating')
@@ -48,39 +42,17 @@ export function OverviewTab() {
   const met = gate.criteria.length - unmet.length
   const weakest = [...readiness.dimensions].sort((a, b) => a.score - b.score)[0]
   const latest = recent[0]
-  const proofSection = (
-    <Section
-      {...sections.bind('proof')}
-      hue="violet"
-      icon={<FlaskConical />}
-      title="Proof of concept"
-      summary={proofSummary(insight.bundle)}
-      actions={
-        <>
-          <InfoTip term="pocCharter" />
-          {!early && solution.charter && (
-            <Button variant="ghost" size="xs" className="hidden sm:inline-flex" onClick={() => openProof('results')}>Results <ArrowRight /></Button>
-          )}
-        </>
-      }
-    >
-      <ProofPanel />
-    </Section>
-  )
 
   return (
     <SectionStack>
-      {early && proofSection}
       <Section
         {...sections.bind('gate')} hue="blue"
         icon={<Target />}
         tone={gate.isFinal ? undefined : gate.canAdvance ? 'success' : undefined}
-        title={gate.isFinal ? 'Quarterly value review' : <>{gate.gate?.name ?? 'Gate'} · {gateLabel(solution.stage)}</>}
+        title={gate.isFinal ? 'Continuous improvement' : <>Gate readiness · {gateLabel(solution.stage)}</>}
         summary={
           gate.isFinal ? (
-            'Run has no exit gate. Each quarter the sponsor decides: keep investing, fix what slipped, or retire it.'
-          ) : !gate.active ? (
-            <>Closed: {solution.state}. Open the gate to see why.</>
+            'Final stage: no exit gate. Focus on value, monitoring, and the improvement backlog.'
           ) : gate.canAdvance ? (
             <span className="text-success-fg">All {gate.criteria.length} requirements met. Ready for the gate review.</span>
           ) : (
@@ -91,9 +63,11 @@ export function OverviewTab() {
         }
         actions={
           <>
-            <Button variant={gate.canAdvance ? 'primary' : 'ghost'} size="xs" onClick={openGate} className="hidden sm:inline-flex">
-              {gate.isFinal ? 'Hold the review' : gate.canAdvance ? 'Request decision' : 'Check gate'} <ArrowRight />
-            </Button>
+            {!gate.isFinal && (
+              <Button variant={gate.canAdvance ? 'primary' : 'ghost'} size="xs" onClick={openGate} className="hidden sm:inline-flex">
+                {gate.canAdvance ? 'Review gate' : 'Check gate'} <ArrowRight />
+              </Button>
+            )}
             <AdvisorSpark area="gate" />
           </>
         }
@@ -115,7 +89,7 @@ export function OverviewTab() {
                 {unmet.map((c) => (
                   <li key={c.id}>
                     <button
-                      onClick={() => (c.activityId ? openActivity(c.activityId) : c.kind === 'proof' ? openProof(c.check === 'charter' ? 'charter' : 'results') : openGate())}
+                      onClick={() => (c.activityId ? openActivity(c.activityId) : openGate())}
                       className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-surface-2"
                     >
                       <CircleX className="mt-0.5 size-4 shrink-0 text-danger" />
@@ -130,7 +104,7 @@ export function OverviewTab() {
               </ul>
             ) : (
               <p className="flex items-center gap-2 text-[13px] text-success-fg">
-                <Check className="size-4" /> {gate.isFinal ? 'Run work is tracked in the plan; the quarterly review is the decision point.' : 'Every gate requirement is met and evidenced.'}
+                <Check className="size-4" /> {gate.isFinal ? 'No exit gate for the final stage.' : 'Every gate requirement is met and evidenced.'}
               </p>
             )}
           </CardBody>
@@ -160,8 +134,6 @@ export function OverviewTab() {
           </CardBody>
         </Card>
       </Section>
-
-      {!early && proofSection}
 
       <Section
         {...sections.bind('risks')} hue="pink"
@@ -302,20 +274,4 @@ function Summary({ label, value, wide }: { label: string; value: string; wide?: 
       <p className={cn('mt-1.5 text-[13.5px] leading-relaxed', value ? 'text-fg' : 'text-fg-faint italic')}>{value || 'Not documented yet'}</p>
     </div>
   )
-}
-
-/** One line for the proof section header, so a collapsed section still says where the PoC stands. */
-function proofSummary(bundle: Parameters<typeof scalePotential>[0]) {
-  const { solution } = bundle
-  const c = solution.charter
-  if (!c) return 'No charter yet: agree the rules of a small test before anything is built'
-  const gaps = charterGaps(c)
-  if (solution.stage === 'frame') return gaps.length ? `Charter still needs: ${gaps.join(', ')}` : `Charter agreed: ${c.timeboxWeeks}-week PoC, ${money(c.budget)} cap`
-  const sp = scalePotential(bundle)
-  const clock = proveClock(solution)
-  if (solution.stage === 'prove') {
-    const time = clock ? (clock.overdue ? `timebox ended ${clock.elapsedDays - clock.totalDays} days ago` : `day ${clock.elapsedDays} of ${clock.totalDays}`) : ''
-    return [`Attempt ${c.iteration} of ${MAX_PROOF_ATTEMPTS}`, time, sp.measured ? `Scale Potential ${sp.score} (${SCALE_BAND[sp.band].label})` : 'no results yet'].filter(Boolean).join(' · ')
-  }
-  return `Passed the Proof gate · Scale Potential ${sp.score} · hypothesis: ${c.hypothesis || 'not recorded'}`
 }

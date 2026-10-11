@@ -17,7 +17,6 @@ import { useStore } from '@/data/store'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { FavoriteStar } from '@/components/FavoriteStar'
 import { READINESS_BUCKETS, bucketOf, inProductionStage } from '@/domain/portfolio'
-import { isClosed, needsAttention } from '@/domain/status'
 import { cn } from '@/lib/cn'
 import { money } from '@/lib/format'
 
@@ -54,7 +53,7 @@ export function SolutionsPage() {
       if (query && !`${s.name} ${s.description}`.toLowerCase().includes(query)) return false
       if (stage === 'production' ? !inProductionStage(s.stage) : stage && s.stage !== stage) return false
       if (risk && s.riskTier !== risk) return false
-      if (status === 'attention' ? !needsAttention(i.health.status) : status === 'closed' ? !isClosed(i.health.status) : status && i.health.status !== status) return false
+      if (status === 'attention' ? i.health.status === 'on_track' : status && i.health.status !== status) return false
       if (owner && s.ownerId !== owner) return false
       if (readiness && bucketOf(i.readiness.overall) !== readiness) return false
       return true
@@ -112,7 +111,7 @@ export function SolutionsPage() {
             className="h-8 w-full rounded-lg bg-surface pr-3 pl-8 text-[12.5px] text-fg ring-1 ring-inset ring-border-strong placeholder:text-fg-faint focus:ring-2 focus:ring-ring focus:outline-none"
           />
         </div>
-        <FilterSelect label="Status" value={status} onChange={(v) => set('status', v)} options={[{ value: '', label: 'All statuses' }, { value: 'on_track', label: 'On track' }, { value: 'at_risk', label: 'At risk' }, { value: 'blocked', label: 'Blocked' }, { value: 'attention', label: 'Needs attention' }, { value: 'parked', label: 'Parked' }, { value: 'closed', label: 'Parked, stopped, or retired' }]} />
+        <FilterSelect label="Status" value={status} onChange={(v) => set('status', v)} options={[{ value: '', label: 'All statuses' }, { value: 'on_track', label: 'On track' }, { value: 'at_risk', label: 'At risk' }, { value: 'blocked', label: 'Blocked' }, { value: 'attention', label: 'Needs attention' }]} />
         <FilterSelect label="Stage" value={stage} onChange={(v) => set('stage', v)} options={[{ value: '', label: 'All stages' }, ...STAGES.map((s) => ({ value: s.id, label: s.name })), { value: 'production', label: 'In production' }]} />
         {showMore ? (
           <>

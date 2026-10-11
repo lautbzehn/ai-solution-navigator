@@ -147,7 +147,7 @@ export function LifecycleTab() {
                   ))}
                 </ul>
               ) : (
-                <p className="text-[13px] text-fg-subtle">Run has no exit gate. Each quarter the sponsor reviews value and decides to keep running or retire.</p>
+                <p className="text-[13px] text-fg-subtle">Improve / Retire has no exit gate. Work here is continuous.</p>
               )}
             </CardBody>
           </Card>

@@ -57,7 +57,7 @@ export function MetricsTab() {
       </div>
 
       {!metrics.length ? (
-        <Card><EmptyState icon={<Gauge />} title="Define how you'll know it worked" body="Add business, adoption, and AI performance metrics with a baseline and a target. The Release readiness gate needs at least two." action={<Button variant="primary" onClick={() => setEditing('new')}><Plus /> Add metric</Button>} /></Card>
+        <Card><EmptyState icon={<Gauge />} title="Define how you'll know it worked" body="Add business, adoption, and AI performance metrics with a baseline and a target. The Design gate needs at least two." action={<Button variant="primary" onClick={() => setEditing('new')}><Plus /> Add metric</Button>} /></Card>
       ) : (
         <SectionStack>
           {groups.map((g) => {

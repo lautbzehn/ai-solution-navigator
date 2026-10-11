@@ -55,7 +55,7 @@ export function RisksTab() {
             <p className="text-fg-muted">{tier.description}</p>
             <p className="rounded-lg bg-surface-2 px-3 py-2.5 text-[12.5px] text-fg-muted ring-1 ring-border"><span className="font-medium text-fg">Rigor applied: </span>{tier.rigor}</p>
             {unmitigatedHigh.length > 0 ? (
-              <p className="flex items-start gap-2 text-[12.5px] text-danger-fg"><ShieldAlert className="mt-0.5 size-4 shrink-0" /> {unmitigatedHigh.length} high-severity {unmitigatedHigh.length === 1 ? 'risk has' : 'risks have'} no mitigation. This lowers Risk & Governance readiness and blocks the Proof and Release readiness gates.</p>
+              <p className="flex items-start gap-2 text-[12.5px] text-danger-fg"><ShieldAlert className="mt-0.5 size-4 shrink-0" /> {unmitigatedHigh.length} high-severity {unmitigatedHigh.length === 1 ? 'risk has' : 'risks have'} no mitigation. This lowers Risk & Governance readiness and blocks the Validate gate.</p>
             ) : (
               <p className="flex items-start gap-2 text-[12.5px] text-success-fg"><ShieldCheck className="mt-0.5 size-4 shrink-0" /> Every high-severity risk has a mitigation.</p>
             )}
@@ -106,7 +106,7 @@ export function RisksTab() {
       </div>
 
       {list.length === 0 ? (
-        <Card><EmptyState icon={<ShieldCheck />} title={bundle.risks.length ? 'No risks match these filters' : 'Start your risk register'} body={bundle.risks.length ? 'Change the filters to see more risks.' : 'Record risks as soon as they surface. High-severity risks without a mitigation reduce readiness and block the Proof and Release readiness gates.'} action={<Button onClick={() => setEditing('new')}><Plus /> Add risk</Button>} /></Card>
+        <Card><EmptyState icon={<ShieldCheck />} title={bundle.risks.length ? 'No risks match these filters' : 'Start your risk register'} body={bundle.risks.length ? 'Change the filters to see more risks.' : 'Record risks as soon as they surface. High-severity risks without a mitigation reduce readiness and block the Validate gate.'} action={<Button onClick={() => setEditing('new')}><Plus /> Add risk</Button>} /></Card>
       ) : (
         <Card className="overflow-hidden">
           <ul className="divide-y divide-border">
@@ -199,7 +199,7 @@ function RiskSheet({ risk, onClose }: { risk: Risk | 'new' | null; onClose: () =
           <Field label="Likelihood" required error={errors.likelihood}>{(p) => <Select {...p} value={v.likelihood} onChange={(e) => set('likelihood', e.target.value as Likelihood)}><option value="">Select…</option>{LIKELIHOOD_ORDER.map((l) => <option key={l} value={l}>{LIKELIHOOD[l]}</option>)}</Select>}</Field>
         </div>
         <Field label="Impact" required error={errors.impact} hint="What happens to users or the business if this occurs?">{(p) => <Textarea {...p} rows={2} value={v.impact} onChange={(e) => set('impact', e.target.value)} />}</Field>
-        <Field label="Mitigation" error={errors.mitigation} hint={(v.severity === 'high' || v.severity === 'critical') ? 'High-severity risks need a mitigation to pass the Proof and Release readiness gates.' : undefined}>{(p) => <Textarea {...p} rows={3} value={v.mitigation} onChange={(e) => set('mitigation', e.target.value)} />}</Field>
+        <Field label="Mitigation" error={errors.mitigation} hint={(v.severity === 'high' || v.severity === 'critical') ? 'High-severity risks need a mitigation to pass the Validate gate.' : undefined}>{(p) => <Textarea {...p} rows={3} value={v.mitigation} onChange={(e) => set('mitigation', e.target.value)} />}</Field>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Owner" required error={errors.ownerId}>{(p) => <Select {...p} value={v.ownerId} onChange={(e) => set('ownerId', e.target.value)}>{team.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>}</Field>
           <Field label="Status">{(p) => <Select {...p} value={v.status} onChange={(e) => set('status', e.target.value as RiskStatus)}>{(['open', 'mitigating', 'accepted', 'closed'] as RiskStatus[]).map((s) => <option key={s} value={s}>{RISK_STATUS[s]}</option>)}</Select>}</Field>

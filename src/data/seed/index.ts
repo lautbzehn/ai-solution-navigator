@@ -46,18 +46,17 @@ export function buildSeed(now = Date.now()): DB {
 function seedGateAttempts(db: DB): GateAttempt[] {
   const out: GateAttempt[] = []
   const failures: Record<string, { stage: string; daysBefore: number; blockers: string[] }[]> = {
-    s_support: [{ stage: 'prove', daysBefore: 3, blockers: ['Value signal meets the charter'] }],
+    s_support: [{ stage: 'build', daysBefore: 4, blockers: ['Prepare test plan', 'Document known limitations'] }],
     s_coach: [
-      { stage: 'frame', daysBefore: 5, blockers: ['PoC charter agreed'] },
-      { stage: 'prove', daysBefore: 4, blockers: ['No unmitigated high or critical risks'] },
+      { stage: 'design', daysBefore: 6, blockers: ['Plan expanded evaluation (adversarial and bias)'] },
+      { stage: 'build', daysBefore: 3, blockers: ['Implement human review and override controls'] },
     ],
-    s_invoice: [{ stage: 'build', daysBefore: 5, blockers: ['Complete security and privacy review', 'Review risks before release'] }],
-    s_sales: [{ stage: 'prove', daysBefore: 2, blockers: ['Run cost within the ceiling'] }],
+    s_invoice: [{ stage: 'validate', daysBefore: 5, blockers: ['Complete privacy review', 'Assess residual risk'] }],
+    s_sales: [{ stage: 'assess', daysBefore: 2, blockers: ['Document initial value hypothesis'] }],
   }
   for (const s of db.solutions) {
     for (const visit of s.stageHistory) {
-      // A stopped solution's last visit ended in a Stop decision, not a passed gate.
-      if (!visit.exitedAt || (s.state === 'stopped' && visit === s.stageHistory[s.stageHistory.length - 1])) continue
+      if (!visit.exitedAt) continue
       const exit = new Date(visit.exitedAt).getTime()
       for (const f of failures[s.id] ?? []) {
         if (f.stage !== visit.stage) continue
@@ -97,38 +96,36 @@ function seedAudit(db: DB, now: number): AuditEntry[] {
   const iso = (daysAgo: number, hour = 10) => new Date(now - daysAgo * DAY + (hour - 12) * 3_600_000).toISOString()
   const name = (id: string) => db.activities.find((a) => a.id === id)?.name ?? db.evidence.find((e) => e.id === id)?.name ?? id
   const entries: Omit<AuditEntry, 'id'>[] = [
-    { ts: iso(0.2, 9), actorId: 'p_pam', solutionId: 's_support', action: 'commented', entityType: 'activity', entityId: 's_support__b_oversight', entityName: name('s_support__b_oversight') },
-    { ts: iso(1, 16), actorId: 'p_darryl', solutionId: 's_support', action: 'commented', entityType: 'activity', entityId: 's_support__b_monitoring', entityName: name('s_support__b_monitoring') },
-    { ts: iso(2, 11), actorId: 'p_jim', solutionId: 's_support', action: 'created', entityType: 'decision', entityId: 's_support__d5', entityName: 'Release to a 10% pilot cohort first' },
-    { ts: iso(2, 9), actorId: 'p_erin', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__b_uat', entityName: name('s_support__b_uat'), field: 'status', from: 'Not Started', to: 'In Progress' },
+    { ts: iso(0.2, 9), actorId: 'p_pam', solutionId: 's_support', action: 'commented', entityType: 'activity', entityId: 's_support__v_oversight', entityName: name('s_support__v_oversight') },
+    { ts: iso(1, 16), actorId: 'p_darryl', solutionId: 's_support', action: 'commented', entityType: 'activity', entityId: 's_support__v_monitoring', entityName: name('s_support__v_monitoring') },
+    { ts: iso(2, 11), actorId: 'p_jim', solutionId: 's_support', action: 'created', entityType: 'decision', entityId: 's_support__d5', entityName: 'Deploy to a 10% pilot first' },
+    { ts: iso(2, 9), actorId: 'p_erin', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__v_uat', entityName: name('s_support__v_uat'), field: 'status', from: 'Not Started', to: 'In Progress' },
     { ts: iso(3, 15), actorId: 'p_pam', solutionId: 's_support', action: 'created', entityType: 'change', entityId: 's_support__ch4', entityName: 'Forced agent review for responses offering credits or refunds' },
     { ts: iso(4, 14), actorId: 'p_dwight', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_oversight_validation', entityName: 'Human Oversight Validation', field: 'status', from: 'Missing', to: 'Draft' },
     { ts: iso(6, 10), actorId: 'p_dwight', solutionId: 's_support', action: 'created', entityType: 'risk', entityId: 's_support__r2', entityName: 'Agents over-rely on AI suggestions' },
-    { ts: iso(7, 13), actorId: 'p_toby', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_risk_review', entityName: 'Risk Review', field: 'status', from: 'In Review', to: 'Approved' },
-    { ts: iso(8, 11), actorId: 'p_jan', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_security_review', entityName: 'Security & Privacy Review', field: 'status', from: 'In Review', to: 'Approved' },
+    { ts: iso(7, 13), actorId: 'p_toby', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_residual_risk', entityName: 'Residual Risk Assessment', field: 'status', from: 'In Review', to: 'Approved' },
+    { ts: iso(8, 11), actorId: 'p_jan', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_privacy_review', entityName: 'Privacy Review', field: 'status', from: 'In Review', to: 'Approved' },
     { ts: iso(9, 16), actorId: 'p_holly', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_eval_results', entityName: 'Evaluation Results', field: 'status', from: 'In Review', to: 'Approved' },
-    { ts: iso(10, 10), actorId: 'p_dwight', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__b_secpriv', entityName: 'Complete security and privacy review', field: 'status', from: 'In Progress', to: 'Complete' },
-    { ts: iso(13, 15), actorId: 'p_holly', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__b_eval_suite', entityName: 'Run the eval suite on every change', field: 'status', from: 'Complete', to: 'In Progress' },
-    { ts: iso(11, 15), actorId: 'p_holly', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__b_eval_suite', entityName: 'Run the eval suite on every change', field: 'status', from: 'In Progress', to: 'Complete' },
-    { ts: iso(18, 11), actorId: 'p_michael', solutionId: 's_minutes', action: 'status_changed', entityType: 'solution', entityId: 's_minutes', entityName: 'AI Meeting Minutes Generator', field: 'state', from: 'Active', to: 'Stopped' },
-    { ts: iso(2, 14), actorId: 'p_holly', solutionId: 's_contracts', action: 'commented', entityType: 'activity', entityId: 's_contracts__p_eval_run', entityName: name('s_contracts__p_eval_run') },
-    { ts: iso(1, 10), actorId: 'p_holly', solutionId: 's_forecast', action: 'commented', entityType: 'activity', entityId: 's_forecast__l_pilot_results', entityName: name('s_forecast__l_pilot_results') },
-    { ts: iso(3, 10), actorId: 'p_toby', solutionId: 's_classifier', action: 'commented', entityType: 'activity', entityId: 's_classifier__p_autonomy', entityName: name('s_classifier__p_autonomy') },
-    { ts: iso(4, 12), actorId: 'p_ryan', solutionId: 's_classifier', action: 'status_changed', entityType: 'activity', entityId: 's_classifier__p_autonomy', entityName: name('s_classifier__p_autonomy'), field: 'status', from: 'In Progress', to: 'Blocked' },
-    { ts: iso(5, 11), actorId: 'p_oscar', solutionId: 's_classifier', action: 'commented', entityType: 'activity', entityId: 's_classifier__p_prod_data', entityName: name('s_classifier__p_prod_data') },
-    { ts: iso(3, 14), actorId: 'p_jan', solutionId: 's_coach', action: 'commented', entityType: 'activity', entityId: 's_coach__b_secpriv', entityName: name('s_coach__b_secpriv') },
+    { ts: iso(10, 10), actorId: 'p_dwight', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__v_security', entityName: 'Complete security review', field: 'status', from: 'In Progress', to: 'Complete' },
+    { ts: iso(13, 15), actorId: 'p_holly', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__v_eval', entityName: 'Run evaluation and document results', field: 'status', from: 'Complete', to: 'In Progress' },
+    { ts: iso(11, 15), actorId: 'p_holly', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__v_eval', entityName: 'Run evaluation and document results', field: 'status', from: 'In Progress', to: 'Complete' },
+    { ts: iso(16, 9), actorId: 'p_michael', solutionId: 's_support', action: 'advanced', entityType: 'solution', entityId: 's_support', entityName: 'AI Customer Support Resolution Assistant', field: 'stage', from: 'Build', to: 'Validate' },
+    { ts: iso(3, 10), actorId: 'p_toby', solutionId: 's_classifier', action: 'commented', entityType: 'activity', entityId: 's_classifier__a_autonomy', entityName: name('s_classifier__a_autonomy') },
+    { ts: iso(4, 12), actorId: 'p_ryan', solutionId: 's_classifier', action: 'status_changed', entityType: 'activity', entityId: 's_classifier__a_autonomy', entityName: name('s_classifier__a_autonomy'), field: 'status', from: 'In Progress', to: 'Blocked' },
+    { ts: iso(5, 11), actorId: 'p_oscar', solutionId: 's_classifier', action: 'commented', entityType: 'activity', entityId: 's_classifier__a_data', entityName: name('s_classifier__a_data') },
+    { ts: iso(3, 14), actorId: 'p_jan', solutionId: 's_coach', action: 'commented', entityType: 'activity', entityId: 's_coach__v_privacy', entityName: name('s_coach__v_privacy') },
     { ts: iso(9, 10), actorId: 'p_michael', solutionId: 's_coach', action: 'created', entityType: 'decision', entityId: 's_coach__d2', entityName: 'Coaching scores excluded from performance reviews' },
-    { ts: iso(12, 16), actorId: 'p_holly', solutionId: 's_coach', action: 'status_changed', entityType: 'activity', entityId: 's_coach__b_eval_suite', entityName: 'Run the eval suite on every change', field: 'status', from: 'Complete', to: 'In Progress' },
-    { ts: iso(5, 10), actorId: 'p_ryan', solutionId: 's_sales', action: 'status_changed', entityType: 'activity', entityId: 's_sales__b_build', entityName: 'Build the production version', field: 'status', from: 'In Progress', to: 'Complete' },
-    { ts: iso(8, 13), actorId: 'p_pam', solutionId: 's_knowledge', action: 'status_changed', entityType: 'activity', entityId: 's_knowledge__b_design', entityName: 'Design the solution and human oversight', field: 'status', from: 'In Progress', to: 'Complete' },
+    { ts: iso(12, 16), actorId: 'p_holly', solutionId: 's_coach', action: 'status_changed', entityType: 'activity', entityId: 's_coach__v_eval', entityName: 'Run evaluation and document results', field: 'status', from: 'Complete', to: 'In Progress' },
+    { ts: iso(5, 10), actorId: 'p_ryan', solutionId: 's_sales', action: 'status_changed', entityType: 'activity', entityId: 's_sales__b_config', entityName: 'Record configuration and version information', field: 'status', from: 'In Progress', to: 'Complete' },
+    { ts: iso(8, 13), actorId: 'p_pam', solutionId: 's_knowledge', action: 'status_changed', entityType: 'activity', entityId: 's_knowledge__ds_oversight', entityName: 'Design human oversight approach', field: 'status', from: 'In Progress', to: 'Complete' },
     { ts: iso(6, 9), actorId: 'p_angela', solutionId: 's_invoice', action: 'created', entityType: 'change', entityId: 's_invoice__ch2', entityName: 'Extend detection to travel and expense invoices' },
-    { ts: iso(2, 15), actorId: 'p_darryl', solutionId: 's_incident', action: 'commented', entityType: 'activity', entityId: 's_incident__f_problem', entityName: name('s_incident__f_problem') },
+    { ts: iso(2, 15), actorId: 'p_darryl', solutionId: 's_incident', action: 'commented', entityType: 'activity', entityId: 's_incident__d_sponsor', entityName: name('s_incident__d_sponsor') },
     { ts: iso(9, 11), actorId: CURRENT_USER_ID, solutionId: 's_incident', action: 'created', entityType: 'solution', entityId: 's_incident', entityName: 'AI Incident Triage Assistant' },
   ]
   // Stage advancement history for everything else.
   for (const s of db.solutions) {
     for (const v of s.stageHistory) {
-      if (!v.exitedAt || (s.state === 'stopped' && v === s.stageHistory[s.stageHistory.length - 1])) continue
+      if (!v.exitedAt || (s.id === 's_support' && v.stage === 'build')) continue
       const next = STAGE_IDS[stageOrder(v.stage) + 1]
       entries.push({ ts: v.exitedAt, actorId: 'p_michael', solutionId: s.id, action: 'advanced', entityType: 'solution', entityId: s.id, entityName: s.name, field: 'stage', from: cap(v.stage), to: cap(next) })
     }
@@ -138,4 +135,4 @@ function seedAudit(db: DB, now: number): AuditEntry[] {
     .map((e, i) => ({ ...e, id: `au_seed_${i}` }))
 }
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const cap = (s: string) => (s === 'improve' ? 'Improve / Retire' : s.charAt(0).toUpperCase() + s.slice(1))
