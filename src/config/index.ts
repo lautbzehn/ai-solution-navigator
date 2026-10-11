@@ -6,6 +6,7 @@ import type {
   GateDef,
   LifecycleConfig,
   RiskTier,
+  Solution,
   StageDef,
   StageId,
 } from '@/domain/types'
@@ -23,6 +24,9 @@ export const stageOrder = (id: StageId) => stageIndex.get(id) ?? 0
 export const stageDef = (id: StageId) => STAGES[stageOrder(id)]
 export const nextStage = (id: StageId): StageId | undefined => STAGE_IDS[stageOrder(id) + 1]
 export const isFinalStage = (id: StageId) => stageOrder(id) === STAGE_IDS.length - 1
+export const FIRST_STAGE: StageId = STAGE_IDS[0]
+/** The stage where a solution is in front of everyone and running for real. */
+export const RUN_STAGE: StageId = STAGE_IDS[STAGE_IDS.length - 1]
 
 export const gateFor = (stage: StageId): GateDef | undefined => lifecycle.gates.find((g) => g.stage === stage)
 
@@ -46,7 +50,16 @@ export const DEFAULT_WEIGHTS: Record<DimensionId, number> = Object.fromEntries(
 export const DIMENSIONS: DimensionDef[] = lifecycle.readinessDimensions
 export const dimensionDef = (id: DimensionId) => DIMENSIONS.find((d) => d.id === id)!
 
-/** Readiness scope: through Deploy until a solution is in production, then
+/** Readiness scope: through Launch until a solution is running for everyone, then
     through its current stage. Readiness means "ready to reach and run in production". */
 export const readinessScopeEnd = (stage: StageId): StageId =>
-  stageOrder(stage) > stageOrder('deploy') ? stage : 'deploy'
+  stageOrder(stage) > stageOrder('launch') ? stage : 'launch'
+
+/** People on the team who may record a stage's gate decision: they hold one of
+    the gate's approver roles and are not the solution's own owner. */
+export function eligibleApprovers(solution: Solution, stage: StageId = solution.stage): string[] {
+  const roles = gateFor(stage)?.approverRoles ?? []
+  return Array.from(new Set(solution.team.filter((m) => roles.includes(m.roleId)).map((m) => m.personId))).filter((id) => id !== solution.ownerId)
+}
+
+export const approverRoleNames = (stage: StageId) => (gateFor(stage)?.approverRoles ?? []).map(roleName)

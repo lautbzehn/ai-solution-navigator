@@ -15,11 +15,11 @@ export const GLOSSARY = {
   },
   lifecycle: {
     title: 'Lifecycle stages',
-    body: 'Discover → Assess → Design → Build → Validate → Deploy → Operate → Improve/Retire. Each stage ends in a gate; governance runs continuously across all of them.',
+    body: 'Frame → Prove → Build → Launch → Run. Frame and Prove test the idea small; Build and Launch deliver it carefully; Run measures it every quarter. Each stage ends in a gate that can advance, park, or stop a solution.',
   },
   gate: {
     title: 'Gate criteria',
-    body: 'The requirements that must be met before a solution can move to the next stage. Blocking activities need to be complete and backed by approved evidence.',
+    body: 'The requirements that must be met before a solution can move to the next stage. Blocking activities need to be complete and backed by approved evidence. Any gate can also park or stop a solution at any time.',
   },
   evidence: {
     title: 'Evidence',
@@ -59,7 +59,23 @@ export const GLOSSARY = {
   },
   gatePassRate: {
     title: 'Gate pass rate',
-    body: 'Share of gate attempts that passed on the first try. Failed attempts mean a team asked to advance before requirements were met.',
+    body: 'Share of requests to advance that passed. A failed attempt means someone asked to advance before the requirements were met. Checking a gate to see what is open never counts.',
+  },
+  proofGate: {
+    title: 'Proof gate',
+    body: 'The checkpoint between a small proof of concept and any build money. It reads the PoC results against the charter and records one of four decisions: scale, iterate, pivot, or stop.',
+  },
+  pocCharter: {
+    title: 'PoC charter',
+    body: 'The rules of a proof of concept, agreed with the sponsor before it starts: a hypothesis, a 2 to 6 week timebox, a budget cap, a pilot user cap, and pass thresholds for quality, value, and run cost.',
+  },
+  scalePotential: {
+    title: 'Scale Potential',
+    body: 'A 0 to 100 score for the Proof gate: quality 30, value 25, unit economics 20, production data 10, pilot adoption 10, sponsor commitment 5. 75 and up is ready to scale; under 50 is not viable yet.',
+  },
+  killRate: {
+    title: 'Kill rate',
+    body: 'Share of ideas that reached a Proof decision and were stopped early, before any build money. A healthy portfolio stops plenty of ideas, and stops them fast.',
   },
   reworkRate: {
     title: 'Rework rate',

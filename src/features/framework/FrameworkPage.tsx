@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Pill } from '@/components/ui/Pill'
 import { InfoTip, Tip } from '@/components/ui/Tooltip'
-import { DEFAULT_WEIGHTS, DIMENSIONS, evidenceTemplate, gateFor, lifecycle, riskBasedControls, roleName, STAGES } from '@/config'
+import { DEFAULT_WEIGHTS, DIMENSIONS, evidenceTemplate, gateFor, isFinalStage, lifecycle, riskBasedControls, roleName, STAGES } from '@/config'
+import { GATE_OUTCOME } from '@/domain/labels'
 import { useStore } from '@/data/store'
 import type { DimensionId, RiskTier, StageId } from '@/domain/types'
 import { cn } from '@/lib/cn'
@@ -19,12 +20,13 @@ const TIERS: RiskTier[] = ['low', 'moderate', 'high']
 const SECTIONS = ['stages', 'tiers', 'weights', 'roles'] as const
 
 export function FrameworkPage() {
-  const [stage, setStage] = useState<StageId>('validate')
+  const [stage, setStage] = useState<StageId>('prove')
   const def = STAGES.find((s) => s.id === stage)!
   const acts = lifecycle.activityTemplates.filter((a) => a.stage === stage)
   const gate = gateFor(stage)
   const sections = useSections('framework', SECTIONS)
-  const gates = STAGES.filter((s) => gateFor(s.id)).length
+  const gates = STAGES.filter((s) => gateFor(s.id) && !isFinalStage(s.id)).length
+  const final = isFinalStage(stage)
   const highExtra = riskBasedControls('high').length
   const navigate = useNavigate()
 
@@ -45,10 +47,10 @@ export function FrameworkPage() {
       />
 
       <SectionStack>
-        <Section {...sections.bind('stages')} hue="blue" icon={<Layers />} title="Stages and gates" summary={`${STAGES.length} stages · ${gates} gates · ${lifecycle.activityTemplates.length} activity templates. Pick a stage to see its work and exit criteria.`}>
-          <p className="mb-3 flex items-center gap-1.5 text-[13px] text-fg-subtle">Every solution moves through the same stages; each one ends in a gate. <InfoTip term="lifecycle" /></p>
+        <Section {...sections.bind('stages')} hue="blue" icon={<Layers />} title="Stages and gates" summary={`${STAGES.length} stages · ${gates} gates and a quarterly value review · ${lifecycle.activityTemplates.length} activity templates. Pick a stage to see its work and exit criteria.`}>
+          <p className="mb-3 flex items-center gap-1.5 text-[13px] text-fg-subtle">Every solution moves through the same stages; each one ends in a gate that can advance, park, or stop it. <InfoTip term="lifecycle" /></p>
           <div className="-mx-1 mb-4 overflow-x-auto px-1">
-            <div className="flex min-w-[760px] gap-1.5" role="tablist" aria-label="Lifecycle stage">
+            <div className="flex min-w-[560px] gap-1.5" role="tablist" aria-label="Lifecycle stage">
               {STAGES.map((s, i) => (
                 <button key={s.id} role="tab" aria-selected={stage === s.id} onClick={() => setStage(s.id)} className={cn('flex-1 rounded-xl px-3 py-2.5 text-left ring-1 transition-colors ring-inset', stage === s.id ? 'bg-accent-soft ring-accent-line' : 'ring-border hover:bg-surface-2')}>
                   <span className="text-[10.5px] text-fg-subtle tabular">{i + 1}</span>
@@ -102,26 +104,41 @@ export function FrameworkPage() {
               </div>
             </Card>
             <Card className="self-start">
-              <CardHeader title={<>{gate?.name ?? 'No exit gate'} <InfoTip term="gate" /></>} subtitle={gate?.description ?? 'Improve / Retire is continuous.'} />
+              <CardHeader title={<>{gate?.name ?? 'No exit gate'} <InfoTip term={stage === 'prove' ? 'proofGate' : 'gate'} /></>} subtitle={gate ? `${gate.question} ${gate.description}` : undefined} />
               <CardBody className="grid gap-3 text-[12.5px]">
                 {gate && (
                   <>
-                    <p className="text-fg-muted">To exit {def.name}, every activity marked as blocking for the solution's risk tier must be complete with approved evidence, plus:</p>
-                    {gate.criteria.length ? (
+                    {final ? (
+                      <p className="text-fg-muted">Run has no exit. Every quarter the sponsor reviews value, adoption, run cost, and incidents, then decides.</p>
+                    ) : (
+                      <p className="text-fg-muted">To pass, every activity marked as blocking for the solution's risk tier must be complete with approved evidence, plus:</p>
+                    )}
+                    {gate.criteria.length > 0 && (
                       <ul className="grid gap-1.5">
                         {gate.criteria.map((c) => <li key={c.id} className="flex items-start gap-2"><Check className="mt-0.5 size-3.5 shrink-0 text-accent" /><span><span className="text-fg">{c.label}</span><span className="block text-[11.5px] text-fg-subtle">{c.description}</span></span></li>)}
                       </ul>
-                    ) : (
-                      <p className="text-fg-subtle">No additional criteria beyond the blocking activities.</p>
                     )}
-                    <div className="grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
-                      {TIERS.map((t) => (
-                        <div key={t}>
-                          <p className="text-[20px] font-semibold tabular">{acts.filter((a) => a.blockingFor.includes(t)).length + gate.criteria.length}</p>
-                          <p className="text-[11px] text-fg-subtle">gate items · {t}</p>
-                        </div>
-                      ))}
+                    <div className="grid gap-1.5 border-t border-border pt-3">
+                      <p className="text-[11px] font-semibold tracking-[0.06em] text-fg-subtle uppercase">Possible decisions</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {gate.outcomes.map((o) => (
+                          <Tip key={o} content={GATE_OUTCOME[o].hint}>
+                            <span><Pill tone={o === 'advance' ? 'accent' : o === 'stop' || o === 'retire' ? 'muted' : 'neutral'}>{o === 'advance' ? gate.advanceLabel ?? 'Advance' : GATE_OUTCOME[o].label}</Pill></span>
+                          </Tip>
+                        ))}
+                      </div>
+                      <p className="mt-1 text-[11.5px] text-fg-subtle">Decided by the {gate.approverRoles.map(roleName).join(' or ')}, never the solution's own owner.</p>
                     </div>
+                    {!final && (
+                      <div className="grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
+                        {TIERS.map((t) => (
+                          <div key={t}>
+                            <p className="text-[20px] font-semibold tabular">{acts.filter((a) => a.blockingFor.includes(t)).length + gate.criteria.length}</p>
+                            <p className="text-[11px] text-fg-subtle">gate items · {t}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </>
                 )}
               </CardBody>

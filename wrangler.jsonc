@@ -13,7 +13,16 @@
     "run_worker_first": ["/api/*"]
   },
   // Serves the app at this address and creates its DNS record on icarianforge.com automatically.
-  "routes": [{ "pattern": "navigator.icarianforge.com", "custom_domain": true }]
+  "routes": [{ "pattern": "navigator.icarianforge.com", "custom_domain": true }],
+  // One Durable Object keeps the live advisor's rate limits and daily spend cap, site-wide.
+  "durable_objects": {
+    "bindings": [{ "name": "ADVISOR_GUARD", "class_name": "AdvisorGuardObject" }]
+  },
+  "migrations": [{ "tag": "v1-advisor-guard", "new_sqlite_classes": ["AdvisorGuardObject"] }],
+  // Site-wide daily spend cap for the live advisor, in USD. Change it here and redeploy.
+  "vars": { "ADVISOR_DAILY_BUDGET_USD": "5" },
+  // Keeps the advisor's per-call log lines (tokens, cost, latency, refusals) in Workers Logs.
+  "observability": { "enabled": true }
   // Optional secret (not in this file): ANTHROPIC_API_KEY, set with `wrangler secret put`.
   // Without it the advisor runs in free, built-in mode.
 }

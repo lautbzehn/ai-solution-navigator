@@ -3,8 +3,9 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
 import { handleAdvisor } from './server/advisor'
+import { clientIdFor } from './server/guard'
 
-/** Serves /api/advisor in development with the same handler Vercel uses in production. */
+/** Serves /api/advisor in development with the same handler the Cloudflare Worker uses in production. */
 function advisorApi(): Plugin {
   return {
     name: 'advisor-api',
@@ -19,8 +20,15 @@ function advisorApi(): Plugin {
           } catch {
             body = undefined
           }
-          const result = await handleAdvisor(req.method ?? 'GET', body)
+          const header = (name: string) => {
+            const v = req.headers[name]
+            return Array.isArray(v) ? v[0] : v
+          }
+          const result = await handleAdvisor(req.method ?? 'GET', body, undefined, {
+            meta: { origin: header('origin'), clientHeader: header('x-navigator-client'), clientId: await clientIdFor(req.socket.remoteAddress ?? 'local'), bodyBytes: Buffer.byteLength(raw) },
+          })
           res.statusCode = result.status
+          for (const [k, v] of Object.entries(result.headers ?? {})) res.setHeader(k, v)
           res.setHeader('Content-Type', 'application/json')
           res.end(JSON.stringify(result.body))
         })

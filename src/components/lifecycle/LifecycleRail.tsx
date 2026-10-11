@@ -29,7 +29,7 @@ export function LifecycleRail({
   const currentIdx = stageOrder(current)
   return (
     <div className={cn('-mx-1 overflow-x-auto px-1 pb-1', className)}>
-      <ol className="flex min-w-[1020px] items-stretch" aria-label="Lifecycle stages">
+      <ol className="flex min-w-[640px] items-stretch" aria-label="Lifecycle stages">
         {STAGES.map((stage, i) => {
           const state: NodeState = i < currentIdx ? 'complete' : i === currentIdx ? 'current' : 'future'
           const isSelected = selected === stage.id
@@ -81,7 +81,7 @@ export function LifecycleRail({
                   />
                 </div>
                 <span className={cn('text-[11px] tabular', state === 'current' ? 'text-accent-fg' : state === 'complete' ? 'text-success-fg' : 'text-fg-faint')}>
-                  {state === 'complete' ? 'Complete' : state === 'current' ? `Current · ${pct}%` : pct > 0 ? `${pct}% early work` : '—'}
+                  {state === 'complete' ? 'Complete' : state === 'current' ? `Current · ${pct}% of stage work` : pct > 0 ? `${pct}% early work` : '—'}
                 </span>
               </Node>
               {i < STAGES.length - 1 && (
@@ -117,7 +117,7 @@ export function LifecycleRail({
   )
 }
 
-/** Eight-segment mini lifecycle for rows and cards. */
+/** Segmented mini lifecycle for rows and cards, one segment per stage. */
 export function MiniLifecycle({ current, className }: { current: StageId; className?: string }) {
   const idx = stageOrder(current)
   return (

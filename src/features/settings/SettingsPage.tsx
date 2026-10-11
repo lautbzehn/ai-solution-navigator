@@ -61,7 +61,15 @@ export function SettingsPage() {
               {status === undefined ? (
                 <Pill tone="muted">Checking…</Pill>
               ) : live ? (
-                <Pill tone="success" dot>Live · {status.model}</Pill>
+                <>
+                  <Pill tone="success" dot>Live · {status.model}</Pill>
+                  {status.budget && (
+                    <span className="text-fg-subtle tabular">
+                      ${status.budget.spentTodayUsd.toFixed(2)} of today's ${status.budget.dailyUsd.toFixed(2)} demo budget used
+                      {status.limits && ` · up to ${status.limits.perMinute} questions a minute and ${status.limits.perDay} a day per visitor`}
+                    </span>
+                  )}
+                </>
               ) : (
                 <Pill tone="accent" dot>Mock · built-in guidance</Pill>
               )}

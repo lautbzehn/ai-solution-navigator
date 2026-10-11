@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { DEFAULT_WEIGHTS, nextStage, stageDef } from '@/config'
+import { approverRoleNames, DEFAULT_WEIGHTS, eligibleApprovers, FIRST_STAGE, gateFor, nextStage, stageDef } from '@/config'
 import { bundleFor, uid, type DB, type Weights } from '@/domain/db'
 import { evaluateGate, type CriterionResult } from '@/domain/gates'
 import {
@@ -12,6 +12,7 @@ import {
   RISK_TIER,
 } from '@/domain/labels'
 import { instantiatePlan, reconcileTier } from '@/domain/plan'
+import { defaultCharter, MAX_PROOF_ATTEMPTS, scalePotential, SCALE_BAND } from '@/domain/proof'
 import { computeReadiness } from '@/domain/readiness'
 import type {
   Activity,
@@ -19,10 +20,16 @@ import type {
   Change,
   Comment,
   Decision,
+  DecisionOutcome,
   Evidence,
+  GateOutcome,
   Metric,
+  PocCharter,
+  PocResults,
   Risk,
   Solution,
+  SolutionState,
+  StageId,
   TeamMember,
 } from '@/domain/types'
 import { buildSeed } from './seed'
@@ -46,9 +53,15 @@ export const DEFAULT_SETTINGS: Settings = { weights: DEFAULT_WEIGHTS, advisorEna
 export type NewSolution = Pick<
   Solution,
   'name' | 'description' | 'riskTier' | 'businessProblem' | 'targetUsers' | 'desiredOutcome' | 'whyAI' | 'aiPatterns' | 'dataSources' | 'expectedValue' | 'ownerId'
-> & { sponsorId?: string }
+> & { sponsorId?: string; hypothesis?: string }
 
-export type AdvanceResult = { ok: true; decisionId: string } | { ok: false; unmet: CriterionResult[] }
+export interface GateDecisionInput {
+  outcome: GateOutcome
+  ownerId: string
+  rationale: string
+  conditions?: string
+}
+export type DecisionResult = { ok: true; decisionId: string } | { ok: false; reason: string; unmet?: CriterionResult[] }
 
 interface Actions {
   createSolution(input: NewSolution): string
@@ -74,7 +87,12 @@ interface Actions {
   addChange(input: Omit<Change, 'id'>): string
   updateChange(id: string, patch: Partial<Change>): void
 
-  advanceStage(solutionId: string, decision: { ownerId: string; conditions: string; rationale: string }): AdvanceResult
+  /** Record a gate decision: advance, iterate, pivot, roll back, park, stop, keep running, or retire. */
+  decideGate(solutionId: string, decision: GateDecisionInput): DecisionResult
+  /** Bring a parked solution back to active work, exactly where it left off. */
+  resumeSolution(solutionId: string): void
+  updateCharter(solutionId: string, charter: PocCharter): void
+  updateProof(solutionId: string, results: PocResults): void
 
   setWeights(w: Weights): void
   setAdvisorEnabled(v: boolean): void
@@ -168,7 +186,7 @@ export const useStore = create<Store>()(
             name: input.name,
             description: input.description,
             ownerId: input.ownerId,
-            stage: 'discover',
+            stage: FIRST_STAGE,
             riskTier: input.riskTier,
             businessProblem: input.businessProblem,
             targetUsers: input.targetUsers,
@@ -179,18 +197,18 @@ export const useStore = create<Store>()(
             expectedValue: input.expectedValue,
             realizedValue: 0,
             team,
-            stageHistory: [{ stage: 'discover', enteredAt: ts }],
+            stageHistory: [{ stage: FIRST_STAGE, enteredAt: ts }],
+            state: 'active',
+            charter: { ...defaultCharter(input), hypothesis: input.hypothesis ?? '' },
             createdAt: ts,
             updatedAt: ts,
           }
           const plan = instantiatePlan(solution, ts)
-          // Answers captured in the guided flow satisfy their Discover activities.
+          // Answers captured in the guided flow satisfy their Frame activities.
           const done = new Set<string>()
-          if (input.businessProblem.trim().length >= 20) done.add('d_problem')
-          if (input.targetUsers.trim()) done.add('d_users')
-          if (input.desiredOutcome.trim().length >= 15) done.add('d_outcome')
-          if (input.whyAI.trim()) done.add('d_why_ai')
-          if (input.sponsorId) done.add('d_sponsor')
+          if (input.businessProblem.trim().length >= 20 && input.targetUsers.trim() && input.desiredOutcome.trim().length >= 15) done.add('f_problem')
+          if (input.whyAI.trim()) done.add('f_why_ai')
+          done.add('f_risk_screen')
           const activities = plan.activities.map((a) =>
             a.templateId && done.has(a.templateId) ? { ...a, status: 'complete' as const, completedAt: ts } : a,
           )
@@ -199,7 +217,12 @@ export const useStore = create<Store>()(
             {
               solutions: [solution, ...s.solutions],
               activities: [...s.activities, ...activities],
-              evidence: [...s.evidence, ...plan.evidence.map((e) => (e.templateId === 'ev_opportunity_brief' && done.has('d_problem') ? { ...e, status: 'draft' as const } : e))],
+              evidence: [
+                ...s.evidence,
+                ...plan.evidence.map((e) =>
+                  (e.templateId === 'ev_opportunity_brief' && done.has('f_problem')) || e.templateId === 'ev_risk_screen' ? { ...e, status: 'draft' as const } : e,
+                ),
+              ],
             },
             [{ solutionId: id, action: 'created', entityType: 'solution', entityId: id, entityName: solution.name }],
             id,
@@ -455,65 +478,185 @@ export const useStore = create<Store>()(
           commit({ changes }, entries, after.solutionId)
         },
 
-        advanceStage(solutionId, decision) {
+        decideGate(solutionId, d) {
           const s = get()
           const bundle = bundleFor(s, solutionId)
-          if (!bundle) return { ok: false, unmet: [] }
+          if (!bundle) return { ok: false, reason: 'This solution no longer exists.' }
+          const sol = bundle.solution
           // Re-validate here: the store never trusts the UI's view of the gate.
           const gate = evaluateGate(bundle)
+          const def = gateFor(sol.stage)
           const ts = nowIso()
-          const from = bundle.solution.stage
-          if (!gate.canAdvance) {
+          const from = sol.stage
+          const gateName = def?.name ?? `${stageDef(from).name} gate`
+          if (!gate.outcomes.includes(d.outcome)) return { ok: false, reason: 'That decision is not available at this gate.' }
+          if (!gate.active) return { ok: false, reason: 'Resume this solution before recording a gate decision.' }
+          if (!eligibleApprovers(sol).includes(d.ownerId))
+            return { ok: false, reason: `Only the ${approverRoleNames(from).join(' or ')} can decide this gate, and never the solution's own owner.` }
+          if (d.rationale.trim().length < 10) return { ok: false, reason: 'Add a short rationale (at least 10 characters) so the decision is auditable.' }
+          if (d.outcome === 'advance' && !gate.canAdvance) {
+            // Someone asked to move forward before the work was ready: this is what gate pass rate measures.
             commit(
-              {
-                gateAttempts: [...s.gateAttempts, { id: uid('ga'), solutionId, stage: from, ts, passed: false, blockers: gate.unmet.map((u) => u.label) }],
-              },
-              [{ solutionId, action: 'gate_blocked', entityType: 'gate', entityId: solutionId, entityName: bundle.solution.name, field: 'stage', from: stageDef(from).name, to: `${gate.unmet.length} requirements unmet` }],
+              { gateAttempts: [...s.gateAttempts, { id: uid('ga'), solutionId, stage: from, ts, passed: false, blockers: gate.unmet.map((u) => u.label) }] },
+              [{ solutionId, action: 'gate_blocked', entityType: 'gate', entityId: solutionId, entityName: sol.name, field: 'stage', from: stageDef(from).name, to: `${gate.unmet.length} requirements unmet` }],
             )
-            return { ok: false, unmet: gate.unmet }
+            return { ok: false, reason: `${gate.unmet.length} ${gate.unmet.length === 1 ? 'requirement is' : 'requirements are'} still open.`, unmet: gate.unmet }
           }
-          const to = nextStage(from)!
+          const attempt = sol.charter?.iteration ?? 1
+          if (d.outcome === 'iterate' && attempt >= MAX_PROOF_ATTEMPTS) return { ok: false, reason: 'This PoC has already been iterated twice. Decide to scale, pivot, or stop.' }
+
+          const conditions = (d.conditions ?? '').trim()
+          const met = gate.criteria.length - gate.unmet.length
+          const scale = from === 'prove' ? scalePotential(bundle) : undefined
+          const recommendation = [
+            gate.isFinal ? 'Quarterly value review.' : `${met} of ${gate.criteria.length} ${gateName} requirements met.`,
+            scale ? `Scale Potential ${scale.score}/100 (${SCALE_BAND[scale.band].label}).` : '',
+          ].filter(Boolean).join(' ')
+
+          let next: Solution = { ...sol }
+          let to: StageId = from
+          let outcome: DecisionOutcome
+          let title: string
+          let impact: string
+          let activities = s.activities
+          let evidence = s.evidence
+          const moveTo = (stage: StageId) => {
+            to = stage
+            next = {
+              ...next,
+              stage,
+              stageHistory: [...next.stageHistory.map((v) => (v.stage === from && !v.exitedAt ? { ...v, exitedAt: ts } : v)), { stage, enteredAt: ts }],
+            }
+          }
+          const setState = (state: SolutionState) => {
+            next = { ...next, state, stateChangedAt: ts, stateReason: d.rationale.trim() }
+            // Closing ends the current stage visit, so stage-time analytics stay honest.
+            if (state === 'stopped' || state === 'retired') next = { ...next, stageHistory: next.stageHistory.map((v) => (v.stage === from && !v.exitedAt ? { ...v, exitedAt: ts } : v)) }
+          }
+
+          switch (d.outcome) {
+            case 'advance': {
+              moveTo(nextStage(from)!)
+              outcome = conditions ? 'approved_with_conditions' : 'approved'
+              title = `${def?.advanceLabel ?? 'Proceed'}: on to ${stageDef(to).name}`
+              impact = `Solution enters ${stageDef(to).name}.`
+              break
+            }
+            case 'iterate': {
+              moveTo(from)
+              next = { ...next, charter: { ...(next.charter ?? defaultCharter(next)), iteration: attempt + 1 }, proof: {} }
+              // The results half of the PoC is redone; the golden set and the prototype carry over.
+              const redo = new Set(['p_eval_run', 'p_value_signal', 'p_unit_economics', 'p_scale_plan'])
+              const redoIds = new Set(s.activities.filter((a) => a.solutionId === solutionId && redo.has(a.templateId ?? '') && a.status === 'complete').map((a) => a.id))
+              activities = s.activities.map((a) => (redoIds.has(a.id) ? { ...a, status: 'in_progress' as const, completedAt: undefined } : a))
+              evidence = s.evidence.map((e) => (e.activityId && redoIds.has(e.activityId) ? { ...e, status: 'draft' as const, date: ts } : e))
+              outcome = 'iterate'
+              title = `Iterate the PoC (attempt ${attempt + 1} of ${MAX_PROOF_ATTEMPTS})`
+              impact = `The PoC restarts with a fresh ${next.charter?.timeboxWeeks ?? 4}-week timebox.`
+              break
+            }
+            case 'pivot': {
+              moveTo(FIRST_STAGE)
+              next = { ...next, charter: { ...(next.charter ?? defaultCharter(next)), hypothesis: '', iteration: 1 }, proof: {} }
+              outcome = 'pivot'
+              title = `Pivot back to ${stageDef(FIRST_STAGE).name}`
+              impact = 'The team reframes the problem or approach and writes a new PoC hypothesis.'
+              break
+            }
+            case 'roll_back': {
+              moveTo('build')
+              outcome = 'roll_back'
+              title = 'Roll back to Build'
+              impact = 'The pilot is pulled back while the team fixes what it found.'
+              break
+            }
+            case 'park': {
+              setState('parked')
+              outcome = 'park'
+              title = `Park at the ${gateName}`
+              impact = 'Work pauses with all progress kept. Resume any time.'
+              break
+            }
+            case 'stop': {
+              setState('stopped')
+              outcome = 'stop'
+              title = `Stop at the ${gateName}`
+              impact = 'Closed early, with the lesson kept for the next idea.'
+              break
+            }
+            case 'retire': {
+              setState('retired')
+              outcome = 'retire'
+              title = 'Retire'
+              impact = 'Switched off responsibly; its history stays in the portfolio.'
+              break
+            }
+            default: {
+              outcome = 'sustain'
+              title = 'Quarterly value review: keep running'
+              impact = 'Stays in Run for another quarter.'
+            }
+          }
+
           const decisionId = uid('dc')
-          const gateDecision: Decision = {
+          const record: Decision = {
             id: decisionId,
             solutionId,
             stage: from,
-            title: `Proceed to ${stageDef(to).name}`,
+            title,
             type: 'gate',
             date: ts,
-            ownerId: decision.ownerId,
-            recommendation: `All ${gate.criteria.length} ${stageDef(from).name} gate requirements are met.`,
-            outcome: decision.conditions.trim() ? 'approved_with_conditions' : 'approved',
-            rationale: decision.rationale,
+            ownerId: d.ownerId,
+            recommendation,
+            outcome,
+            rationale: d.rationale.trim(),
             evidenceIds: gate.criteria.map((c) => c.evidenceId).filter((x): x is string => !!x),
-            conditions: decision.conditions,
-            impact: `Solution enters ${stageDef(to).name}.`,
+            conditions,
+            impact,
           }
-          const solutions = s.solutions.map((sol) =>
-            sol.id === solutionId
-              ? {
-                  ...sol,
-                  stage: to,
-                  stageHistory: [
-                    ...sol.stageHistory.map((v) => (v.stage === from && !v.exitedAt ? { ...v, exitedAt: ts } : v)),
-                    { stage: to, enteredAt: ts },
-                  ],
-                }
-              : sol,
-          )
+          const entries: Omit<AuditEntry, 'id' | 'ts' | 'actorId'>[] = [{ solutionId, action: 'created', entityType: 'decision', entityId: decisionId, entityName: title }]
+          if (to !== from) entries.push({ solutionId, action: d.outcome === 'advance' ? 'advanced' : 'gate_decided', entityType: 'solution', entityId: solutionId, entityName: sol.name, field: 'stage', from: stageDef(from).name, to: stageDef(to).name })
+          if ((next.state ?? 'active') !== (sol.state ?? 'active')) entries.push({ solutionId, action: 'status_changed', entityType: 'solution', entityId: solutionId, entityName: sol.name, field: 'state', from: STATE_LABEL[sol.state ?? 'active'], to: STATE_LABEL[next.state ?? 'active'] })
           commit(
             {
-              solutions,
-              decisions: [gateDecision, ...s.decisions],
-              gateAttempts: [...s.gateAttempts, { id: uid('ga'), solutionId, stage: from, ts, passed: true, blockers: [] }],
+              solutions: s.solutions.map((x) => (x.id === solutionId ? next : x)),
+              activities,
+              evidence,
+              decisions: [record, ...s.decisions],
+              ...(d.outcome === 'advance' ? { gateAttempts: [...s.gateAttempts, { id: uid('ga'), solutionId, stage: from, ts, passed: true, blockers: [] }] } : {}),
             },
-            [
-              { solutionId, action: 'created', entityType: 'decision', entityId: decisionId, entityName: gateDecision.title },
-              { solutionId, action: 'advanced', entityType: 'solution', entityId: solutionId, entityName: bundle.solution.name, field: 'stage', from: stageDef(from).name, to: stageDef(to).name },
-            ],
+            entries,
             solutionId,
           )
           return { ok: true, decisionId }
+        },
+
+        resumeSolution(solutionId) {
+          const s = get()
+          const sol = s.solutions.find((x) => x.id === solutionId)
+          if (!sol || sol.state !== 'parked') return
+          const ts = nowIso()
+          // A resumed PoC gets a fresh timebox: the clock measures work, not waiting.
+          const stageHistory = sol.stage === 'prove' ? [...sol.stageHistory.map((v) => (v.stage === sol.stage && !v.exitedAt ? { ...v, exitedAt: ts } : v)), { stage: sol.stage, enteredAt: ts }] : sol.stageHistory
+          commit(
+            { solutions: s.solutions.map((x) => (x.id === solutionId ? { ...x, state: 'active' as const, stateChangedAt: ts, stateReason: undefined, stageHistory } : x)) },
+            [{ solutionId, action: 'status_changed', entityType: 'solution', entityId: solutionId, entityName: sol.name, field: 'state', from: STATE_LABEL.parked, to: STATE_LABEL.active }],
+            solutionId,
+          )
+        },
+
+        updateCharter(solutionId, charter) {
+          const s = get()
+          const [solutions, before, after] = patchList(s.solutions, solutionId, { charter })
+          if (!before || !after) return
+          commit({ solutions }, [{ solutionId, action: 'updated', entityType: 'solution', entityId: solutionId, entityName: after.name, field: 'PoC charter', from: charterLine(before.charter), to: charterLine(charter) }], solutionId)
+        },
+
+        updateProof(solutionId, results) {
+          const s = get()
+          const [solutions, before, after] = patchList(s.solutions, solutionId, { proof: results })
+          if (!before || !after) return
+          commit({ solutions }, [{ solutionId, action: 'updated', entityType: 'solution', entityId: solutionId, entityName: after.name, field: 'PoC results', from: resultsLine(before.proof), to: resultsLine(results) }], solutionId)
         },
 
         setWeights(weights) {
@@ -548,7 +691,7 @@ export const useStore = create<Store>()(
     },
     {
       name: 'ai-solution-navigator',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => safeLocalStorage),
       partialize: (s) => ({
         people: s.people,
@@ -564,11 +707,23 @@ export const useStore = create<Store>()(
         snapshots: s.snapshots,
         settings: s.settings,
       }),
-      // Schema changed: start from a fresh demo rather than mis-reading old data.
-      migrate: () => ({ ...buildSeed(), settings: DEFAULT_SETTINGS }) as unknown as Store,
+      // Schema changed (five-stage lifecycle): start from a fresh demo rather than
+      // mis-reading old data, keeping the viewer's theme and starred solutions.
+      migrate: (persisted) => {
+        const old = (persisted as { settings?: Partial<Settings> } | undefined)?.settings
+        return { ...buildSeed(), settings: { ...DEFAULT_SETTINGS, theme: old?.theme ?? DEFAULT_SETTINGS.theme, favorites: old?.favorites ?? [] } } as unknown as Store
+      },
     },
   ),
 )
+
+const STATE_LABEL: Record<SolutionState, string> = { active: 'Active', parked: 'Parked', stopped: 'Stopped', retired: 'Retired' }
+
+const charterLine = (c?: PocCharter) => (c ? `${c.timeboxWeeks} weeks, $${c.budget.toLocaleString()} cap, quality ${c.qualityTarget}%, value ${c.valueTarget}%, cost ≤${c.costCeilingPct}%` : '—')
+const resultsLine = (r?: PocResults) =>
+  r && Object.values(r).some((v) => v !== undefined)
+    ? [r.quality !== undefined && `quality ${r.quality}%`, r.value !== undefined && `value ${r.value}%`, r.annualRunCost !== undefined && `run cost $${r.annualRunCost.toLocaleString()}`, r.pilotAdoption !== undefined && `adoption ${r.pilotAdoption}%`].filter(Boolean).join(', ')
+    : '—'
 
 function fmt(v: unknown, label?: (v: unknown) => string) {
   if (label) return label(v)

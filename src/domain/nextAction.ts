@@ -1,10 +1,11 @@
-import { activityTemplate, nextStage, stageDef } from '@/config'
+import { activityTemplate, gateFor, nextStage, stageDef } from '@/config'
 import type { SolutionBundle } from './db'
 import { gateLabel, type CriterionResult, type GateResult } from './gates'
+import { proveClock } from './proof'
 import type { Readiness } from './readiness'
 
 export interface NextAction {
-  kind: 'unblock' | 'complete_activity' | 'approve_evidence' | 'gate_criterion' | 'advance' | 'sustain'
+  kind: 'unblock' | 'complete_activity' | 'approve_evidence' | 'gate_criterion' | 'proof' | 'advance' | 'decide' | 'sustain' | 'resume' | 'closed'
   title: string
   why: string
   ownerId?: string
@@ -15,6 +16,8 @@ export interface NextAction {
   criterionId?: string
   /** Workspace tab where the action is taken, for non-activity actions. */
   tab?: 'risks' | 'team' | 'metrics' | 'overview'
+  /** For proof actions: which part of the PoC to open. */
+  proofEditor?: 'charter' | 'results'
 }
 
 const PRIORITY_RANK = { high: 0, medium: 1, low: 2 } as const
@@ -24,7 +27,7 @@ function rankCriterion(c: CriterionResult) {
   const statusRank = c.activityStatus === 'complete' ? 0 : c.activityStatus === 'in_progress' ? 1 : c.activityStatus === 'blocked' ? 2 : 3
   const due = c.dueDate ? new Date(c.dueDate).getTime() : Number.MAX_SAFE_INTEGER
   // Blocked work and unmitigated high-severity risks come before everything else.
-  const urgent = c.activityStatus === 'blocked' || c.kind === 'risks' ? -1 : 0
+  const urgent = c.activityStatus === 'blocked' || c.kind === 'risks' || (c.kind === 'proof' && c.check === 'charter') ? -1 : 0
   return [urgent, PRIORITY_RANK[c.priority ?? 'medium'], due, statusRank] as const
 }
 
@@ -42,6 +45,39 @@ export function nextBestAction(bundle: SolutionBundle, gate: GateResult, readine
   const { solution } = bundle
   const label = gateLabel(solution.stage)
   const remaining = gate.unmet.length
+  const gateName = gateFor(solution.stage)?.name ?? `${stageDef(solution.stage).name} gate`
+
+  const state = solution.state ?? 'active'
+  if (state === 'parked') {
+    return {
+      kind: 'resume',
+      title: 'Parked: resume when the reason has cleared',
+      why: solution.stateReason ? `Parked at the ${gateName}: ${solution.stateReason}` : `Parked at the ${gateName}.`,
+      impact: 'Parking keeps every piece of progress. Resuming picks up exactly where the team left off.',
+      blocking: false,
+    }
+  }
+  if (state === 'stopped' || state === 'retired') {
+    return {
+      kind: 'closed',
+      title: state === 'stopped' ? `Stopped at the ${gateName}` : 'Retired',
+      why: solution.stateReason ? `Lesson recorded: ${solution.stateReason}` : 'No lesson was recorded.',
+      impact: state === 'stopped' ? 'Stopping early is a good outcome. The lesson stays in the portfolio for the next idea.' : 'Retired responsibly. Its history and lessons stay in the portfolio.',
+      blocking: false,
+    }
+  }
+
+  const clock = proveClock(solution)
+  if (clock?.overdue && remaining) {
+    return {
+      kind: 'decide',
+      title: 'The PoC timebox is up. Decide: iterate, pivot, or stop',
+      why: `The ${clock.totalDays}-day timebox ended ${clock.elapsedDays - clock.totalDays} days ago with ${remaining} Proof gate ${remaining === 1 ? 'requirement' : 'requirements'} still open. A clock that runs out asks for a decision, not more time.`,
+      ownerId: solution.team.find((m) => m.roleId === 'executive_sponsor')?.personId,
+      impact: 'Keeps the PoC small and stops it drifting into an unfunded build.',
+      blocking: true,
+    }
+  }
 
   if (gate.isFinal) {
     const open = bundle.activities.find((a) => a.stage === solution.stage && a.required && a.status !== 'complete' && a.status !== 'not_applicable')
@@ -58,8 +94,9 @@ export function nextBestAction(bundle: SolutionBundle, gate: GateResult, readine
     }
     return {
       kind: 'sustain',
-      title: 'Review value and decide: invest, sustain, or retire',
-      why: 'All improvement activities are complete. Use realized value and adoption data to decide the next horizon.',
+      title: 'Hold the quarterly value review',
+      why: 'Run work is up to date. Use realized value, adoption, and run cost to decide: keep investing, fix what slipped, or retire it.',
+      ownerId: solution.team.find((m) => m.roleId === 'executive_sponsor')?.personId,
       impact: 'Keeps the portfolio focused on solutions that deliver value.',
       blocking: false,
     }
@@ -69,8 +106,9 @@ export function nextBestAction(bundle: SolutionBundle, gate: GateResult, readine
     const next = nextStage(solution.stage)!
     return {
       kind: 'advance',
-      title: `Request the ${label} gate review`,
-      why: `All ${gate.criteria.length} gate requirements are met. Record the gate decision to move into ${stageDef(next).name}.`,
+      title: `Request the ${gateName} decision`,
+      why: `All ${gate.criteria.length} requirements are met. A named approver records the decision to move into ${stageDef(next).name}.`,
+      ownerId: solution.team.find((m) => m.roleId === 'executive_sponsor')?.personId,
       impact: `Moves the solution into ${stageDef(next).name}.`,
       blocking: false,
     }
@@ -129,6 +167,33 @@ export function nextBestAction(bundle: SolutionBundle, gate: GateResult, readine
       activityId: activity.id,
       evidenceId: top.evidenceId,
       criterionId: top.id,
+    }
+  }
+
+  if (top.kind === 'proof') {
+    const charter = top.check === 'charter'
+    const measured = !!top.measured
+    return {
+      kind: 'proof',
+      title: charter
+        ? 'Write the PoC charter'
+        : !measured
+          ? 'Record the PoC results'
+          : top.check === 'quality'
+            ? 'Quality is below the charter threshold'
+            : top.check === 'value'
+              ? 'The value signal is below target'
+              : 'Run cost is above the ceiling',
+      why: charter
+        ? 'Agree the hypothesis, timebox, budget cap, and pass thresholds with the sponsor before the PoC starts. Thresholds set afterwards make every PoC look like a success.'
+        : measured
+          ? `${top.detail}. Improve it, iterate with a new charter, or let the sponsor decide to pivot or stop.`
+          : `${top.description} ${top.detail}.`,
+      ownerId: solution.ownerId,
+      impact: blockingNote,
+      blocking: true,
+      criterionId: top.id,
+      proofEditor: charter ? 'charter' : 'results',
     }
   }
 

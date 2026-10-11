@@ -3,7 +3,12 @@ import { evidenceForActivity } from './db'
 import type { SolutionInsight } from './insight'
 import { metricHealth, variance } from './metrics'
 import { inProductionStage } from './portfolio'
+import { proveClock } from './proof'
+import { isClosed } from './status'
 import type { AuditEntry, GateAttempt, Metric, MetricKey, RiskTier, StageId } from './types'
+
+/** Lowercase a label for mid-sentence use, but leave acronyms like UAT alone. */
+const lowerFirst = (s: string) => (/^[A-Z]{2,}\b/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1))
 
 /* Portfolio Intelligence. Every number here is a deterministic calculation
    over the same records the workspace edits, so reports update live. */
@@ -54,7 +59,7 @@ export function implementationPerformance(items: SolutionInsight[], gateAttempts
 
   const toProduction = items
     .map((i) => {
-      const op = i.bundle.solution.stageHistory.find((v) => v.stage === 'operate')
+      const op = i.bundle.solution.stageHistory.find((v) => v.stage === 'run')
       return op ? (new Date(op.enteredAt).getTime() - new Date(i.bundle.solution.createdAt).getTime()) / DAY : undefined
     })
     .filter((x): x is number => x !== undefined)
@@ -100,8 +105,8 @@ export function implementationPerformance(items: SolutionInsight[], gateAttempts
 /* ---------------------------------------------------------- bottlenecks -- */
 
 export function bottlenecks(items: SolutionInsight[], now = Date.now()) {
-  return STAGES.filter((s) => s.id !== 'improve' && s.id !== 'operate').map((stage) => {
-    const here = items.filter((i) => i.bundle.solution.stage === stage.id)
+  return STAGES.filter((s) => s.id !== 'run').map((stage) => {
+    const here = items.filter((i) => i.bundle.solution.stage === stage.id && !isClosed(i.health.status))
     const days = here.map((i) => {
       const v = i.bundle.solution.stageHistory.find((x) => x.stage === stage.id && !x.exitedAt)
       return v ? (now - new Date(v.enteredAt).getTime()) / DAY : 0
@@ -136,17 +141,19 @@ function reasonLabel(i: SolutionInsight, activityId: string | undefined, kind: s
   if (kind === 'role') return 'Missing owners'
   if (kind === 'metrics') return 'Success metrics'
   if (kind === 'field') return 'Problem framing'
+  if (kind === 'proof') return label === 'PoC charter agreed' ? 'PoC charter' : 'PoC results'
   const a = i.bundle.activities.find((x) => x.id === activityId)
   if (!a) return label
   const t = a.templateId ?? ''
   if (a.status === 'complete') return 'Evidence approval'
   if (/uat/.test(t)) return 'UAT'
-  if (/eval|redteam|pilot|testplan/.test(t)) return 'Evaluation'
-  if (/oversight|autonomy/.test(t)) return 'Human oversight'
+  if (/eval|redteam|golden|pilot_results/.test(t)) return 'Evaluation'
+  if (/oversight|autonomy|override/.test(t)) return 'Human oversight'
   if (/privacy|security|secpriv/.test(t)) return 'Security / Privacy'
-  if (/risk|residual|board|golive/.test(t)) return 'Risk & approvals'
-  if (/monitor|support|incident|rollback|readiness/.test(t)) return 'Operational readiness'
+  if (/risk|residual|board/.test(t)) return 'Risk & approvals'
+  if (/monitor|runbook|rollout|pilot|training/.test(t)) return 'Operational readiness'
   if (/data/.test(t)) return 'Data'
+  if (/value|economics|scale_plan|prototype/.test(t)) return 'PoC work'
   return dimensionDef(a.dimension).name
 }
 
@@ -224,8 +231,8 @@ export interface Insight {
 
 export function portfolioInsights(items: SolutionInsight[], perf: ReturnType<typeof implementationPerformance>): Insight[] {
   const out: Insight[] = []
-  const inFlight = items.filter((i) => !inProductionStage(i.bundle.solution.stage))
-  const necks = bottlenecks(items).filter((b) => b.solutions > 0 && b.stage !== 'operate')
+  const inFlight = items.filter((i) => !inProductionStage(i.bundle.solution.stage) && !isClosed(i.health.status))
+  const necks = bottlenecks(items).filter((b) => b.solutions > 0)
 
   // 1. Lifecycle bottleneck.
   if (inFlight.length && necks.length) {
@@ -234,15 +241,35 @@ export function portfolioInsights(items: SolutionInsight[], perf: ReturnType<typ
     out.push({
       id: 'bottleneck',
       title: 'Portfolio insight',
-      body: `${stageDef(top.stage).name} is the largest lifecycle bottleneck, with ${share}% of in-flight solutions waiting there${top.reasons.length ? `, held up mostly by ${top.reasons.join(' and ').toLowerCase()}` : ''}. They've spent ${top.avgDays} days in stage on average, against a typical ${top.typicalDays}.`,
+      body: `${stageDef(top.stage).name} is the largest lifecycle bottleneck, with ${share}% of in-flight solutions waiting there${top.reasons.length ? `, held up mostly by ${top.reasons.map(lowerFirst).join(' and ')}` : ''}. They've spent ${top.avgDays} days in stage on average, against a typical ${top.typicalDays}.`,
       tone: top.avgDays > top.typicalDays ? 'warning' : 'accent',
       link: `/solutions?stage=${top.stage}`,
     })
   }
 
-  // 2. Risk concentration.
-  const high = items.filter((i) => i.bundle.solution.riskTier === 'high')
-  const allOpen = items.reduce((n, i) => n + i.gate.unmet.length + i.bundle.activities.filter((a) => a.status === 'blocked').length, 0)
+  // 2. Proof of concept discipline.
+  const funnel = pocFunnel(items)
+  if (funnel.overdueProofs) {
+    out.push({
+      id: 'proof',
+      title: 'PoC insight',
+      body: `${funnel.overdueProofs} ${funnel.overdueProofs === 1 ? 'PoC has' : 'PoCs have'} run past ${funnel.overdueProofs === 1 ? 'its' : 'their'} timebox without a decision. A clock that runs out should trigger scale, iterate, pivot, or stop, not quiet extra weeks.`,
+      tone: 'warning',
+      link: '/solutions?stage=prove',
+    })
+  } else if (funnel.killRate !== undefined) {
+    out.push({
+      id: 'proof',
+      title: 'PoC insight',
+      body: `${funnel.killRate}% of ideas that reached a Proof decision were stopped early${funnel.medianDaysToStop !== undefined ? `, a median of ${funnel.medianDaysToStop} days after they were framed` : ''}. Stopping cheaply is the system working: it keeps build money for the ideas that proved themselves.`,
+      tone: 'success',
+      link: '/reports#proof',
+    })
+  }
+
+  // 3. Risk concentration.
+  const high = items.filter((i) => i.bundle.solution.riskTier === 'high' && !isClosed(i.health.status))
+  const allOpen = items.filter((i) => !isClosed(i.health.status)).reduce((n, i) => n + i.gate.unmet.length + i.bundle.activities.filter((a) => a.status === 'blocked').length, 0)
   const highOpen = high.reduce((n, i) => n + i.gate.unmet.length + i.bundle.activities.filter((a) => a.status === 'blocked').length, 0)
   if (high.length && allOpen) {
     const portfolioShare = Math.round((high.length / items.length) * 100)
@@ -256,11 +283,12 @@ export function portfolioInsights(items: SolutionInsight[], perf: ReturnType<typ
     })
   }
 
-  // 3. Evidence gap.
+  // 4. Evidence gap.
   let awaiting = 0
   const solutionsWithGaps = new Set<string>()
   const examples: string[] = []
   for (const i of items) {
+    if (isClosed(i.health.status)) continue
     for (const a of i.bundle.activities) {
       if (a.status !== 'complete' || !a.evidenceTemplateId) continue
       const ev = evidenceForActivity(i.bundle, a)
@@ -280,24 +308,24 @@ export function portfolioInsights(items: SolutionInsight[], perf: ReturnType<typ
     })
   }
 
-  // 4. Value realization.
-  const prod = items.filter((i) => inProductionStage(i.bundle.solution.stage))
+  // 5. Value realization.
+  const prod = items.filter((i) => inProductionStage(i.bundle.solution.stage) && i.health.status !== 'retired')
   if (prod.length) {
     const exp = prod.reduce((t, i) => t + i.bundle.solution.expectedValue, 0)
     const real = prod.reduce((t, i) => t + i.bundle.solution.realizedValue, 0)
     const pct = exp ? Math.round((real / exp) * 100) : 0
-    const pipeline = items.filter((i) => !inProductionStage(i.bundle.solution.stage)).reduce((t, i) => t + i.bundle.solution.expectedValue, 0)
+    const pipeline = items.filter((i) => !inProductionStage(i.bundle.solution.stage) && !isClosed(i.health.status)).reduce((t, i) => t + i.bundle.solution.expectedValue, 0)
     out.push({
       id: 'value',
       title: 'Value insight',
-      body: `Solutions in production have realized ${pct}% of their expected value. Another $${(pipeline / 1_000_000).toFixed(1)}M a year is still in flight. Getting Validate-stage solutions live is the biggest value lever.`,
+      body: `Solutions in production have realized ${pct}% of their expected value. Another $${(pipeline / 1_000_000).toFixed(1)}M a year is still in flight. Getting Build and Launch solutions to everyone is the biggest value lever.`,
       tone: pct >= 80 ? 'success' : 'warning',
       link: '/reports#value',
     })
   }
 
-  // 5. Pace.
-  const behind = items.filter((i) => i.readiness.pace !== 'on_pace')
+  // 6. Pace.
+  const behind = items.filter((i) => i.readiness.pace !== 'on_pace' && !isClosed(i.health.status))
   if (behind.length) {
     out.push({
       id: 'pace',
@@ -308,7 +336,7 @@ export function portfolioInsights(items: SolutionInsight[], perf: ReturnType<typ
     })
   }
 
-  // 6. Quality of flow.
+  // 7. Quality of flow.
   if (perf.passRate !== undefined && perf.attempts >= 3) {
     out.push({
       id: 'gates',
@@ -321,5 +349,44 @@ export function portfolioInsights(items: SolutionInsight[], perf: ReturnType<typ
   return out
 }
 
-export const shortStage = (s: StageId) => (s === 'improve' ? 'Improve' : stageDef(s).name)
+/* ---------------------------------------------------- proof of concept -- */
+
+const median = (xs: number[]) => {
+  if (!xs.length) return undefined
+  const s = [...xs].sort((a, b) => a - b)
+  const m = Math.floor(s.length / 2)
+  return Math.round(s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2)
+}
+
+/** The PoC funnel: how many ideas reached each step, how many were stopped
+    early, and how long that took. A healthy portfolio stops plenty of ideas,
+    and stops them fast. */
+export function pocFunnel(items: SolutionInsight[], now = Date.now()) {
+  const reached = (i: SolutionInsight, stage: StageId) => i.bundle.solution.stageHistory.some((v) => stageOrder(v.stage) >= stageOrder(stage))
+  const steps = [
+    { key: 'framed', label: 'Framed', stage: 'frame' as StageId, hint: 'Every idea that entered the lifecycle' },
+    { key: 'proving', label: 'Proved', stage: 'prove' as StageId, hint: 'Funded a time-boxed proof of concept' },
+    { key: 'building', label: 'Scaled', stage: 'build' as StageId, hint: 'Passed the Proof gate and got build money' },
+    { key: 'live', label: 'Live', stage: 'run' as StageId, hint: 'Running for everyone' },
+  ].map((s) => ({ ...s, count: items.filter((i) => reached(i, s.stage)).length, ids: items.filter((i) => reached(i, s.stage)).map((i) => i.bundle.solution.id) }))
+
+  const stopped = items.filter((i) => i.health.status === 'stopped')
+  const stoppedEarly = stopped.filter((i) => stageOrder(i.bundle.solution.stage) <= stageOrder('prove'))
+  const decided = items.filter((i) => reached(i, 'build')).length + stoppedEarly.length
+  const proving = items.filter((i) => i.bundle.solution.stage === 'prove' && !isClosed(i.health.status))
+  return {
+    steps,
+    stopped: stopped.length,
+    stoppedEarly: stoppedEarly.length,
+    parked: items.filter((i) => i.health.status === 'parked').length,
+    killRate: decided ? Math.round((stoppedEarly.length / decided) * 100) : undefined,
+    medianDaysToStop: median(stopped.map((i) => ((i.bundle.solution.stateChangedAt ? new Date(i.bundle.solution.stateChangedAt).getTime() : now) - new Date(i.bundle.solution.createdAt).getTime()) / DAY)),
+    medianProveDays: median(items.flatMap((i) => i.bundle.solution.stageHistory.filter((v) => v.stage === 'prove' && v.exitedAt).map((v) => (new Date(v.exitedAt!).getTime() - new Date(v.enteredAt).getTime()) / DAY))),
+    provingNow: proving.length,
+    overdueProofs: proving.filter((i) => proveClock(i.bundle.solution, now)?.overdue).length,
+    stoppedList: stopped.map((i) => ({ id: i.bundle.solution.id, name: i.bundle.solution.name, stage: i.bundle.solution.stage, reason: i.bundle.solution.stateReason ?? '' })),
+  }
+}
+
+export const shortStage = (s: StageId) => stageDef(s).name
 export const stageIndex = stageOrder

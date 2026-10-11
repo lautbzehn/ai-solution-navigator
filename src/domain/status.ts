@@ -1,8 +1,10 @@
-import { stageOrder } from '@/config'
+import { gateFor, stageDef, stageOrder } from '@/config'
 import type { SolutionBundle } from './db'
+import { proveClock } from './proof'
 import type { Readiness } from './readiness'
+import type { StageId } from './types'
 
-export type HealthStatus = 'on_track' | 'at_risk' | 'blocked'
+export type HealthStatus = 'on_track' | 'at_risk' | 'blocked' | 'parked' | 'stopped' | 'retired'
 
 export interface Health {
   status: HealthStatus
@@ -14,9 +16,21 @@ const DAY = 86_400_000
 export const isOverdue = (dueDate: string | undefined, now = Date.now()) =>
   !!dueDate && new Date(dueDate).getTime() + DAY < now
 
+/** Closed or paused solutions are not part of the work that needs attention. */
+export const isClosed = (status: HealthStatus) => status === 'parked' || status === 'stopped' || status === 'retired'
+
+/** Blocked or at risk: the solutions a PM should look at today. */
+export const needsAttention = (status: HealthStatus) => status === 'blocked' || status === 'at_risk'
+
 /** Health is derived, never stored, so it always reflects the underlying work. */
 export function deriveHealth(bundle: SolutionBundle, readiness: Readiness, now = Date.now()): Health {
   const { solution } = bundle
+  const state = solution.state ?? 'active'
+  if (state !== 'active') {
+    const where = state === 'retired' ? 'Retired from Run' : `${state === 'parked' ? 'Parked' : 'Stopped'} at the ${gateFor(solution.stage)?.name ?? `${stageDef(solution.stage).name} gate`}`
+    return { status: state, reasons: [solution.stateReason ? `${where}: ${solution.stateReason}` : where] }
+  }
+
   const current = bundle.activities.filter((a) => a.stage === solution.stage)
 
   const blocked = current.filter((a) => a.status === 'blocked' && a.blocking)
@@ -28,6 +42,8 @@ export function deriveHealth(bundle: SolutionBundle, readiness: Readiness, now =
   }
 
   const reasons: string[] = []
+  const clock = proveClock(solution, now)
+  if (clock?.overdue) reasons.push(`The PoC timebox ended ${clock.elapsedDays - clock.totalDays} days ago; the sponsor owes a scale, iterate, pivot, or stop decision`)
   const openRisks = bundle.risks.filter((r) => r.status === 'open' || r.status === 'mitigating')
   const critical = openRisks.filter((r) => r.severity === 'critical')
   if (critical.length) reasons.push(`${critical.length} open critical ${critical.length === 1 ? 'risk' : 'risks'}`)
@@ -41,4 +57,5 @@ export function deriveHealth(bundle: SolutionBundle, readiness: Readiness, now =
   return { status: 'on_track', reasons: ['Gate work is progressing and no critical risks are open'] }
 }
 
-export const inProduction = (stage: SolutionBundle['solution']['stage']) => stageOrder(stage) >= stageOrder('operate')
+/** Running for everyone (the final stage). Launch is a pilot, not full production. */
+export const inProduction = (stage: StageId) => stageOrder(stage) >= stageOrder('run')
