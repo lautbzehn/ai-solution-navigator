@@ -8,14 +8,16 @@
 
 ![The portfolio overview: every AI project at a glance, with the two that need help up front](docs/screenshots/dashboard.png)
 
+**Hi, I'm Dan West, and this is my portfolio project.** I'm an AI strategy and adoption leader with nearly 20 years in IT, and I built the Navigator from zero to show how I think about AI products, from the first idea to running in production.
+
+If you've ever watched an AI pilot stall somewhere between "this works" and "this is live," this is for you. The Navigator shows, for every AI project at once, *where it is, what's next, who owns it, what proof is still missing, and whether it's really ready to move forward.*
+
 <p>
   <img src="docs/screenshots/workspace.png" width="49%" alt="One project's workspace: where it is, how ready it is, and what to do next">
   <img src="docs/screenshots/proof-gate.png" width="49%" alt="The Proof gate: a Scale Potential score read against the PoC charter, with scale, iterate, pivot, park, or stop">
 </p>
 
 *Left: one project's workspace, with its proof of concept read against the charter. Right: the Proof gate, where the sponsor decides to scale, iterate, pivot, or stop.*
-
-Hi, I'm Dan West. If you've ever watched an AI pilot stall somewhere between "this works" and "this is live," this is for you. The Navigator shows, for every AI project at once, *where it is, what's next, who owns it, what proof is still missing, and whether it's really ready to move forward.*
 
 It follows 5 stages (Frame → Prove → Build → Launch → Run) with one rule at its heart: **prove it small before you build it big.** Nothing gets build money until a time-boxed proof of concept clears the bar its sponsor agreed to up front, and every gate can stop a project early. Checks get stricter as the risk goes up. It's meant to sit alongside your compliance tools, not replace them. Inside the app, **About this project** tells the story and how to reach me.
 
