@@ -72,8 +72,9 @@ flowchart TB
   end
   Plan -->|Design gate| Deliver
   Deliver -->|Go-live gate| Run
-  Run -. material change re-enters .-> Plan
 ```
+
+Live solutions loop back: a material change (a new model, data, audience, or level of autonomy) re-enters the lifecycle at Assess.
 
 | Gate | Decided by | Maps to ISO/IEC 22989 |
 |---|---|---|
