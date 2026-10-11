@@ -91,7 +91,7 @@ export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSel
               <b className="font-semibold text-fg">Governance runs across every stage:</b> the risk tier sets the rigor, evidence proves the work, decisions are recorded, and changes are re-checked.
             </span>
           </div>
-          <p className="text-[11.5px] leading-relaxed text-fg-subtle">
+          <p className="mt-1 text-[11.5px] leading-relaxed text-fg-subtle">
             <b className="font-semibold text-fg-muted">Grounded in recognized practice:</b> the AI system life cycle in ISO/IEC 22989, the NIST AI Risk Management Framework, and
             Stage-Gate, where every stage ends in a decision a person makes.
           </p>
