@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { ArrowDownUp, ArrowRight, Columns3, FolderSearch, LayoutList, ListFilter, Search, X } from 'lucide-react'
 import { MiniLifecycle } from '@/components/lifecycle/LifecycleRail'
 import { Page, PageHeader } from '@/components/layout/Page'
-import { HealthPill, paceTone, RiskPill } from '@/components/status'
+import { paceTone, RiskPill, StatusPill } from '@/components/status'
 import { PersonChip } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -13,6 +13,7 @@ import { MiniRing, ProgressBar } from '@/components/ui/Progress'
 import { InfoTip, Tip } from '@/components/ui/Tooltip'
 import { STAGES, stageDef, stageOrder } from '@/config'
 import { usePortfolio, type SolutionInsight } from '@/data/hooks'
+import { needsAttention } from '@/domain/status'
 import { useStore } from '@/data/store'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { FavoriteStar } from '@/components/FavoriteStar'
@@ -53,7 +54,7 @@ export function SolutionsPage() {
       if (query && !`${s.name} ${s.description}`.toLowerCase().includes(query)) return false
       if (stage === 'production' ? !inProductionStage(s.stage) : stage && s.stage !== stage) return false
       if (risk && s.riskTier !== risk) return false
-      if (status === 'attention' ? i.health.status === 'on_track' : status && i.health.status !== status) return false
+      if (status === 'attention' ? !needsAttention(i) : status && i.health.status !== status) return false
       if (owner && s.ownerId !== owner) return false
       if (readiness && bucketOf(i.readiness.overall) !== readiness) return false
       return true
@@ -224,9 +225,9 @@ function SolutionRow({ item }: { item: SolutionInsight }) {
           {s.realizedValue > 0 && <p className="text-[11.5px] text-success-fg">{money(s.realizedValue)} realized</p>}
         </div>
         <div>
-          <Tip content={item.health.reasons.join(' · ')}>
+          <Tip content={item.bundle.solution.stateReason ?? item.health.reasons.join(' · ')}>
             <span>
-              <HealthPill status={item.health.status} />
+              <StatusPill status={item.health.status} state={item.bundle.solution.state} />
             </span>
           </Tip>
         </div>
@@ -260,7 +261,7 @@ function Board({ items }: { items: SolutionInsight[] }) {
                     <Link to={`/solutions/${s.id}`} className="block rounded-lg bg-surface p-3 shadow-card ring-1 ring-border transition-colors hover:ring-border-strong">
                       <p className="line-clamp-2 pr-5 text-[12.5px] leading-snug font-medium text-fg">{s.name}</p>
                       <div className="mt-2 flex items-center justify-between">
-                        <HealthPill status={i.health.status} />
+                        <StatusPill status={i.health.status} state={i.bundle.solution.state} />
                         <span className="text-[12px] font-semibold tabular">{i.readiness.overall}%</span>
                       </div>
                       <ProgressBar value={i.readiness.overall} tone={paceTone(i.readiness.overall, i.readiness.expected)} height={3} className="mt-2" label="Readiness" />

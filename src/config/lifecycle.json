@@ -280,6 +280,7 @@
     {
       "stage": "discover",
       "name": "Opportunity Gate",
+      "approverRoles": ["executive_sponsor", "business_owner"],
       "description": "Confirms the opportunity is framed well enough to invest in assessment.",
       "criteria": [
         { "id": "g_d_problem", "type": "field", "field": "businessProblem", "minLength": 20, "label": "Problem statement documented", "description": "At least a sentence describing the problem in today's workflow." },
@@ -291,6 +292,7 @@
     {
       "stage": "assess",
       "name": "Feasibility & Risk Gate",
+      "approverRoles": ["executive_sponsor", "governance_risk"],
       "description": "Confirms the solution is feasible, the data is usable, risk is understood, and value is plausible.",
       "criteria": [
         { "id": "g_a_team", "type": "role", "roles": ["business_owner", "data_owner", "security"], "label": "Key stakeholders identified", "description": "Business owner, data owner, and security are named on the team." }
@@ -299,6 +301,7 @@
     {
       "stage": "design",
       "name": "Design Gate",
+      "approverRoles": ["executive_sponsor", "solution_architect"],
       "description": "Confirms there is an agreed design, an evaluation approach, human oversight, and success measures.",
       "criteria": [
         { "id": "g_ds_metrics", "type": "metrics", "minDefined": 2, "label": "Success metrics defined with baselines and targets", "description": "At least two metrics with a baseline and a target." }
@@ -307,12 +310,14 @@
     {
       "stage": "build",
       "name": "Build Gate",
+      "approverRoles": ["solution_architect", "qa_evaluation"],
       "description": "Confirms a working, versioned solution exists with a test plan and documented limitations.",
       "criteria": []
     },
     {
       "stage": "validate",
       "name": "Validation Gate",
+      "approverRoles": ["executive_sponsor", "governance_risk"],
       "description": "Confirms the evidence supports putting the solution in front of real users.",
       "criteria": [
         { "id": "g_v_risks", "type": "risks", "rule": "no_unmitigated_high", "label": "No unmitigated high or critical risks", "description": "Every open high or critical risk has a mitigation and an owner." }
@@ -321,12 +326,14 @@
     {
       "stage": "deploy",
       "name": "Go-Live Gate",
+      "approverRoles": ["executive_sponsor", "operations"],
       "description": "Confirms people, process, and monitoring are ready and go-live is explicitly approved.",
       "criteria": []
     },
     {
       "stage": "operate",
       "name": "Operational Review Gate",
+      "approverRoles": ["executive_sponsor", "business_owner"],
       "description": "Confirms the solution is monitored, evaluated, adopted, and delivering measured value before entering improvement or retirement planning.",
       "criteria": [
         { "id": "g_o_value", "type": "metrics", "minDefined": 2, "requireCurrent": true, "label": "Value and adoption measured", "description": "At least two metrics with current values recorded." }

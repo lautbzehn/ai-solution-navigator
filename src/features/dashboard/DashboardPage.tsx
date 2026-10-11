@@ -6,7 +6,7 @@ import { KpiCard } from '@/components/charts/KpiCard'
 import { MiniLifecycle } from '@/components/lifecycle/LifecycleRail'
 import { Page, PageHeader } from '@/components/layout/Page'
 import { ExpandAllButton, Section, SectionStack, useSections } from '@/components/layout/Section'
-import { HEALTH_TONE, HealthPill, paceTone, RiskPill } from '@/components/status'
+import { HEALTH_TONE, paceTone, RiskPill, StatusPill } from '@/components/status'
 import { PersonChip } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
@@ -15,7 +15,8 @@ import { MiniRing } from '@/components/ui/Progress'
 import { InfoTip, Tip } from '@/components/ui/Tooltip'
 import { stageDef, stageOrder } from '@/config'
 import { CURRENT_USER_ID } from '@/data/seed/people'
-import { usePortfolio, type SolutionInsight } from '@/data/hooks'
+import { useActivePortfolio, type SolutionInsight } from '@/data/hooks'
+import { needsAttention } from '@/domain/status'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { FavoriteStar } from '@/components/FavoriteStar'
 import { useStore } from '@/data/store'
@@ -28,7 +29,7 @@ const RISK_COLORS = { low: 'var(--fg-faint)', moderate: 'var(--warning)', high: 
 const SECTIONS = ['attention', 'solutions', 'progress', 'risk-value'] as const
 
 export function DashboardPage() {
-  const items = usePortfolio()
+  const items = useActivePortfolio()
   const gateAttempts = useStore((s) => s.gateAttempts)
   const snapshots = useStore((s) => s.snapshots)
   const navigate = useNavigate()
@@ -44,7 +45,7 @@ export function DashboardPage() {
   const completion = useMemo(() => stageCompletion(items), [items])
 
   const attention = items
-    .filter((i) => i.health.status !== 'on_track')
+    .filter(needsAttention)
     .sort((a, b) => (a.health.status === 'blocked' ? -1 : 1) - (b.health.status === 'blocked' ? -1 : 1))
   const fourWeeksAgo = trend.length > 4 ? trend[trend.length - 5].readiness : undefined
   const delta = fourWeeksAgo !== undefined ? summary.avgReadiness - fourWeeksAgo : undefined
@@ -381,7 +382,7 @@ function AttentionCard({ item: i }: { item: SolutionInsight }) {
     <Link to={`/solutions/${s.id}`} className="group flex h-full flex-col rounded-xl bg-surface p-4 shadow-card ring-1 ring-border transition-colors hover:bg-surface-2 hover:ring-border-strong">
       <div className="flex items-start justify-between gap-2">
         <p className="text-[13.5px] leading-snug font-semibold text-fg">{s.name}</p>
-        <HealthPill status={i.health.status} />
+        <StatusPill status={i.health.status} state={i.bundle.solution.state} />
       </div>
       <p className={cn('mt-2 line-clamp-2 flex items-start gap-1.5 text-[12.5px]', toneText[HEALTH_TONE[i.health.status]])}>
         {i.health.status === 'blocked' ? <Ban className="mt-0.5 size-3.5 shrink-0" /> : <CircleAlert className="mt-0.5 size-3.5 shrink-0" />}

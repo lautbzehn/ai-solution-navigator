@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useMatch } from 'react-router'
 import { buildPortfolioContext, buildSolutionContext } from '@/ai/context'
 import type { AdvisorContext } from '@/ai/types'
-import { usePortfolio, useSolutionInsight } from '@/data/hooks'
+import { useActivePortfolio, useSolutionInsight } from '@/data/hooks'
 import { useStore } from '@/data/store'
 import { implementationPerformance, portfolioInsights } from '@/domain/reports'
 
@@ -12,7 +12,7 @@ export function useAdvisorContext(): { convoKey: string; context: AdvisorContext
   const match = useMatch('/solutions/:id/*')
   const id = match?.params.id
   const insight = useSolutionInsight(id)
-  const items = usePortfolio()
+  const items = useActivePortfolio()
   const people = useStore((s) => s.people)
   const gateAttempts = useStore((s) => s.gateAttempts)
   const audit = useStore((s) => s.audit)

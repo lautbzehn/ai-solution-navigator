@@ -1,5 +1,6 @@
 import { stageOrder } from '@/config'
 import type { SolutionBundle } from './db'
+import { stateOf } from './gatekeepers'
 import type { Readiness } from './readiness'
 
 export type HealthStatus = 'on_track' | 'at_risk' | 'blocked'
@@ -42,3 +43,6 @@ export function deriveHealth(bundle: SolutionBundle, readiness: Readiness, now =
 }
 
 export const inProduction = (stage: SolutionBundle['solution']['stage']) => stageOrder(stage) >= stageOrder('operate')
+
+/** Blocked or at risk, and still active. A held or stopped solution was paused on purpose, so it doesn't count. */
+export const needsAttention = (i: { bundle: SolutionBundle; health: Health }) => stateOf(i.bundle.solution) === 'active' && i.health.status !== 'on_track'

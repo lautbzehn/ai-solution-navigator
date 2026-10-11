@@ -62,6 +62,9 @@ export const DECISION_OUTCOME: Record<DecisionOutcome, string> = {
   approved_with_conditions: 'Approved with conditions',
   rejected: 'Rejected',
   deferred: 'Deferred',
+  on_hold: 'On hold',
+  stopped: 'Stopped',
+  resumed: 'Resumed',
 }
 export const DECISION_TYPE: Record<DecisionType, string> = {
   gate: 'Gate',

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Check, Layers, Minus, RotateCcw, Scale, ShieldAlert, SlidersHorizontal, Users } from 'lucide-react'
+import { Check, Layers, Minus, RotateCcw, Scale, ShieldAlert, SlidersHorizontal, UserCheck, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Page, PageHeader } from '@/components/layout/Page'
 import { ExpandAllButton, Section, SectionStack, useSections, type SectionsState } from '@/components/layout/Section'
@@ -11,6 +11,7 @@ import { Pill } from '@/components/ui/Pill'
 import { InfoTip, Tip } from '@/components/ui/Tooltip'
 import { DEFAULT_WEIGHTS, DIMENSIONS, evidenceTemplate, gateFor, lifecycle, riskBasedControls, roleName, STAGES } from '@/config'
 import { useStore } from '@/data/store'
+import { gatekeeperPhrase } from '@/domain/gatekeepers'
 import type { DimensionId, RiskTier, StageId } from '@/domain/types'
 import { cn } from '@/lib/cn'
 import { FrameworkFlow } from './FrameworkFlow'
@@ -102,10 +103,11 @@ export function FrameworkPage() {
               </div>
             </Card>
             <Card className="self-start">
-              <CardHeader title={<>{gate?.name ?? 'No exit gate'} <InfoTip term="gate" /></>} subtitle={gate?.description ?? 'Improve / Retire is continuous.'} />
+              <CardHeader title={<>{gate?.name ?? 'No exit gate'} <InfoTip term="gate" /></>} subtitle={gate?.description ?? 'Improve / Retire is continuous. A gatekeeper can still hold or stop it.'} />
               <CardBody className="grid gap-3 text-[12.5px]">
                 {gate && (
                   <>
+                    <p className="flex items-start gap-1.5 rounded-lg bg-surface-2 px-2.5 py-2 text-fg-muted ring-1 ring-border"><UserCheck className="mt-0.5 size-3.5 shrink-0 text-accent" /><span><span className="font-semibold text-fg">Decided by</span> the {gatekeeperPhrase(def.id)}: Go, Hold or Stop. Never the solution owner. <InfoTip term="gatekeeper" /></span></p>
                     <p className="text-fg-muted">To exit {def.name}, every activity marked as blocking for the solution's risk tier must be complete with approved evidence, plus:</p>
                     {gate.criteria.length ? (
                       <ul className="grid gap-1.5">

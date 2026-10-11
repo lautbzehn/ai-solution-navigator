@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_WEIGHTS, nextStage, stageDef } from '@/config'
 import { bundleFor, uid, type DB, type Weights } from '@/domain/db'
 import { evaluateGate, type CriterionResult } from '@/domain/gates'
+import { canDecideGate, gatekeeperPhrase, stateOf } from '@/domain/gatekeepers'
 import {
   ACTIVITY_STATUS,
   CHANGE_STATUS,
@@ -20,6 +21,7 @@ import type {
   Comment,
   Decision,
   Evidence,
+  LifecycleState,
   Metric,
   Risk,
   Solution,
@@ -48,7 +50,12 @@ export type NewSolution = Pick<
   'name' | 'description' | 'riskTier' | 'businessProblem' | 'targetUsers' | 'desiredOutcome' | 'whyAI' | 'aiPatterns' | 'dataSources' | 'expectedValue' | 'ownerId'
 > & { sponsorId?: string }
 
-export type AdvanceResult = { ok: true; decisionId: string } | { ok: false; unmet: CriterionResult[] }
+export type AdvanceResult = { ok: true; decisionId: string } | { ok: false; unmet: CriterionResult[]; reason?: string }
+export type GateDecisionResult = { ok: true; decisionId: string } | { ok: false; reason: string }
+export interface GateCall {
+  ownerId: string
+  rationale: string
+}
 
 interface Actions {
   createSolution(input: NewSolution): string
@@ -75,6 +82,12 @@ interface Actions {
   updateChange(id: string, patch: Partial<Change>): void
 
   advanceStage(solutionId: string, decision: { ownerId: string; conditions: string; rationale: string }): AdvanceResult
+  /** Hold: pause at this stage with every bit of progress kept. */
+  holdSolution(solutionId: string, decision: GateCall): GateDecisionResult
+  /** Stop: end the project at this gate. The record and the reason stay. */
+  stopSolution(solutionId: string, decision: GateCall): GateDecisionResult
+  /** Resume a held project exactly where it paused. */
+  resumeSolution(solutionId: string, decision: GateCall): GateDecisionResult
 
   setWeights(w: Weights): void
   setAdvisorEnabled(v: boolean): void
@@ -129,6 +142,58 @@ export const useStore = create<Store>()(
           ? (next.solutions ?? get().solutions).map((s) => (s.id === touched ? { ...s, updatedAt: ts } : s))
           : undefined
         set({ ...next, ...(solutionsTouched ? { solutions: solutionsTouched } : {}) } as Partial<Store>)
+      }
+
+      /** Hold, Stop or Resume: a gate decision by a named gatekeeper, logged with its reason. */
+      const decideState = (solutionId: string, call: GateCall, next: LifecycleState): GateDecisionResult => {
+        const s = get()
+        const sol = s.solutions.find((x) => x.id === solutionId)
+        if (!sol) return { ok: false, reason: 'Solution not found.' }
+        const current = stateOf(sol)
+        if (current === 'stopped') return { ok: false, reason: 'This solution was stopped. Its record stays for reference.' }
+        if (next === 'active' && current !== 'on_hold') return { ok: false, reason: 'Only a solution on hold can be resumed.' }
+        if (next !== 'active' && current !== 'active') return { ok: false, reason: 'This solution is already on hold. Resume it or stop it.' }
+        if (!canDecideGate(sol, call.ownerId)) return { ok: false, reason: `Only the ${gatekeeperPhrase(sol.stage)} can decide this gate, and never the solution owner.` }
+        if (call.rationale.trim().length < 10) return { ok: false, reason: 'Add a short rationale so the decision is auditable.' }
+        const ts = nowIso()
+        const stage = stageDef(sol.stage).name
+        const decisionId = uid('dc')
+        const decision: Decision = {
+          id: decisionId,
+          solutionId,
+          stage: sol.stage,
+          title: next === 'on_hold' ? `Hold at the ${stage} gate` : next === 'stopped' ? `Stop at the ${stage} gate` : `Resume ${stage}`,
+          type: 'gate',
+          date: ts,
+          ownerId: call.ownerId,
+          recommendation: '',
+          outcome: next === 'on_hold' ? 'on_hold' : next === 'stopped' ? 'stopped' : 'resumed',
+          rationale: call.rationale,
+          evidenceIds: [],
+          conditions: '',
+          impact: next === 'on_hold' ? `Work pauses in ${stage}. Progress is kept.` : next === 'stopped' ? `The solution ends in ${stage}. Its record and lessons stay.` : `Work continues in ${stage}.`,
+        }
+        const solutions = s.solutions.map((x) =>
+          x.id === solutionId
+            ? {
+                ...x,
+                state: next,
+                stateReason: next === 'active' ? undefined : call.rationale.trim(),
+                stateChangedAt: ts,
+                stageHistory: next === 'stopped' ? x.stageHistory.map((v) => (v.stage === x.stage && !v.exitedAt ? { ...v, exitedAt: ts } : v)) : x.stageHistory,
+              }
+            : x,
+        )
+        const label = (v: LifecycleState) => (v === 'on_hold' ? 'On hold' : v === 'stopped' ? 'Stopped' : 'Active')
+        commit(
+          { solutions, decisions: [decision, ...s.decisions] },
+          [
+            { solutionId, action: 'created', entityType: 'decision', entityId: decisionId, entityName: decision.title },
+            { solutionId, action: 'status_changed', entityType: 'solution', entityId: solutionId, entityName: sol.name, field: 'state', from: label(current), to: label(next) },
+          ],
+          solutionId,
+        )
+        return { ok: true, decisionId }
       }
 
       const diffEntries = <T extends { id: string }>(
@@ -459,6 +524,7 @@ export const useStore = create<Store>()(
           const s = get()
           const bundle = bundleFor(s, solutionId)
           if (!bundle) return { ok: false, unmet: [] }
+          if (stateOf(bundle.solution) !== 'active') return { ok: false, unmet: [], reason: 'This solution is on hold or stopped. Resume it before advancing.' }
           // Re-validate here: the store never trusts the UI's view of the gate.
           const gate = evaluateGate(bundle)
           const ts = nowIso()
@@ -472,6 +538,8 @@ export const useStore = create<Store>()(
             )
             return { ok: false, unmet: gate.unmet }
           }
+          if (!canDecideGate(bundle.solution, decision.ownerId)) return { ok: false, unmet: [], reason: `Only the ${gatekeeperPhrase(from)} can decide this gate, and never the solution owner.` }
+          if (decision.rationale.trim().length < 10) return { ok: false, unmet: [], reason: 'Add a short rationale so the decision is auditable.' }
           const to = nextStage(from)!
           const decisionId = uid('dc')
           const gateDecision: Decision = {
@@ -514,6 +582,16 @@ export const useStore = create<Store>()(
             solutionId,
           )
           return { ok: true, decisionId }
+        },
+
+        holdSolution(solutionId, decision) {
+          return decideState(solutionId, decision, 'on_hold')
+        },
+        stopSolution(solutionId, decision) {
+          return decideState(solutionId, decision, 'stopped')
+        },
+        resumeSolution(solutionId, decision) {
+          return decideState(solutionId, decision, 'active')
         },
 
         setWeights(weights) {

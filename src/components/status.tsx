@@ -3,6 +3,7 @@ import { stageDef } from '@/config'
 import { ACTIVITY_STATUS, EVIDENCE_STATUS, RISK_TIER, SEVERITY } from '@/domain/labels'
 import type { Pace } from '@/domain/readiness'
 import type { HealthStatus } from '@/domain/status'
+import type { LifecycleState } from '@/domain/types'
 import type { ActivityStatus, EvidenceStatus, RiskTier, Severity, StageId } from '@/domain/types'
 import { Pill, type Tone } from './ui/Pill'
 import { cn } from '@/lib/cn'
@@ -100,4 +101,11 @@ export function EvidenceStatusPill({ status }: { status: EvidenceStatus }) {
       {EVIDENCE_STATUS[status]}
     </Pill>
   )
+}
+
+/** Health, unless a gate decision put the solution on hold or stopped it; then that wins. */
+export function StatusPill({ status, state }: { status: HealthStatus; state?: LifecycleState }) {
+  if (state === 'on_hold') return <Pill tone="info" dot>On hold</Pill>
+  if (state === 'stopped') return <Pill tone="danger" dot>Stopped</Pill>
+  return <HealthPill status={status} />
 }

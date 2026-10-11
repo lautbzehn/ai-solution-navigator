@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { bundleFor } from '@/domain/db'
+import { stateOf } from '@/domain/gatekeepers'
 import { insightFor, type SolutionInsight } from '@/domain/insight'
 import { useStore } from './store'
 
@@ -35,4 +36,10 @@ export function useSolutionInsight(id: string | undefined): SolutionInsight | un
 export function usePortfolio(): SolutionInsight[] {
   const c = useCollections()
   return useMemo(() => c.solutions.map((s) => insightFor(bundleFor(c, s.id)!, c.weights)), [c])
+}
+
+/** The live portfolio: everything except solutions stopped at a gate. Totals, trends and the advisor use this. */
+export function useActivePortfolio(): SolutionInsight[] {
+  const all = usePortfolio()
+  return useMemo(() => all.filter((i) => stateOf(i.bundle.solution) !== 'stopped'), [all])
 }
