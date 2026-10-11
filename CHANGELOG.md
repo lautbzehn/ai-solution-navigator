@@ -2,6 +2,11 @@
 
 All notable changes to the Forge AI Solution Navigator. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- The welcome note is written from the visitor's side: "You'll recognize this place.", what the workspace gives you, how decisions get made, what it's built on, and "Make yourself at home."
+
 ## [1.2.0] · 2026-10-10
 
 ### Added
