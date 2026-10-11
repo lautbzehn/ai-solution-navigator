@@ -57,19 +57,22 @@
 ## The lifecycle
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph Plan["Plan · is it worth doing?"]
+    direction LR
     D[Discover] -->|Opportunity gate| A[Assess] -->|Feasibility & risk gate| S[Design]
   end
   subgraph Deliver["Deliver · build it, prove it, release it"]
+    direction LR
     B[Build] -->|Build gate| V[Validate] -->|Validation gate| P[Deploy]
   end
   subgraph Run["Run · operate, learn, improve"]
+    direction LR
     O[Operate] -->|Operational review| I[Improve / Retire]
   end
-  S -->|Design gate| B
-  P -->|Go-live gate| O
-  I -. material change re-enters .-> A
+  Plan -->|Design gate| Deliver
+  Deliver -->|Go-live gate| Run
+  Run -. material change re-enters .-> Plan
 ```
 
 | Gate | Decided by | Maps to ISO/IEC 22989 |
