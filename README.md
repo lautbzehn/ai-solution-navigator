@@ -1,113 +1,181 @@
-# Forge AI Solution Navigator
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img alt="Forge AI Solution Navigator: take AI from pilot to production, with proof. Eight lifecycle stages, Discover to Improve, each ending in a gate." src="docs/assets/banner-light.svg">
+</picture>
 
-[![CI](https://github.com/lautbzehn/ai-solution-navigator/actions/workflows/ci.yml/badge.svg)](https://github.com/lautbzehn/ai-solution-navigator/actions/workflows/ci.yml)
-
-**Live demo: [navigator.icarianforge.com](https://navigator.icarianforge.com)** · **[The story behind it](docs/case-study_v1.4_10.11.2026.md)**: why I built it and the choices I made along the way
-
-**A Product Manager's workspace for taking AI solutions from opportunity to production.**
-
-![The portfolio overview: every AI project at a glance, with the two that need help up front](docs/screenshots/dashboard.png)
-
-**Hi, I'm Dan West, and this is my portfolio project.** I'm an AI strategy and adoption leader with nearly 20 years in IT, and I built the Navigator from zero to show how I think about AI products, from the first idea to running in production.
-
-<p>
-  <img src="docs/screenshots/workspace.png" width="49%" alt="One project's workspace: where it is, how ready it is, and what to do next">
-  <img src="docs/screenshots/gate-blocked.png" width="49%" alt="A blocked stage gate: exactly what's missing, who owns it, and a link to fix it">
+<p align="center">
+  <a href="https://navigator.icarianforge.com"><img alt="Live demo" src="https://img.shields.io/badge/Live_demo-navigator.icarianforge.com-f97343?style=flat-square&labelColor=1c1917"></a>
+  <a href="https://github.com/lautbzehn/ai-solution-navigator/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/lautbzehn/ai-solution-navigator/ci.yml?branch=main&style=flat-square&label=CI&labelColor=1c1917"></a>
+  <img alt="Tests" src="https://img.shields.io/badge/tests-30_passing-34d399?style=flat-square&labelColor=1c1917">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&labelColor=1c1917&logo=typescript&logoColor=white">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&labelColor=1c1917&logo=react&logoColor=61dafb">
+  <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-f38020?style=flat-square&labelColor=1c1917&logo=cloudflare&logoColor=f38020">
+  <img alt="Claude" src="https://img.shields.io/badge/AI-Claude-d97757?style=flat-square&labelColor=1c1917&logo=anthropic&logoColor=d97757">
+  <a href="LICENSE"><img alt="License: all rights reserved" src="https://img.shields.io/badge/license-all_rights_reserved-57534e?style=flat-square&labelColor=1c1917"></a>
 </p>
 
-*Left: one project's workspace, with where it is and what to do next. Right: when a project can't move forward yet, it shows exactly what's missing and who can help.*
+<p align="center">
+  <a href="https://navigator.icarianforge.com"><b>Try the live demo</b></a> ·
+  <a href="docs/case-study_v1.4_10.11.2026.md">The story behind it</a> ·
+  <a href="docs/architecture_v1.0_10.11.2026.md">Architecture</a> ·
+  <a href="docs/adr">Decision records</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
 
-If you've ever watched an AI pilot stall somewhere between "this works" and "this is live," this is for you. The Navigator shows, for every AI project at once, *where it is, what's next, who owns it, what proof is still missing, and whether it's really ready to move forward.*
+---
 
-It follows 8 stages (Discover → Assess → Design → Build → Validate → Deploy → Operate → Improve/Retire), with checks that get stricter as the risk goes up. It's meant to sit alongside your compliance tools, not replace them. Inside the app, **About this project** tells the story and how to reach me.
+## In one minute
 
-> All people, companies, solutions, and figures are fictional demo data (Dunder Mifflin, with The Office cast).
+**The problem.** AI pilots go well, then stall somewhere between *"this works"* and *"this is live."* Nobody is quite sure what stage a project is in, what proof is still missing, or whose turn it is. Projects get waved through because someone said the work was done, while the evidence is still sitting in an email.
 
-## What it does
+**What the Navigator does.** It's the product manager's workspace for an enterprise AI rollout. For every AI initiative at once, it shows **where it stands, what's next, who owns it, what proof is missing, and whether it's really ready.** Each project moves through eight stages, and each stage ends in a gate where a named person decides: **Go**, **Hold**, or **Stop**.
 
-- **Portfolio dashboard:** KPIs, lifecycle distribution, readiness trend, risk and value, and the solutions that need attention. Every chart drills down.
-- **Solution workspace:** a lifecycle rail, a **Next Best Action** with owner and impact, and seven tabs: Overview, Lifecycle, Work, Evidence, Risks & decisions, Metrics, and Team & history. Busy views fold into collapsible sections whose headers carry a one-line headline.
-- **Real gate validation:** each stage's exit gate combines blocking activities (which ones block depends on the risk tier) with explicit criteria (fields, roles, metrics, risk rules). A completed activity *without approved evidence* does not pass. Blocked advancement always explains why, with owners and links to resolve.
-- **Gatekeepers and real decisions:** each gate names who may decide it (for example the Executive Sponsor or Governance / Risk), never the solution's own owner. The gatekeeper chooses **Go** (advance), **Hold** (pause with progress kept, resume anytime) or **Stop** (end it, with the reason kept), and every decision lands in the log. Stopped work leaves the portfolio totals but stays on record.
-- **Implementation readiness:** seven weighted dimensions (configurable). Every score shows its why, its gaps, and what would raise it. It measures implementation readiness, not AI safety alone.
-- **Risk-based rigor:** changing a solution's risk tier reshapes its plan. High risk adds autonomy boundaries, override controls, adversarial testing, executive risk acceptance, and board approval.
-- **Portfolio Intelligence:** health, delivery performance (time per stage, gate pass rate, rework), lifecycle bottlenecks, risk heat map, business outcomes, adoption, and AI performance, with deterministic key insights.
-- **AI advisor:** a contextual advisor that analyzes → recommends → explains. A star icon on each section asks it for an analysis of just that area. It runs as live Claude when a server key is configured, behind per-visitor rate limits and a daily spend cap, and falls back to built-in deterministic guidance ($0) whenever Claude isn't available. It never approves, changes lifecycle state, or makes legal or security determinations.
-- **Audit and change log:** every change is recorded with who, what, from, and to.
+**Why it's credible.** The lifecycle follows recognized practice rather than inventing its own: the AI system life cycle in **ISO/IEC 22989**, the **NIST AI Risk Management Framework**, and **Stage-Gate** decision points. The product manager's view sits on top.
 
-## Demo script (5 minutes)
+> Built by **[Dan West](https://www.icarianforge.com)**, an AI strategy and adoption leader with nearly 20 years in IT. I designed it and directed Claude Code as the engineering team, the same way I'd lead a product team. All people, companies, and figures in the demo are fictional (Dunder Mifflin, with The Office cast).
 
-1. **Dashboard**: 8 solutions, 2 need attention. Click **Validate** in Lifecycle distribution.
-2. Open **AI Customer Support Resolution Assistant** (Validate, Moderate risk, **76% ready**).
-3. Next Best Action: *Validate human oversight in practice*, owner Dwight Schrute. Click the star icon next to it to ask the AI advisor.
-4. Click **Advance to Deploy**: blocked, with 3 requirements (oversight validation, UAT, monitoring plan).
-5. Open the oversight activity, mark it **Complete**: the gate still flags the draft evidence. Approve it and readiness rises.
-6. Resolve UAT and the monitoring plan the same way. The gate opens.
-7. **Advance to Deploy**: record the decision (the rationale is required). It lands in the Decisions log.
-8. Check the **Dashboard** and **Reports**: the portfolio has updated. Reset from **Settings** when you're done.
+<p>
+  <img src="docs/screenshots/dashboard.png" alt="My Overview: a personal briefing, four headline numbers, and the projects that need attention" width="100%">
+</p>
+<p>
+  <img src="docs/screenshots/workspace.png" width="49%" alt="One project's workspace: stage, readiness, and the next best action with its owner">
+  <img src="docs/screenshots/gate-blocked.png" width="49%" alt="A gate review: exactly what is blocking, who owns it, and a link to fix it">
+</p>
 
-## Run locally
+## Highlights
+
+| | What it means for a team | How it works |
+|---|---|---|
+| **"Done" means done** | A box ticked without signed-off proof doesn't count. | Gate criteria require approved evidence, not just completed tasks. |
+| **The right person decides** | Gates can't be rubber-stamped by the person running the project. | Each gate names its gatekeeper roles; the solution owner is excluded (separation of duties). |
+| **Go, Hold, or Stop** | Pausing or stopping early is a valid outcome, not a failure. | Holds keep every bit of progress; stops keep the record and the reason. Every call is logged. |
+| **Rigor scales with risk** | Small, low-risk helpers stay light; high-risk systems get more care. | Changing the risk tier reshapes the plan: a high-risk solution picks up 20 extra controls. |
+| **A score that tells you what to do** | Readiness comes with its why, its gaps, and the next move. | Seven weighted dimensions, including the ones that get skipped, like adoption. |
+| **The AI advises, people decide** | The built-in advisor explains and recommends; it never approves. | Live Claude behind rate limits and a daily budget, with a free deterministic fallback. |
+| **One methodology file** | Every company's process is a little different. | Stages, activities, evidence, gates, roles, and weights live in [`lifecycle.json`](src/config/lifecycle.json), not in code. |
+
+## The lifecycle
+
+```mermaid
+flowchart LR
+  subgraph Plan["Plan · is it worth doing?"]
+    D[Discover] -->|Opportunity gate| A[Assess] -->|Feasibility & risk gate| S[Design]
+  end
+  subgraph Deliver["Deliver · build it, prove it, release it"]
+    B[Build] -->|Build gate| V[Validate] -->|Validation gate| P[Deploy]
+  end
+  subgraph Run["Run · operate, learn, improve"]
+    O[Operate] -->|Operational review| I[Improve / Retire]
+  end
+  S -->|Design gate| B
+  P -->|Go-live gate| O
+  I -. material change re-enters .-> A
+```
+
+| Gate | Decided by | Maps to ISO/IEC 22989 |
+|---|---|---|
+| Opportunity | Executive Sponsor or Business Owner | Inception |
+| Feasibility & Risk | Executive Sponsor or Governance / Risk | Inception |
+| Design | Executive Sponsor or AI / Solution Architect | Design and development |
+| Build | AI / Solution Architect or QA / Evaluation | Design and development |
+| Validation | Executive Sponsor or Governance / Risk | Verification and validation |
+| Go-Live | Executive Sponsor or Operations | Deployment |
+| Operational Review | Executive Sponsor or Business Owner | Operation and monitoring, re-evaluation |
+
+## Try it in five minutes
+
+1. Open the **[live demo](https://navigator.icarianforge.com)**. A short note introduces the project; take the one-minute tour or explore on your own.
+2. **My Overview**: 8 solutions, 2 need attention.
+3. Open **AI Customer Support Resolution Assistant** (Validate, moderate risk, 76% ready). Its next best action is *Validate human oversight in practice*, owned by Dwight Schrute.
+4. Click **Advance to Deploy**. **Go** is locked: three requirements remain, each with an owner and a link. Only the Executive Sponsor or Governance / Risk can decide this gate.
+5. Resolve a requirement and approve its evidence: readiness rises. Or have a gatekeeper choose **Hold** or **Stop** and watch the portfolio update.
+6. Reset everything from **Settings → Reset demo data**. Your changes live only in your browser.
+
+## Engineering
+
+<details open>
+<summary><b>Architecture at a glance</b></summary>
+
+```mermaid
+flowchart LR
+  subgraph Browser["Browser · React 19 SPA"]
+    UI["Screens and components"] --> Domain["Domain logic<br/>readiness · gates · decisions · next action"]
+    Config[["lifecycle.json<br/>the methodology"]] --> Domain
+    Domain <--> Store[("Zustand store<br/>audit trail · localStorage")]
+    UI --> Mock["Built-in advisor<br/>deterministic · $0"]
+  end
+  UI -- "/api/advisor · JSON snapshot" --> Worker
+  subgraph Edge["Cloudflare Worker"]
+    Worker["worker/index.ts"] --> Guard{{"Guardrails<br/>app-only · rate limits · daily budget"}}
+    Guard <--> DO[("Durable Object<br/>site-wide counters")]
+  end
+  Guard -- "within limits" --> Claude["Claude API<br/>structured output"]
+```
+
+Layers flow one way: UI → domain → data → AI integration. The domain is pure TypeScript with no React, so it is tested directly. Full detail in **[docs/architecture](docs/architecture_v1.0_10.11.2026.md)**.
+</details>
+
+<details>
+<summary><b>Quality and security</b></summary>
+
+- **Tests:** 30 Vitest tests across domain logic, the gatekeeper and decision rules, the advisor areas, and the server guardrails. CI runs them, the type check, and a production build on every pull request.
+- **Type safety:** TypeScript in strict mode end to end, including the Worker.
+- **Server-side checks:** the store re-validates every gate decision; the UI is never trusted.
+- **Advisor guardrails** (`server/guard.ts`): only the app's own pages may call it, requests over 64 KB are refused, each visitor (an anonymous hash, never a raw IP) gets 6 questions a minute and 20 a day, and the whole site has a daily spend cap (`ADVISOR_DAILY_BUDGET_USD`, default $5) enforced in a Durable Object.
+- **Browser hardening:** HSTS, `nosniff`, framing restricted to the same origin, a strict referrer policy, and camera, microphone, location, and payment access turned off.
+- **Secrets:** none in the repository. Deploy credentials are GitHub repository secrets; the Claude key is a Cloudflare secret. See [SECURITY.md](SECURITY.md).
+- **Accessibility:** keyboard-first dialogs (Radix), visible focus, reduced-motion support, and hidden data tables behind charts for screen readers.
+</details>
+
+<details>
+<summary><b>Run it locally</b></summary>
 
 ```bash
-npm install
+npm ci
 npm run dev        # http://localhost:5173
-npm test           # domain and server tests
-npm run build      # type-check and production build
+npm test           # 30 tests
+npm run typecheck
+npm run build      # type check and production build
 ```
 
-Data persists in your browser (localStorage), so every viewer gets a private sandbox. **Settings → Reset demo data** restores the starting portfolio.
+The advisor works out of the box in built-in mode. To use Claude locally, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY` (server side only; never sent to the browser). Optionally set `ADVISOR_MODEL`.
+</details>
 
-### Live AI advisor (optional)
+<details>
+<summary><b>Deploy</b></summary>
 
-The advisor works out of the box in built-in mode. To use Claude:
+The app runs as a Cloudflare Worker at `navigator.icarianforge.com`. Static files come from `./dist`; only `/api/*` reaches the Worker.
 
-```bash
-cp .env.example .env
-# set ANTHROPIC_API_KEY=... (server-side only; never sent to the browser)
-# optional: ADVISOR_MODEL (defaults to claude-opus-5-5)
-npm run dev
-```
+- **Continuous delivery:** every pull request is tested and built; every merge to `main` is tested, built, deployed, and confirmed live by [`ci.yml`](.github/workflows/ci.yml) once the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets exist.
+- **Manual:** `npm run deploy`. `npx wrangler secret put ANTHROPIC_API_KEY` turns on the live advisor.
+</details>
 
-The browser sends a compact JSON snapshot of the current solution to `/api/advisor`; the server calls the Messages API with structured JSON output and server-side refusal fallback, then validates the response. Any failure falls back to built-in guidance with a clear notice.
-
-**Guardrails** (`server/guard.ts`), checked before any money is spent:
-
-- Only the app itself may call it (origin and client header checks), and requests over 64 KB are refused.
-- Each visitor (an anonymous hash, never a raw IP) gets 6 questions a minute and 20 a day.
-- The whole site has a daily budget, `ADVISOR_DAILY_BUDGET_USD` (default $5). Past it, everyone gets built-in guidance until midnight UTC.
-- Every call logs model, tokens, cost, and latency (`advisor_call`), and an `advisor_budget_alert` line once spend passes 80% of the budget.
-
-On Cloudflare the counters live in one Durable Object (`AdvisorGuardObject`), so limits hold across every edge location. Locally they live in memory.
-
-## Deploy (Cloudflare Workers)
-
-The app runs as a Cloudflare Worker at `navigator.icarianforge.com`. Static files come from `./dist`; only `/api/*` reaches the Worker (`worker/index.ts`).
-
-```bash
-npm run deploy                                  # build + wrangler deploy
-npx wrangler secret put ANTHROPIC_API_KEY       # optional: enable the live advisor
-```
-
-## Architecture
+<details>
+<summary><b>Repository layout</b></summary>
 
 ```
-src/config/lifecycle.json   The methodology: stages, activities, evidence, gates, risk tiers, roles, readiness weights
-src/domain/                 Pure logic: readiness, gates, health, next best action, plan instantiation, reports, validation
+src/config/lifecycle.json   The methodology: stages, activities, evidence, gates and gatekeepers, risk tiers, roles, weights
+src/domain/                 Pure logic: readiness, gates, gatekeepers, health, next best action, plans, reports, validation
 src/data/                   Zustand store (actions + audit trail), persistence adapter, seed data, derived hooks
 src/ai/                     Advisor contract, context builder, deterministic advisor, client
-server/advisor.ts           Server-side Claude integration (shared by the Vite dev middleware and the Worker)
-server/guard.ts             Advisor guardrails: app-only calls, per-visitor limits, a site-wide daily budget
-worker/index.ts             Cloudflare Worker: serves the app and /api/advisor
 src/components/             Design system: UI primitives, charts, lifecycle rail, readiness gauge
-src/features/               Screens: dashboard, solutions, workspace, reports, framework, settings, advisor, create flow
+src/features/               Screens: overview, solutions, workspace, reports, framework, help, tour, settings
+server/                     Claude integration and guardrails, shared by the dev server and the Worker
+worker/                     Cloudflare Worker entry: serves the app and /api/advisor
+docs/                       Case study, architecture, decision records, screenshots
 ```
+</details>
 
-UI → application logic (domain) → data layer → AI integration. The lifecycle is never hard-coded into components; edit `lifecycle.json` and the plan, gates, readiness, Framework page, and reports all follow.
+## How it was built
 
-**Persistence:** the store talks to a `StateStorage` adapter (`src/data/storage.ts`). It's browser-local so the public demo never mixes visitors' data; swapping in SQLite or a REST API is a one-file change.
+I wrote the methodology first, then built the product around it by directing **Claude Code** as the engineering team: I set the rules up front, made every product call, and ran the full demo in a real browser before anything shipped. Claude Code wrote most of the code. The working agreement it follows is in [`CLAUDE.md`](CLAUDE.md); the reasoning behind the bigger choices is in the [decision records](docs/adr).
 
-## Stack
+**Stack:** React 19 · TypeScript · Vite · Tailwind CSS v4 · Radix UI · Recharts · Zustand · Vitest · Cloudflare Workers and Durable Objects · Anthropic TypeScript SDK (server only).
 
-React 19 · TypeScript · Vite · Tailwind CSS v4 · Radix UI primitives · Recharts · Zustand · Anthropic TypeScript SDK (server only).
+**Design credits:** the shell draws on the *Charcoal Ink dashboard sidebar* (arunjdass) and the chart conventions on the *Layro Charts & KPI Cards* kit (uvain), both from 21st.dev and adapted to the app's own tokens.
 
-Design direction drew on two 21st.dev references, adapted to the app's own tokens: the **Charcoal Ink dashboard sidebar** (arunjdass) for the shell, and the **Layro Charts & KPI Cards** kit (uvain) for chart and KPI conventions (thin marks, direction-aware KPIs, hidden data tables for screen readers).
+## About
+
+<a href="https://www.icarianforge.com"><b>Icarian Forge</b></a> is my personal AI lab, where I build and test what I advise on. This repository is shared so you can see how the work is done. It is © 2026 Dan West, all rights reserved; see [LICENSE](LICENSE).
+
+**Get in touch:** [LinkedIn](https://www.linkedin.com/in/dan-w-21b8a561/) · hello@icarianforge.com

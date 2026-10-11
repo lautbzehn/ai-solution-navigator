@@ -1,9 +1,16 @@
 {
   "name": "ai-solution-navigator",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.2.0",
+  "description": "AI Solution Navigator \u2014 a Product Manager's workspace for taking AI solutions from opportunity to production.",
+  "author": "Dan West (https://www.icarianforge.com)",
+  "license": "UNLICENSED",
+  "homepage": "https://navigator.icarianforge.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lautbzehn/ai-solution-navigator.git"
+  },
   "type": "module",
-  "description": "AI Solution Navigator — a Product Manager's workspace for taking AI solutions from opportunity to production.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -38,5 +45,8 @@
     "vite": "^8.3.3",
     "vitest": "^5.0.3",
     "wrangler": "^4.149.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
