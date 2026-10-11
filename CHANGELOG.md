@@ -5,7 +5,7 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 ## [Unreleased]
 
 ### Changed
-- The welcome note is written from the visitor's side: "You'll recognize this place.", what the workspace gives you, how decisions get made, what it's built on, and "Make yourself at home."
+- The welcome note now reads as a personal letter: "Hi, I'm Dan West. Thank you for stopping by.", why the Navigator exists, what it does, how decisions are made, what it is built on, and an invitation to explore.
 
 ## [1.2.0] · 2026-10-10
 
