@@ -2,6 +2,11 @@
 
 All notable changes to the Forge AI Solution Navigator. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- The welcome note reads like Dan talking to a friend: "Hi, I'm Dan West. Thanks for stopping by.", why he built it, what it does, who decides, what it's based on, and an invitation to explore.
+
 ## [1.2.0] · 2026-10-10
 
 ### Added

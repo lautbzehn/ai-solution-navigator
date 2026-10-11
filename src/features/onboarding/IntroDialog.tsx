@@ -19,20 +19,20 @@ const TOUR_AFTER_WELCOME = 1
 
 const POINTS = [
   {
-    label: 'The gap I kept seeing',
-    body: 'AI pilots go well, then stall somewhere between "this works" and "this is live." I\'ve seen projects waved through because someone said the work was done, while the proof was still sitting in an email.',
+    label: 'Why I built it',
+    body: "You've probably seen it too: a pilot goes well, everyone's excited, and then it stalls. Nobody's sure what stage it's in, what's missing, or whose turn it is.",
   },
   {
-    label: 'The problem it solves',
-    body: "Nobody's quite sure what stage a project is in, what's still missing, or whose turn it is. The Navigator answers that plainly, for every AI project at once.",
+    label: 'What it does',
+    body: "It puts every AI project on one page: where it stands, what's next and who owns it, and what still has to be proven.",
   },
   {
-    label: 'Why I started from zero',
-    body: 'Ticket tools track tasks. Governance tools track compliance. Neither answers what the product manager carries, so I designed it myself and built it by directing Claude Code.',
+    label: 'Who decides',
+    body: 'At every gate, a real person decides: go, hold, or stop. And work only counts once the proof is signed off, not when someone ticks a box.',
   },
   {
-    label: 'The value',
-    body: 'Projects move when the proof is approved, not when a box is ticked. Small projects stay light, risky ones get more care, and the AI advises while people decide.',
+    label: "What it's based on",
+    body: "I didn't make up the process. It follows the ISO/IEC 22989 AI life cycle, the NIST AI Risk Management Framework, and Stage-Gate. I designed it, and Claude Code did most of the building.",
   },
 ]
 
@@ -106,10 +106,10 @@ export function IntroDialog() {
               </span>
             </div>
             <RDialog.Title className="mt-2.5 text-center text-[21px] leading-[1.15] font-semibold tracking-[-0.025em] text-balance sm:mt-3 sm:text-[25px]">
-              Hi, I'm Dan West. I built this from zero, plus a lot of coffee.
+              Hi, I'm Dan West. Thanks for stopping by.
             </RDialog.Title>
             <p id="intro-lede" className="mx-auto mt-1.5 max-w-[640px] text-center text-[13px] leading-normal text-[#fff3ea]/80 sm:text-[13.5px]">
-              I'm an AI strategy and adoption leader with nearly 20 years in IT. Here's the short version of why this exists.
+              I built this because I've seen too many good AI ideas get stuck after the pilot. This is how I'd help a team get them the rest of the way.
             </p>
             <RDialog.Close
               aria-label="Close the intro"
@@ -131,10 +131,10 @@ export function IntroDialog() {
             <div className="mt-3.5 grid gap-2.5">
               <div className="intro-note rounded-xl px-5 py-2.5 text-center">
                 <p className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#fff3ea]">
-                  <Users className="size-3.5 text-[#f4a27e]" aria-hidden /> You're the audience, not a customer
+                  <Users className="size-3.5 text-[#f4a27e]" aria-hidden /> Make yourself at home
                 </p>
                 <p className="mt-0.5 text-[12.5px] leading-[1.5] text-fg-muted">
-                This isn't a product I'm selling. It's a proof of concept, plus a little more. Click anything, approve things, even break things. It all stays in your browser.
+                It's a working demo, not something I'm selling. Open a project, approve some evidence, put one on hold. Nothing you do leaves your browser.
               </p>
               </div>
               <figure className="intro-disclaimer rounded-xl px-5 py-2.5 text-center">
