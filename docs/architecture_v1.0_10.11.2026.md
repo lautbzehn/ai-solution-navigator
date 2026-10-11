@@ -95,7 +95,7 @@ See [SECURITY.md](../SECURITY.md). In short: no secrets in the repository, serve
 
 ## Testing and delivery
 
-- **30 Vitest tests:** domain rules, gatekeepers and decisions, advisor areas, and server guardrails.
+- **32 Vitest tests:** domain rules, gatekeepers and decisions, advisor areas, the sidebar memory, and server guardrails.
 - **CI** ([`ci.yml`](../.github/workflows/ci.yml)): every pull request is tested and built; every merge to `main` deploys and then confirms the live site serves the new build.
 - **Dependabot** keeps npm packages and GitHub Actions current.
 
