@@ -1,8 +1,9 @@
-import { ArrowRight, Navigation } from 'lucide-react'
+import { ArrowRight, Navigation, OctagonX, Pause, Play } from 'lucide-react'
 import { PersonChip } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Pill } from '@/components/ui/Pill'
 import { InfoTip } from '@/components/ui/Tooltip'
+import { stateOf } from '@/domain/gatekeepers'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { cn } from '@/lib/cn'
 import { useWorkspace } from './context'
@@ -10,6 +11,36 @@ import { useWorkspace } from './context'
 export function NextActionCard({ className }: { className?: string }) {
   const { insight, openActivity, openGate, goTab } = useWorkspace()
   const n = insight.next
+  const { solution } = insight.bundle
+  const lifeState = stateOf(solution)
+
+  // Held or stopped at a gate: the next action is the decision itself, not more work.
+  if (lifeState !== 'active') {
+    const held = lifeState === 'on_hold'
+    return (
+      <section aria-label="Next best action" className={cn('rounded-2xl p-5 ring-1', held ? 'bg-info-soft ring-info/30' : 'bg-surface-2 ring-border', className)}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.08em] text-fg-subtle uppercase">
+              {held ? <Pause className="size-3.5" /> : <OctagonX className="size-3.5" />} {held ? 'On hold' : 'Stopped'} by a gate decision <InfoTip term="gatekeeper" />
+            </p>
+            <h2 className="mt-2 text-[17px] leading-snug font-semibold tracking-[-0.015em] text-fg">
+              {held ? 'Work is paused. Every bit of progress is kept.' : 'This project ended here. Stopping early is a valid outcome.'}
+            </h2>
+            <p className="mt-1.5 max-w-3xl text-[13.5px] leading-relaxed text-fg-muted">
+              <span className="font-medium">Why: </span>
+              {solution.stateReason}
+            </p>
+          </div>
+          {held && (
+            <Button variant="primary" onClick={openGate} className="shrink-0">
+              <Play /> Resume work
+            </Button>
+          )}
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section

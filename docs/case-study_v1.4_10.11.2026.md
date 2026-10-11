@@ -36,6 +36,10 @@ I didn't want to build something that only works for one team's way of doing thi
 
 I've seen projects get waved through because someone said the work was done, while the proof was still sitting in an email somewhere. So here, you can't move a project to the next stage just by ticking boxes. The work has to be finished and the proof behind it has to be signed off. And if something's holding a project up, the app tells you exactly what it is and who can fix it. No guessing, no chasing people down.
 
+### The right person decides, and "no" is allowed
+
+Every gate names who may decide it, like the Executive Sponsor or the Governance / Risk lead, and the person running the project never approves their own gate. They can say Go, Hold, or Stop. Holding keeps every bit of progress, and stopping early counts as a good outcome, not a failure.
+
 ### Small projects shouldn't carry big-project paperwork
 
 A low-risk internal helper tool gets a light plan. Something that makes important decisions about people gets a lot more care: more testing, clear human override, and sign-off from leadership. Change the risk level and the plan adjusts right away.

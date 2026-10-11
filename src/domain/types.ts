@@ -93,6 +93,8 @@ export interface GateDef {
   name: string
   description: string
   criteria: GateCriterionDef[]
+  /** Gatekeepers: roles allowed to decide this gate (Go, Hold or Stop). The solution owner never decides their own gate. */
+  approverRoles: RoleId[]
 }
 
 /** A group of consecutive stages (Plan, Deliver, Run) used to explain the flow. */
@@ -174,7 +176,15 @@ export interface Solution {
   updatedAt: string
   /** Seeded solutions are fictional demo data. */
   demo?: boolean
+  /** Active unless a gate decision put it on hold or stopped it. */
+  state?: LifecycleState
+  /** The reason given with the Hold or Stop decision. */
+  stateReason?: string
+  stateChangedAt?: string
 }
+
+/** Stage-Gate decisions: Go advances, Hold pauses with progress kept, Stop ends the project. */
+export type LifecycleState = 'active' | 'on_hold' | 'stopped'
 
 export type ActivityStatus = 'not_started' | 'in_progress' | 'blocked' | 'complete' | 'not_applicable'
 
@@ -258,7 +268,7 @@ export interface Risk {
   createdAt: string
 }
 
-export type DecisionOutcome = 'pending' | 'approved' | 'approved_with_conditions' | 'rejected' | 'deferred'
+export type DecisionOutcome = 'pending' | 'approved' | 'approved_with_conditions' | 'rejected' | 'deferred' | 'on_hold' | 'stopped' | 'resumed'
 export type DecisionType = 'gate' | 'scope' | 'design' | 'risk' | 'deployment' | 'other'
 
 export interface Decision {

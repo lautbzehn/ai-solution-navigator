@@ -12,7 +12,7 @@ import { EmptyState, Segmented } from '@/components/ui/misc'
 import { Pill, toneText, type Tone } from '@/components/ui/Pill'
 import { InfoTip, Tip } from '@/components/ui/Tooltip'
 import { STAGES } from '@/config'
-import { usePortfolio } from '@/data/hooks'
+import { useActivePortfolio } from '@/data/hooks'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { useStore } from '@/data/store'
 import { LIKELIHOOD, LIKELIHOOD_ORDER, RISK_CATEGORY, SEVERITY, SEVERITY_ORDER } from '@/domain/labels'
@@ -42,7 +42,7 @@ const HEALTH_TONE: Record<MetricHealth, Tone> = { met: 'success', on_track: 'suc
 const RANGE_WEEKS: Record<RangeKey, number> = { '30': 5, '90': 13, '180': 16, '365': 16, all: 16 }
 
 export function ReportsPage() {
-  const all = usePortfolio()
+  const all = useActivePortfolio()
   const gateAttempts = useStore((s) => s.gateAttempts)
   const audit = useStore((s) => s.audit)
   const snapshots = useStore((s) => s.snapshots)

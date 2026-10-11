@@ -21,6 +21,10 @@ export const GLOSSARY = {
     title: 'Gate criteria',
     body: 'The requirements that must be met before a solution can move to the next stage. Blocking activities need to be complete and backed by approved evidence.',
   },
+  gatekeeper: {
+    title: 'Gatekeepers and decisions',
+    body: 'Each gate names the roles allowed to decide it, such as the Executive Sponsor or Governance / Risk. A gatekeeper chooses Go (advance), Hold (pause with progress kept) or Stop (end the project). The solution owner never decides their own gate.',
+  },
   evidence: {
     title: 'Evidence',
     body: 'Structured proof that work was done to the required standard: an assessment, a review, a sign-off. A completed checkbox without approved evidence does not count as full readiness.',

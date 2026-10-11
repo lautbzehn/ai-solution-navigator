@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router'
-import { ArrowRight, Calendar, Lock, Pencil } from 'lucide-react'
+import { ArrowRight, Calendar, Lock, OctagonX, Pencil, Play } from 'lucide-react'
 import { LifecycleRail } from '@/components/lifecycle/LifecycleRail'
 import { Page } from '@/components/layout/Page'
 import { HEALTH_TONE, HealthPill, paceTone, RiskPill, StagePill } from '@/components/status'
@@ -12,6 +12,7 @@ import { Ring } from '@/components/ui/Progress'
 import { HoverCard, InfoTip, Tip } from '@/components/ui/Tooltip'
 import { riskTierDef, stageDef, STAGE_IDS } from '@/config'
 import type { SolutionArea } from '@/ai/areas'
+import { stateOf } from '@/domain/gatekeepers'
 import type { RiskTier } from '@/domain/types'
 import { useSolutionInsight } from '@/data/hooks'
 import { useStore } from '@/data/store'
@@ -114,6 +115,7 @@ export function WorkspacePage() {
 
   const { solution } = insight.bundle
   const { readiness, gate, health } = insight
+  const lifeState = stateOf(solution)
   const stage = stageDef(solution.stage)
   const visit = solution.stageHistory.find((v) => v.stage === solution.stage && !v.exitedAt)
   const daysInStage = visit ? daysBetween(visit.enteredAt) : 0
@@ -146,7 +148,12 @@ export function WorkspacePage() {
                   ))}
                 </ul>
               </HoverCard>
-              {inProduction(solution.stage) && <Pill tone="success" dot>In production</Pill>}
+              {lifeState !== 'active' && (
+                <Tip content={solution.stateReason ?? ''}>
+                  <span><Pill tone={lifeState === 'on_hold' ? 'info' : 'danger'} dot>{lifeState === 'on_hold' ? 'On hold' : 'Stopped'}</Pill></span>
+                </Tip>
+              )}
+              {inProduction(solution.stage) && lifeState !== 'stopped' && <Pill tone="success" dot>In production</Pill>}
               {solution.demo && (
                 <Tip content="Fictional demo data">
                   <span><Pill tone="muted">Demo</Pill></span>
@@ -178,16 +185,26 @@ export function WorkspacePage() {
             <div className="min-w-[150px]">
               <p className="flex items-center gap-1 text-[12px] text-fg-subtle">Readiness <InfoTip term="readiness" /></p>
               <p className={cn('text-[12px]', toneText[tone])}>{readiness.pace === 'on_pace' ? 'On pace' : readiness.pace === 'behind' ? 'Behind pace' : 'Well behind'} · expected ≥{readiness.expected}</p>
-              {next ? (
+              {lifeState === 'on_hold' ? (
+                <Button variant="primary" size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
+                  <Play className="!size-3.5" /> Resume work
+                </Button>
+              ) : lifeState === 'stopped' ? (
+                <Button variant="secondary" size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
+                  <OctagonX className="!size-3.5" /> Stopped: see why
+                </Button>
+              ) : next ? (
                 <Tip content={gate.canAdvance ? `Every requirement is met. Open the gate review to record the decision.` : `See what's still open before ${next.name}, and who owns it`}>
                   <Button variant={gate.canAdvance ? 'primary' : 'secondary'} size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
                     {gate.canAdvance ? <>Advance to {next.name} <ArrowRight /></> : <><Lock className="!size-3.5" /> Advance to {next.name}</>}
                   </Button>
                 </Tip>
               ) : (
-                <p className="mt-2 text-[12px] text-fg-subtle">Final stage</p>
+                <Button variant="ghost" size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
+                  Final stage · Hold or stop
+                </Button>
               )}
-              {next && !gate.canAdvance && (
+              {lifeState === 'active' && next && !gate.canAdvance && (
                 <p className="mt-1 text-center text-[11px] text-warning-fg tabular">{gate.unmet.length} gate {gate.unmet.length === 1 ? 'requirement' : 'requirements'} open</p>
               )}
             </div>

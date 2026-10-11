@@ -18,7 +18,7 @@ import { fromDateInput, longDate, toDateInput } from '@/lib/format'
 import { useForm } from '@/lib/useForm'
 import { useWorkspace } from '../context'
 
-export const OUTCOME_TONE: Record<DecisionOutcome, Tone> = { pending: 'warning', approved: 'success', approved_with_conditions: 'success', rejected: 'danger', deferred: 'neutral' }
+export const OUTCOME_TONE: Record<DecisionOutcome, Tone> = { pending: 'warning', approved: 'success', approved_with_conditions: 'success', rejected: 'danger', deferred: 'neutral', on_hold: 'info', stopped: 'danger', resumed: 'success' }
 
 export function DecisionsTab() {
   const { insight } = useWorkspace()
