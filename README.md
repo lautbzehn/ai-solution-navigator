@@ -87,7 +87,7 @@ npm run deploy                                  # build + wrangler deploy
 npx wrangler secret put ANTHROPIC_API_KEY       # turns on the live advisor
 ```
 
-The daily budget is the `ADVISOR_DAILY_BUDGET_USD` variable in `wrangler.jsonc`. Worker logs (Workers → ai-solution-navigator → Logs) carry the `advisor_call` and `advisor_budget_alert` lines; a Cloudflare notification on `advisor_budget_alert` turns that into an email.
+The daily budget is the `ADVISOR_DAILY_BUDGET_USD` variable in `wrangler.jsonc`, and the app enforces it on its own. To see spend, search the Worker's logs in the Cloudflare dashboard for `advisor_call` (every answer, with tokens and cost) and `advisor_budget_alert` (the day passed 80% of its budget). For a second line of defense outside the app, give the API key its own workspace in the Anthropic Console with a monthly spend limit.
 
 ## Architecture
 
