@@ -2,7 +2,15 @@
    Lifecycle methodology lives in config/lifecycle.json; these types describe
    both that configuration and the per-solution records that instantiate it. */
 
-export type StageId = 'frame' | 'prove' | 'build' | 'launch' | 'run'
+export type StageId =
+  | 'discover'
+  | 'assess'
+  | 'design'
+  | 'build'
+  | 'validate'
+  | 'deploy'
+  | 'operate'
+  | 'improve'
 
 export type RiskTier = 'low' | 'moderate' | 'high'
 export type DimensionId =
@@ -74,29 +82,16 @@ export interface ActivityTemplate {
   tags?: string[]
 }
 
-export type ProofCheck = 'charter' | 'quality' | 'value' | 'economics'
-
 export type GateCriterionDef =
   | { id: string; type: 'field'; field: SolutionTextField; minLength: number; label: string; description: string }
   | { id: string; type: 'role'; roles: RoleId[]; label: string; description: string }
   | { id: string; type: 'metrics'; minDefined: number; requireCurrent?: boolean; label: string; description: string }
   | { id: string; type: 'risks'; rule: 'no_unmitigated_high'; label: string; description: string }
-  | { id: string; type: 'proof'; check: ProofCheck; label: string; description: string }
-
-/** What a gate decision can do. Every gate can stop or park a solution, not only approve it. */
-export type GateOutcome = 'advance' | 'iterate' | 'pivot' | 'roll_back' | 'park' | 'stop' | 'sustain' | 'retire'
 
 export interface GateDef {
   stage: StageId
   name: string
-  /** The one question this gate answers. */
-  question: string
   description: string
-  /** Button words for moving forward ("Fund the PoC", "Scale"). Absent on the final review. */
-  advanceLabel?: string
-  /** Roles that may record this gate's decision. The solution owner never approves their own gate. */
-  approverRoles: RoleId[]
-  outcomes: GateOutcome[]
   criteria: GateCriterionDef[]
 }
 
@@ -155,43 +150,6 @@ export interface StageVisit {
   exitedAt?: string
 }
 
-/** Where a solution stands apart from its stage: still moving, paused, or closed. */
-export type SolutionState = 'active' | 'parked' | 'stopped' | 'retired'
-
-/** The proof-of-concept rules, agreed with the sponsor before the PoC starts. */
-export interface PocCharter {
-  hypothesis: string
-  /** Length of the Prove stage, in weeks (2 to 6). */
-  timeboxWeeks: number
-  /** Budget cap for the PoC, in USD. */
-  budget: number
-  /** Most pilot users the PoC may involve. */
-  pilotUserCap: number
-  /** Pass rate the AI must reach on the golden eval set, in percent. */
-  qualityTarget: number
-  /** Number of cases in the golden eval set. */
-  goldenSetSize: number
-  /** Improvement on the key metric versus the baseline, in percent. */
-  valueTarget: number
-  /** Highest acceptable annual run cost, as a percent of expected annual value. */
-  costCeilingPct: number
-  /** Which proof attempt this is: 1 for the first, up to 3 after two iterations. */
-  iteration: number
-}
-
-/** What the PoC actually showed. Empty until measured. */
-export interface PocResults {
-  /** Pass rate on the golden eval set, in percent. */
-  quality?: number
-  /** Measured improvement on the key metric versus the baseline, in percent. */
-  value?: number
-  /** Projected annual cost to run at full scale, in USD. */
-  annualRunCost?: number
-  /** Share of pilot users who would keep using it, in percent. */
-  pilotAdoption?: number
-  pilotUsers?: number
-}
-
 export interface Solution {
   id: string
   name: string
@@ -212,13 +170,6 @@ export interface Solution {
   realizedValue: number
   team: TeamMember[]
   stageHistory: StageVisit[]
-  /** Active unless a gate decision parked, stopped, or retired it. */
-  state?: SolutionState
-  stateChangedAt?: string
-  /** The lesson or reason recorded when it was parked, stopped, or retired. */
-  stateReason?: string
-  charter?: PocCharter
-  proof?: PocResults
   createdAt: string
   updatedAt: string
   /** Seeded solutions are fictional demo data. */
@@ -307,19 +258,7 @@ export interface Risk {
   createdAt: string
 }
 
-export type DecisionOutcome =
-  | 'pending'
-  | 'approved'
-  | 'approved_with_conditions'
-  | 'rejected'
-  | 'deferred'
-  | 'iterate'
-  | 'pivot'
-  | 'roll_back'
-  | 'park'
-  | 'stop'
-  | 'sustain'
-  | 'retire'
+export type DecisionOutcome = 'pending' | 'approved' | 'approved_with_conditions' | 'rejected' | 'deferred'
 export type DecisionType = 'gate' | 'scope' | 'design' | 'risk' | 'deployment' | 'other'
 
 export interface Decision {
@@ -397,7 +336,7 @@ export interface AuditEntry {
   ts: string
   actorId: string
   solutionId?: string
-  action: 'created' | 'updated' | 'status_changed' | 'advanced' | 'gate_blocked' | 'gate_decided' | 'commented' | 'assigned' | 'deleted'
+  action: 'created' | 'updated' | 'status_changed' | 'advanced' | 'gate_blocked' | 'commented' | 'assigned' | 'deleted'
   entityType: 'solution' | 'activity' | 'evidence' | 'risk' | 'decision' | 'metric' | 'change' | 'team' | 'gate'
   entityId: string
   entityName: string

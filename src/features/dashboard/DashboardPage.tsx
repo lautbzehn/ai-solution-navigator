@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { ArrowRight, Ban, CircleAlert, CircleCheck, FlaskConical, FolderKanban, Scale, TrendingUp } from 'lucide-react'
+import { ArrowRight, Ban, CircleAlert, CircleCheck, FolderKanban, Scale, TrendingUp } from 'lucide-react'
 import { AreaTrend, BarCompare, Donut } from '@/components/charts/Charts'
 import { KpiCard } from '@/components/charts/KpiCard'
 import { MiniLifecycle } from '@/components/lifecycle/LifecycleRail'
@@ -21,13 +21,11 @@ import { FavoriteStar } from '@/components/FavoriteStar'
 import { useStore } from '@/data/store'
 import { RISK_TIER } from '@/domain/labels'
 import { readinessDistribution, readinessTrend, riskDistribution, stageCompletion, stageDistribution, summarize } from '@/domain/portfolio'
-import { needsAttention } from '@/domain/status'
 import { cn } from '@/lib/cn'
-import { ProofFunnelPanel, proofHeadline } from './ProofFunnelPanel'
 import { money, pluralize } from '@/lib/format'
 
 const RISK_COLORS = { low: 'var(--fg-faint)', moderate: 'var(--warning)', high: 'var(--danger)' }
-const SECTIONS = ['attention', 'proof', 'solutions', 'progress', 'risk-value'] as const
+const SECTIONS = ['attention', 'solutions', 'progress', 'risk-value'] as const
 
 export function DashboardPage() {
   const items = usePortfolio()
@@ -46,7 +44,7 @@ export function DashboardPage() {
   const completion = useMemo(() => stageCompletion(items), [items])
 
   const attention = items
-    .filter((i) => needsAttention(i.health.status))
+    .filter((i) => i.health.status !== 'on_track')
     .sort((a, b) => (a.health.status === 'blocked' ? -1 : 1) - (b.health.status === 'blocked' ? -1 : 1))
   const fourWeeksAgo = trend.length > 4 ? trend[trend.length - 5].readiness : undefined
   const delta = fourWeeksAgo !== undefined ? summary.avgReadiness - fourWeeksAgo : undefined
@@ -98,7 +96,7 @@ export function DashboardPage() {
         <KpiCard
           label="Active solutions"
           value={summary.total}
-          sub={`${summary.production} in production · ${summary.total - summary.production} in flight${summary.stopped ? ` · ${summary.stopped} stopped early` : ''}`}
+          sub={`${summary.production} in production · ${summary.total - summary.production} in flight`}
           to="/solutions"
           footer={<StageStrip stages={stages} />}
         />
@@ -168,15 +166,6 @@ export function DashboardPage() {
               ))}
             </ul>
           )}
-        </Section>
-
-        <Section
-          {...sections.bind('proof')} hue="violet"
-          icon={<FlaskConical />}
-          title="Proof of concept funnel"
-          summary={proofHeadline(items)}
-        >
-          <ProofFunnelPanel items={items} />
         </Section>
 
         <Section

@@ -6,11 +6,11 @@ import type { StageId } from '@/domain/types'
 import { cn } from '@/lib/cn'
 
 /* The whole methodology in one left-to-right picture, so people always know the
-   path: three phases, five stages, a gate between each (the Proof gate stands
-   out), governance running underneath, and material changes looping back.
-   Selecting a stage inspects it in the Stages and gates section below. */
+   path: three phases, eight stages, a gate between each, governance running
+   underneath, and live solutions looping back to improve. Selecting a stage
+   inspects it in the Stages and gates section below. */
 
-const GAP = 40 // px between stages, where the gates sit
+const GAP = 28 // px between stages, where the gates sit
 
 export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSelect: (s: StageId) => void }) {
   const col = (id: StageId) => STAGES.findIndex((s) => s.id === id)
@@ -19,12 +19,12 @@ export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSel
       <CardHeader
         icon={<Workflow />}
         title="How every AI solution moves"
-        subtitle="Five stages, left to right. Frame and Prove test an idea small, and nothing gets build money until the Proof gate says scale. Every gate can also park or stop a project, and stopping early is a good outcome."
+        subtitle="Eight stages, left to right. Each ends in a gate that must be met before moving on. Governance runs the whole way, and live solutions loop back as they improve."
       />
       <div className="overflow-x-auto px-5 pb-5">
-        <div className="min-w-[720px]" role="group" aria-label="The lifecycle, in order">
+        <div className="min-w-[960px]" role="group" aria-label="The lifecycle, in order">
           {/* Phases */}
-          <div className="mb-2 grid" style={{ columnGap: GAP, gridTemplateColumns: `repeat(${STAGES.length}, minmax(0, 1fr))` }}>
+          <div className="mb-2 grid grid-cols-8" style={{ columnGap: GAP }}>
             {PHASES.map((p) => (
               <div key={p.id} style={{ gridColumn: `${col(p.stages[0]) + 1} / span ${p.stages.length}` }} className="text-center">
                 <p className="text-[11px] font-semibold tracking-[0.08em] text-fg-muted uppercase">{p.name}</p>
@@ -35,7 +35,7 @@ export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSel
           </div>
 
           {/* Stages, with a gate between each */}
-          <ol className="grid" style={{ columnGap: GAP, gridTemplateColumns: `repeat(${STAGES.length}, minmax(0, 1fr))` }}>
+          <ol className="grid grid-cols-8" style={{ columnGap: GAP }}>
             {STAGES.map((s, i) => {
               const on = s.id === selected
               const gate = gateFor(s.id)
@@ -55,7 +55,6 @@ export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSel
                     <span className="mt-2 text-[13px] leading-tight font-semibold text-fg">{s.name}</span>
                     <span className="mt-1 text-[12px] leading-snug text-fg-subtle">{s.tagline}</span>
                     <span className="mt-auto pt-2 text-[11px] text-fg-faint tabular">~{s.typicalDays} days</span>
-                    {gate && <span className={cn('mt-1 text-[11px] font-medium', s.id === 'prove' ? 'text-accent-fg' : 'text-fg-subtle')}>{i < STAGES.length - 1 ? `Ends in: ${gate.name}` : gate.name}</span>}
                   </button>
                   {i < STAGES.length - 1 && (
                     <span className="pointer-events-none absolute top-1/2 left-full flex -translate-y-1/2 items-center" style={{ width: GAP }} aria-hidden>
@@ -68,8 +67,8 @@ export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSel
                       <span
                         role="img"
                         aria-label={`${gate.name} between ${s.name} and ${STAGES[i + 1].name}`}
-                        className={cn('absolute top-1/2 z-[1] -translate-y-1/2 rotate-45 rounded-[3px] ring-2', s.id === 'prove' ? 'size-4 bg-accent ring-accent' : 'size-3 bg-surface ring-[var(--hue-blue)]')}
-                        style={{ left: `calc(100% + ${GAP / 2 - (s.id === 'prove' ? 8 : 6)}px)` }}
+                        className="absolute top-1/2 z-[1] size-3 -translate-y-1/2 rotate-45 rounded-[3px] bg-surface ring-2 ring-[var(--hue-blue)]"
+                        style={{ left: `calc(100% + ${GAP / 2 - 6}px)` }}
                       />
                     </Tip>
                   )}
@@ -78,11 +77,11 @@ export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSel
             })}
           </ol>
 
-          {/* The change loop: a material change in Run goes back to Prove or Build */}
+          {/* The improvement loop: Improve / Retire feeds the next round */}
           <div className="relative mt-1 h-10" aria-hidden>
-            <div className="absolute top-0 h-5 rounded-b-xl border-x-2 border-b-2 border-dashed border-[color-mix(in_oklch,var(--hue-lime)_55%,transparent)]" style={{ left: `calc(300% / ${STAGES.length * 2})`, right: `calc(100% / ${STAGES.length * 2})` }} />
-            <ArrowUp className="absolute -top-1 size-3.5 -translate-x-1/2 text-[var(--hue-lime)]" style={{ left: `calc(300% / ${STAGES.length * 2})` }} strokeWidth={2.5} />
-            <p className="absolute top-2.5 left-[60%] -translate-x-1/2 rounded-full bg-surface px-2.5 text-[11.5px] whitespace-nowrap text-fg-subtle">A material change (new model, data, audience, or autonomy) loops back to Prove or Build</p>
+            <div className="absolute top-0 h-5 rounded-b-xl border-x-2 border-b-2 border-dashed border-[color-mix(in_oklch,var(--hue-lime)_55%,transparent)]" style={{ left: `calc(100% / 16)`, right: `calc(100% / 16)` }} />
+            <ArrowUp className="absolute -top-1 size-3.5 -translate-x-1/2 text-[var(--hue-lime)]" style={{ left: `calc(100% / 16)` }} strokeWidth={2.5} />
+            <p className="absolute top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-surface px-2.5 text-[11.5px] whitespace-nowrap text-fg-subtle">Live solutions loop back: improvements and changes re-enter the lifecycle</p>
           </div>
 
           {/* Governance runs underneath everything */}
@@ -92,6 +91,10 @@ export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSel
               <b className="font-semibold text-fg">Governance runs across every stage:</b> the risk tier sets the rigor, evidence proves the work, decisions are recorded, and changes are re-checked.
             </span>
           </div>
+          <p className="text-[11.5px] leading-relaxed text-fg-subtle">
+            <b className="font-semibold text-fg-muted">Grounded in recognized practice:</b> the AI system life cycle in ISO/IEC 22989, the NIST AI Risk Management Framework, and
+            Stage-Gate, where every stage ends in a decision a person makes.
+          </p>
         </div>
       </div>
       <p className="px-5 pb-4 text-[11.5px] text-fg-faint md:hidden">Scroll sideways to see every stage.</p>

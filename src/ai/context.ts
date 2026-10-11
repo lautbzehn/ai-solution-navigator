@@ -4,9 +4,8 @@ import { gateLabel } from '@/domain/gates'
 import type { SolutionInsight } from '@/domain/insight'
 import { ACTIVITY_STATUS, DECISION_OUTCOME, EVIDENCE_STATUS, LIKELIHOOD, RISK_CATEGORY, RISK_STATUS, SEVERITY } from '@/domain/labels'
 import { METRIC_HEALTH_LABEL, metricHealth } from '@/domain/metrics'
-import { adoptionRows, aiPerformanceRows, bottlenecks, pocFunnel, type implementationPerformance } from '@/domain/reports'
+import { adoptionRows, aiPerformanceRows, bottlenecks, type implementationPerformance } from '@/domain/reports'
 import { sortUnmet } from '@/domain/nextAction'
-import { MAX_PROOF_ATTEMPTS, proveClock, SCALE_BAND, scalePotential } from '@/domain/proof'
 import type { Person } from '@/domain/types'
 import type { PortfolioContext, SolutionContext } from './types'
 
@@ -23,7 +22,7 @@ export function buildSolutionContext(insight: SolutionInsight, people: Person[],
     const roles = solution.team.filter((m) => m.personId === id).map((m) => roleName(m.roleId))
     return roles.length ? `${name(id)} (${roles.join(', ')})` : name(id)
   }
-  const visit = solution.stageHistory.findLast((v) => v.stage === solution.stage)
+  const visit = solution.stageHistory.find((v) => v.stage === solution.stage && !v.exitedAt)
   const cur = stageOrder(solution.stage)
   const focus = bundle.activities.filter((a) => stageOrder(a.stage) === cur || stageOrder(a.stage) === cur + 1 || (a.status === 'blocked'))
 
@@ -43,12 +42,10 @@ export function buildSolutionContext(insight: SolutionInsight, people: Person[],
       targetUsers: solution.targetUsers,
       expectedAnnualValueUsd: solution.expectedValue,
       realizedAnnualValueUsd: solution.realizedValue,
-      daysInStage: visit ? Math.round(((visit.exitedAt ? new Date(visit.exitedAt).getTime() : now) - new Date(visit.enteredAt).getTime()) / DAY) : 0,
+      daysInStage: visit ? Math.round((now - new Date(visit.enteredAt).getTime()) / DAY) : 0,
       typicalDaysInStage: stageDef(solution.stage).typicalDays,
     },
     health: { status: health.status, reasons: health.reasons },
-    lifecycleState: { state: solution.state ?? 'active', reason: solution.stateReason ?? null },
-    proof: proofContext(insight, now),
     readiness: {
       overall: readiness.overall,
       expectedForStage: readiness.expected,
@@ -99,10 +96,8 @@ export function buildSolutionContext(insight: SolutionInsight, people: Person[],
 export function buildPortfolioContext(items: SolutionInsight[], insights: string[], perf?: ReturnType<typeof implementationPerformance>, people: Person[] = []): PortfolioContext {
   const name = (id?: string) => (id ? people.find((p) => p.id === id)?.name ?? 'Unassigned' : 'Unassigned')
   const sev = ['critical', 'high', 'medium', 'low']
-  const f = pocFunnel(items)
   return {
     kind: 'portfolio',
-    proofFunnel: { steps: f.steps.map((x) => ({ label: x.label, count: x.count })), provingNow: f.provingNow, pastTimebox: f.overdueProofs, stoppedEarly: f.stoppedEarly, killRatePct: f.killRate ?? null, medianDaysToStop: f.medianDaysToStop ?? null },
     solutions: items.map((i) => ({
       id: i.bundle.solution.id,
       name: i.bundle.solution.name,
@@ -135,20 +130,5 @@ export function buildPortfolioContext(items: SolutionInsight[], insights: string
       row.cells.filter((m) => m && m.current !== undefined).map((m) => ({ solution: row.solution.name, name: m!.name, current: m!.current ?? null, target: m!.target ?? null, unit: m!.unit, health: METRIC_HEALTH_LABEL[metricHealth(m!).status] })),
     ),
     adoption: adoptionRows(items).map((r) => ({ solution: r.solution.name, adoptionRatePct: r.rate ?? null, activeUsers: r.active ?? null, eligibleUsers: r.eligible ?? null })),
-  }
-}
-
-function proofContext({ bundle }: SolutionInsight, now: number): SolutionContext['proof'] {
-  const { solution } = bundle
-  const c = solution.charter
-  if (!c) return null
-  const r = solution.proof ?? {}
-  const clock = proveClock(solution, now)
-  const sp = scalePotential(bundle)
-  return {
-    charter: { hypothesis: c.hypothesis, timeboxWeeks: c.timeboxWeeks, budgetUsd: c.budget, pilotUserCap: c.pilotUserCap, qualityTargetPct: c.qualityTarget, goldenSetSize: c.goldenSetSize, valueTargetPct: c.valueTarget, costCeilingPctOfValue: c.costCeilingPct, attempt: c.iteration, maxAttempts: MAX_PROOF_ATTEMPTS },
-    results: { qualityPct: r.quality ?? null, valueImprovementPct: r.value ?? null, annualRunCostUsd: r.annualRunCost ?? null, pilotUsers: r.pilotUsers ?? null, pilotAdoptionPct: r.pilotAdoption ?? null },
-    timebox: clock ? { day: clock.elapsedDays, of: clock.totalDays, overdue: clock.overdue } : null,
-    scalePotential: { score: sp.score, band: SCALE_BAND[sp.band].label, factors: sp.factors.map((x) => ({ label: x.label, points: x.points, weight: x.weight, detail: x.detail })) },
   }
 }

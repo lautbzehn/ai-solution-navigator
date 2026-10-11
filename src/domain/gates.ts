@@ -1,7 +1,6 @@
 import { gateFor, isFinalStage, nextStage, roleName, stageDef } from '@/config'
 import { evidenceForActivity, type SolutionBundle } from './db'
-import { proofCheck } from './proof'
-import type { ActivityStatus, EvidenceStatus, GateDef, GateOutcome, ProofCheck, StageId } from './types'
+import type { ActivityStatus, EvidenceStatus, GateDef, StageId } from './types'
 
 /* Gate validation
    ---------------
@@ -9,13 +8,10 @@ import type { ActivityStatus, EvidenceStatus, GateDef, GateOutcome, ProofCheck, 
    · every blocking activity instantiated for that stage (blocking is set per
      risk tier in lifecycle.json — higher risk ⇒ more blocking controls), each
      of which also needs approved evidence when evidence is expected, and
-   · the gate's explicit criteria (fields, roles, metrics, risk rules, and the
-     PoC charter and results at the Frame and Proof gates).
-   The UI never just disables a button: every unmet criterion says why.
-   Only an active solution can advance; a parked or stopped one keeps its
-   gate visible but cannot move. */
+   · the gate's explicit criteria (fields, roles, metrics, risk rules).
+   The UI never just disables a button: every unmet criterion says why. */
 
-export type CriterionKind = 'activity' | 'field' | 'role' | 'metrics' | 'risks' | 'proof'
+export type CriterionKind = 'activity' | 'field' | 'role' | 'metrics' | 'risks'
 
 export interface CriterionResult {
   id: string
@@ -32,10 +28,6 @@ export interface CriterionResult {
   evidenceStatus?: EvidenceStatus
   dueDate?: string
   priority?: 'high' | 'medium' | 'low'
-  /** Which part of the PoC a proof criterion checks. */
-  check?: ProofCheck
-  /** For proof criteria: whether the result has been recorded yet. */
-  measured?: boolean
 }
 
 export interface GateResult {
@@ -46,10 +38,6 @@ export interface GateResult {
   unmet: CriterionResult[]
   canAdvance: boolean
   isFinal: boolean
-  /** False when the solution is parked, stopped, or retired. */
-  active: boolean
-  /** What this gate's decision may do (advance, iterate, park, stop...). */
-  outcomes: GateOutcome[]
 }
 
 const ACT_WORD: Record<ActivityStatus, string> = {
@@ -148,27 +136,19 @@ export function evaluateGate(bundle: SolutionBundle, stage: StageId = bundle.sol
         })
         break
       }
-      case 'proof': {
-        const r = proofCheck(solution, c.check)
-        criteria.push({ id: c.id, kind: 'proof', label: c.label, description: c.description, met: r.met, detail: r.detail, check: c.check, measured: r.measured, priority: 'high' })
-        break
-      }
     }
   }
 
   const unmet = criteria.filter((c) => !c.met)
   const isFinal = isFinalStage(stage)
-  const active = (solution.state ?? 'active') === 'active'
   return {
     stage,
     nextStage: nextStage(stage),
     gate,
     criteria,
     unmet,
-    canAdvance: active && !isFinal && unmet.length === 0,
+    canAdvance: !isFinal && unmet.length === 0,
     isFinal,
-    active,
-    outcomes: gate?.outcomes ?? [],
   }
 }
 

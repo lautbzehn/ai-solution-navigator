@@ -6,7 +6,6 @@ import type {
   DecisionOutcome,
   DecisionType,
   EvidenceStatus,
-  GateOutcome,
   Likelihood,
   MetricCategory,
   MetricMeasurement,
@@ -63,27 +62,6 @@ export const DECISION_OUTCOME: Record<DecisionOutcome, string> = {
   approved_with_conditions: 'Approved with conditions',
   rejected: 'Rejected',
   deferred: 'Deferred',
-  iterate: 'Iterate',
-  pivot: 'Pivot',
-  roll_back: 'Rolled back',
-  park: 'Parked',
-  stop: 'Stopped',
-  sustain: 'Keep running',
-  retire: 'Retired',
-}
-/** Outcomes a person can pick for an ordinary (non-gate) decision. */
-export const MANUAL_DECISION_OUTCOMES: DecisionOutcome[] = ['pending', 'approved', 'approved_with_conditions', 'rejected', 'deferred']
-
-/** How each gate outcome reads in the decision picker. `advance` takes its words from the gate. */
-export const GATE_OUTCOME: Record<GateOutcome, { label: string; hint: string }> = {
-  advance: { label: 'Advance', hint: 'Every requirement is met. Move to the next stage.' },
-  iterate: { label: 'Iterate', hint: 'Run one more proof with a new charter. Allowed twice.' },
-  pivot: { label: 'Pivot', hint: 'Go back to Frame and rethink the problem or approach, keeping what was learned.' },
-  roll_back: { label: 'Roll back', hint: 'Pull it back to Build to fix what the pilot found.' },
-  park: { label: 'Park', hint: 'Pause with progress kept, for a reason outside the team. Resume any time.' },
-  stop: { label: 'Stop', hint: 'Close it and keep the lesson. Stopping early is a good outcome.' },
-  sustain: { label: 'Keep running', hint: 'Keep investing, or fix what slipped. Note which in the rationale.' },
-  retire: { label: 'Retire', hint: 'Switch it off responsibly and keep its history.' },
 }
 export const DECISION_TYPE: Record<DecisionType, string> = {
   gate: 'Gate',

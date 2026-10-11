@@ -7,8 +7,8 @@ import type { ActivityStatus, EvidenceStatus, RiskTier, Severity, StageId } from
 import { Pill, type Tone } from './ui/Pill'
 import { cn } from '@/lib/cn'
 
-export const HEALTH_TONE: Record<HealthStatus, Tone> = { on_track: 'success', at_risk: 'warning', blocked: 'danger', parked: 'info', stopped: 'muted', retired: 'muted' }
-export const HEALTH_LABEL: Record<HealthStatus, string> = { on_track: 'On Track', at_risk: 'At Risk', blocked: 'Blocked', parked: 'Parked', stopped: 'Stopped', retired: 'Retired' }
+export const HEALTH_TONE: Record<HealthStatus, Tone> = { on_track: 'success', at_risk: 'warning', blocked: 'danger' }
+export const HEALTH_LABEL: Record<HealthStatus, string> = { on_track: 'On Track', at_risk: 'At Risk', blocked: 'Blocked' }
 
 export const RISK_TONE: Record<RiskTier, Tone> = { low: 'neutral', moderate: 'warning', high: 'danger' }
 export const SEVERITY_TONE: Record<Severity, Tone> = { low: 'neutral', medium: 'warning', high: 'danger', critical: 'danger' }

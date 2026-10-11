@@ -77,15 +77,6 @@ export interface SolutionContext {
     typicalDaysInStage: number
   }
   health: { status: string; reasons: string[] }
-  /** Active, parked, stopped, or retired, and why. */
-  lifecycleState: { state: string; reason: string | null }
-  /** The proof of concept, read against the charter the sponsor agreed to. Null before a charter exists. */
-  proof: {
-    charter: { hypothesis: string; timeboxWeeks: number; budgetUsd: number; pilotUserCap: number; qualityTargetPct: number; goldenSetSize: number; valueTargetPct: number; costCeilingPctOfValue: number; attempt: number; maxAttempts: number }
-    results: { qualityPct: number | null; valueImprovementPct: number | null; annualRunCostUsd: number | null; pilotUsers: number | null; pilotAdoptionPct: number | null }
-    timebox: { day: number; of: number; overdue: boolean } | null
-    scalePotential: { score: number; band: string; factors: { label: string; points: number; weight: number; detail: string }[] }
-  } | null
   readiness: {
     overall: number
     expectedForStage: number
@@ -111,8 +102,6 @@ export interface SolutionContext {
 
 export interface PortfolioContext {
   kind: 'portfolio'
-  /** How far ideas got, and how early the portfolio stops the ones that don't prove out. */
-  proofFunnel?: { steps: { label: string; count: number }[]; provingNow: number; pastTimebox: number; stoppedEarly: number; killRatePct: number | null; medianDaysToStop: number | null }
   solutions: { id: string; name: string; stage: string; riskTier: string; readiness: number; expected: number; status: string; statusReasons: string[]; nextBestAction: string; openGateRequirements: number; expectedValueUsd: number; realizedValueUsd: number }[]
   insights: string[]
   /** Open and mitigating risks across the portfolio, most severe first. */

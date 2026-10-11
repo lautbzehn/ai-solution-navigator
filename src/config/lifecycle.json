@@ -1,79 +1,83 @@
 {
-  "version": "2.0.0",
-  "name": "AI Delivery Lifecycle",
+  "version": "1.1.0",
+  "name": "Enterprise AI Implementation Lifecycle",
   "phases": [
-    {
-      "id": "explore",
-      "name": "Explore",
-      "summary": "Prove it small before betting big",
-      "stages": [
-        "frame",
-        "prove"
-      ]
-    },
-    {
-      "id": "deliver",
-      "name": "Deliver",
-      "summary": "Build it, then release it carefully",
-      "stages": [
-        "build",
-        "launch"
-      ]
-    },
-    {
-      "id": "run",
-      "name": "Run",
-      "summary": "Measure it and decide its future",
-      "stages": [
-        "run"
-      ]
-    }
+    { "id": "plan", "name": "Plan", "summary": "Is it worth doing, and what exactly?", "stages": ["discover", "assess", "design"] },
+    { "id": "deliver", "name": "Deliver", "summary": "Build it, prove it, release it", "stages": ["build", "validate", "deploy"] },
+    { "id": "run", "name": "Run", "summary": "Operate, learn, and improve", "stages": ["operate", "improve"] }
   ],
   "stages": [
     {
-      "id": "frame",
-      "name": "Frame",
-      "tagline": "Is it worth testing?",
-      "purpose": "Frame the problem, the outcome and today's baseline, screen the risk, and agree the rules of a small proof of concept before anyone builds anything.",
-      "keyQuestion": "Is this a problem worth testing with AI?",
-      "expectedReadiness": 5,
-      "typicalDays": 10
+      "id": "discover",
+      "name": "Discover",
+      "tagline": "Frame the opportunity",
+      "purpose": "Frame the opportunity. Confirm the problem is real, valuable, and that AI is plausibly the right tool.",
+      "keyQuestion": "Is this a problem worth solving with AI?",
+      "expectedReadiness": 10,
+      "typicalDays": 14
     },
     {
-      "id": "prove",
-      "name": "Prove",
-      "tagline": "Prove it small",
-      "purpose": "Run a time-boxed proof of concept on real data with capped users, then decide with evidence whether to scale, iterate, pivot, or stop.",
-      "keyQuestion": "Does it work, and is it worth scaling?",
+      "id": "assess",
+      "name": "Assess",
+      "tagline": "Test feasibility and value",
+      "purpose": "Evaluate feasibility, data, risk, and value before committing to a design.",
+      "keyQuestion": "Can we do this responsibly, and is it worth it?",
       "expectedReadiness": 25,
-      "typicalDays": 28
+      "typicalDays": 21
+    },
+    {
+      "id": "design",
+      "name": "Design",
+      "tagline": "Define it and how to judge it",
+      "purpose": "Define the solution, how it will be evaluated, how humans stay in control, and how success is measured.",
+      "keyQuestion": "What exactly are we building, and how will we know it works?",
+      "expectedReadiness": 40,
+      "typicalDays": 21
     },
     {
       "id": "build",
       "name": "Build",
-      "tagline": "Build it for real",
-      "purpose": "Design and build the production version with evaluation running on every change, and put in place the controls the risk tier needs.",
-      "keyQuestion": "Is it ready for real users?",
-      "expectedReadiness": 50,
-      "typicalDays": 49
+      "tagline": "Build a traceable version",
+      "purpose": "Build a working solution with versioned configuration, a test plan, and documented limitations.",
+      "keyQuestion": "Does a working, traceable version exist?",
+      "expectedReadiness": 55,
+      "typicalDays": 35
     },
     {
-      "id": "launch",
-      "name": "Launch",
-      "tagline": "Release it carefully",
-      "purpose": "Release to a pilot cohort with support, training and live monitoring, prove it holds up, then expand.",
-      "keyQuestion": "Does it hold up with real users?",
-      "expectedReadiness": 75,
-      "typicalDays": 28
+      "id": "validate",
+      "name": "Validate",
+      "tagline": "Prove it works, safely",
+      "purpose": "Prove the solution performs, is safe enough to operate, and is accepted by the business.",
+      "keyQuestion": "Is the evidence strong enough to put this in front of real users?",
+      "expectedReadiness": 70,
+      "typicalDays": 21
     },
     {
-      "id": "run",
-      "name": "Run",
-      "tagline": "Run it and decide",
-      "purpose": "Run it, watch quality, drift, cost and incidents, measure value, and decide every quarter whether to keep investing, fix it, or retire it.",
-      "keyQuestion": "Is it still working and worth it?",
-      "expectedReadiness": 85,
+      "id": "deploy",
+      "name": "Deploy",
+      "tagline": "Go live with support",
+      "purpose": "Release to production with support, training, rollback, and monitoring in place.",
+      "keyQuestion": "Are people, process, and monitoring ready for go-live?",
+      "expectedReadiness": 82,
+      "typicalDays": 14
+    },
+    {
+      "id": "operate",
+      "name": "Operate",
+      "tagline": "Run, watch, and measure",
+      "purpose": "Run the solution, watch for drift and incidents, and measure adoption and realized value.",
+      "keyQuestion": "Is it working, being used, and delivering value?",
+      "expectedReadiness": 88,
       "typicalDays": 90
+    },
+    {
+      "id": "improve",
+      "name": "Improve / Retire",
+      "tagline": "Improve or retire",
+      "purpose": "Continuously improve the solution, re-assess risk after changes, or retire it responsibly.",
+      "keyQuestion": "Should we invest further, change course, or retire?",
+      "expectedReadiness": 90,
+      "typicalDays": 60
     }
   ],
   "riskTiers": [
@@ -82,21 +86,21 @@
       "name": "Low",
       "summary": "Low-impact internal assistance.",
       "description": "Internal productivity assistance with a human always in the loop, non-sensitive data, and limited blast radius if the AI is wrong.",
-      "rigor": "Core controls plus the PoC charter and the Proof gate."
+      "rigor": "Core lifecycle controls only."
     },
     {
       "id": "moderate",
       "name": "Moderate",
       "summary": "Business-critical workflow or material business impact.",
       "description": "Supports a business-critical workflow, touches customer data, or influences outcomes with material business impact. A human remains accountable for the final action.",
-      "rigor": "Adds a privacy screen, a PoC security check, human oversight validation, a security and privacy review, monitoring and rollback plans, and a quarterly risk review."
+      "rigor": "Adds human oversight validation, security and privacy reviews, monitoring plan, and rollback planning."
     },
     {
       "id": "high",
       "name": "High",
       "summary": "Consequential decisions, sensitive data, high autonomy, or significant exposure.",
       "description": "Makes or heavily shapes consequential decisions, acts with autonomy, uses sensitive or regulated data, or carries safety, regulatory, or significant reputational exposure.",
-      "rigor": "Adds autonomy boundaries, a red-team smoke test during the PoC, adversarial and bias testing, verified override controls, executive residual-risk acceptance, board approval before full rollout, and an annual independent review."
+      "rigor": "Adds autonomy boundaries, implemented override controls, adversarial and bias testing, executive residual-risk acceptance, and governance board deployment approval."
     }
   ],
   "readinessDimensions": [
@@ -144,1502 +148,189 @@
     }
   ],
   "roles": [
-    {
-      "id": "executive_sponsor",
-      "name": "Executive Sponsor",
-      "responsibilities": "Owns the business case, removes obstacles, and accepts residual risk."
-    },
-    {
-      "id": "product_manager",
-      "name": "Product Manager",
-      "responsibilities": "Orchestrates the lifecycle, owns scope, priorities, and gate readiness."
-    },
-    {
-      "id": "business_owner",
-      "name": "Business Owner",
-      "responsibilities": "Owns the target workflow and accepts the solution through UAT."
-    },
-    {
-      "id": "solution_architect",
-      "name": "AI / Solution Architect",
-      "responsibilities": "Owns the solution design, model and pattern choices, and known limitations."
-    },
-    {
-      "id": "engineering",
-      "name": "Engineering",
-      "responsibilities": "Builds, integrates, versions, and hardens the solution."
-    },
-    {
-      "id": "data_owner",
-      "name": "Data Owner",
-      "responsibilities": "Validates data quality, rights to use, and lineage of knowledge sources."
-    },
-    {
-      "id": "ux_research",
-      "name": "UX / Research",
-      "responsibilities": "Researches users and designs the workflow, including review and override moments."
-    },
-    {
-      "id": "security",
-      "name": "Security",
-      "responsibilities": "Assesses security threats, prompt-injection exposure, and access controls."
-    },
-    {
-      "id": "privacy_legal",
-      "name": "Privacy / Legal",
-      "responsibilities": "Reviews personal data use, consent, and legal obligations."
-    },
-    {
-      "id": "qa_evaluation",
-      "name": "QA / Evaluation",
-      "responsibilities": "Defines evaluation criteria, runs test suites, and reports results."
-    },
-    {
-      "id": "operations",
-      "name": "Operations",
-      "responsibilities": "Prepares support, monitoring, incident response, and runbooks."
-    },
-    {
-      "id": "change_management",
-      "name": "Change Management",
-      "responsibilities": "Drives communications, training, and adoption."
-    },
-    {
-      "id": "governance_risk",
-      "name": "Governance / Risk",
-      "responsibilities": "Runs risk reviews and ensures governance requirements are evidenced."
-    },
-    {
-      "id": "finance",
-      "name": "Finance",
-      "responsibilities": "Validates the value hypothesis and measures realized value."
-    },
-    {
-      "id": "other",
-      "name": "Other / Unknown",
-      "responsibilities": "Stakeholder with an unclear but persistent interest."
-    }
+    { "id": "executive_sponsor", "name": "Executive Sponsor", "responsibilities": "Owns the business case, removes obstacles, and accepts residual risk." },
+    { "id": "product_manager", "name": "Product Manager", "responsibilities": "Orchestrates the lifecycle, owns scope, priorities, and gate readiness." },
+    { "id": "business_owner", "name": "Business Owner", "responsibilities": "Owns the target workflow and accepts the solution through UAT." },
+    { "id": "solution_architect", "name": "AI / Solution Architect", "responsibilities": "Owns the solution design, model and pattern choices, and known limitations." },
+    { "id": "engineering", "name": "Engineering", "responsibilities": "Builds, integrates, versions, and hardens the solution." },
+    { "id": "data_owner", "name": "Data Owner", "responsibilities": "Validates data quality, rights to use, and lineage of knowledge sources." },
+    { "id": "ux_research", "name": "UX / Research", "responsibilities": "Researches users and designs the workflow, including review and override moments." },
+    { "id": "security", "name": "Security", "responsibilities": "Assesses security threats, prompt-injection exposure, and access controls." },
+    { "id": "privacy_legal", "name": "Privacy / Legal", "responsibilities": "Reviews personal data use, consent, and legal obligations." },
+    { "id": "qa_evaluation", "name": "QA / Evaluation", "responsibilities": "Defines evaluation criteria, runs test suites, and reports results." },
+    { "id": "operations", "name": "Operations", "responsibilities": "Prepares support, monitoring, incident response, and runbooks." },
+    { "id": "change_management", "name": "Change Management", "responsibilities": "Drives communications, training, and adoption." },
+    { "id": "governance_risk", "name": "Governance / Risk", "responsibilities": "Runs risk reviews and ensures governance requirements are evidenced." },
+    { "id": "finance", "name": "Finance", "responsibilities": "Validates the value hypothesis and measures realized value." },
+    { "id": "other", "name": "Other / Unknown", "responsibilities": "Stakeholder with an unclear but persistent interest." }
   ],
   "evidenceTemplates": [
-    {
-      "id": "ev_opportunity_brief",
-      "name": "AI Opportunity Brief",
-      "type": "Brief",
-      "description": "One page on the problem, the users, the outcome, today's baseline, and why AI."
-    },
-    {
-      "id": "ev_risk_screen",
-      "name": "Risk Screen",
-      "type": "Assessment",
-      "description": "Initial risk tier with its rationale and the first risks to watch."
-    },
-    {
-      "id": "ev_privacy_screen",
-      "name": "Privacy Screening",
-      "type": "Assessment",
-      "description": "Early screen for personal data, consent, and legal constraints."
-    },
-    {
-      "id": "ev_eval_plan",
-      "name": "Golden Set and Eval Plan",
-      "type": "Plan",
-      "description": "The golden cases, how answers are scored, and the pass thresholds."
-    },
-    {
-      "id": "ev_poc_demo",
-      "name": "PoC Demo",
-      "type": "Record",
-      "description": "A recorded run of the proof of concept on approved sample data."
-    },
-    {
-      "id": "ev_poc_eval",
-      "name": "PoC Eval Results",
-      "type": "Report",
-      "description": "Pass rate on the golden set against the charter threshold, with failure examples."
-    },
-    {
-      "id": "ev_value_signal",
-      "name": "Value Signal Report",
-      "type": "Report",
-      "description": "Measured effect on the key metric versus the baseline, from pilot users or a replay."
-    },
-    {
-      "id": "ev_unit_economics",
-      "name": "Unit Economics",
-      "type": "Business Case",
-      "description": "Cost per task and projected annual run cost at full scale, against expected value."
-    },
-    {
-      "id": "ev_data_assessment",
-      "name": "Data Assessment",
-      "type": "Assessment",
-      "description": "Production data sources, quality, access rights, sensitivity, and gaps."
-    },
-    {
-      "id": "ev_scale_plan",
-      "name": "Scale Recommendation",
-      "type": "Plan",
-      "description": "Scale, iterate, pivot or stop, with the build plan, team, and budget ask."
-    },
-    {
-      "id": "ev_redteam_smoke",
-      "name": "Red-Team Smoke Test",
-      "type": "Report",
-      "description": "A short misuse and failure probe of the PoC before any build money is spent."
-    },
-    {
-      "id": "ev_autonomy",
-      "name": "Autonomy & Decision Boundaries",
-      "type": "Design",
-      "description": "What the AI may do on its own, what needs a human, and the hard limits."
-    },
-    {
-      "id": "ev_solution_design",
-      "name": "Solution Design",
-      "type": "Design",
-      "description": "Architecture, model and pattern choices, data flow, and where humans review or override."
-    },
-    {
-      "id": "ev_working_solution",
-      "name": "Working Solution and Version Record",
-      "type": "Record",
-      "description": "A recorded end-to-end demo plus the model, prompt, retrieval, and parameter versions in use."
-    },
-    {
-      "id": "ev_eval_results",
-      "name": "Evaluation Results",
-      "type": "Report",
-      "description": "Results of the eval suite against its thresholds, run on every change."
-    },
-    {
-      "id": "ev_known_limits",
-      "name": "Known Limitations",
-      "type": "Record",
-      "description": "Documented failure modes and where the solution should not be used."
-    },
-    {
-      "id": "ev_uat",
-      "name": "UAT Sign-off",
-      "type": "Sign-off",
-      "description": "The business owner's acceptance for release to real users."
-    },
-    {
-      "id": "ev_risk_review",
-      "name": "Risk Review",
-      "type": "Report",
-      "description": "Pre-release review of the risk register and its mitigations."
-    },
-    {
-      "id": "ev_oversight_validation",
-      "name": "Human Oversight Validation",
-      "type": "Report",
-      "description": "Evidence that people can review, correct, and override AI output under real workload."
-    },
-    {
-      "id": "ev_security_review",
-      "name": "Security & Privacy Review",
-      "type": "Report",
-      "description": "Security assessment, prompt-injection testing, and privacy impact review."
-    },
-    {
-      "id": "ev_monitoring_plan",
-      "name": "Monitoring Plan",
-      "type": "Plan",
-      "description": "What will be watched in production, alert thresholds, owners, and how to roll back."
-    },
-    {
-      "id": "ev_redteam",
-      "name": "Adversarial Test Report",
-      "type": "Report",
-      "description": "Red-team, bias, and misuse findings and fixes."
-    },
-    {
-      "id": "ev_oversight_impl",
-      "name": "Override Controls Verification",
-      "type": "Record",
-      "description": "Proof that review, override, and kill-switch controls work as designed."
-    },
-    {
-      "id": "ev_residual_acceptance",
-      "name": "Residual Risk Acceptance",
-      "type": "Approval",
-      "description": "The executive sponsor's explicit acceptance of the remaining risk."
-    },
-    {
-      "id": "ev_runbook",
-      "name": "Support Runbook",
-      "type": "Runbook",
-      "description": "Support model, escalation paths, and known-issue handling."
-    },
-    {
-      "id": "ev_training_plan",
-      "name": "Training & Comms Plan",
-      "type": "Plan",
-      "description": "Training materials, communications, and rollout messaging."
-    },
-    {
-      "id": "ev_monitoring_live",
-      "name": "Monitoring Dashboard",
-      "type": "Record",
-      "description": "Live production monitoring with alerting switched on."
-    },
-    {
-      "id": "ev_pilot_eval",
-      "name": "Pilot Results",
-      "type": "Report",
-      "description": "Pilot cohort results against the eval bar and the adoption target."
-    },
-    {
-      "id": "ev_rollback",
-      "name": "Rollout & Rollback Plan",
-      "type": "Plan",
-      "description": "Who gets it when, and how to switch it off safely."
-    },
-    {
-      "id": "ev_board_approval",
-      "name": "Governance Board Approval",
-      "type": "Approval",
-      "description": "AI governance board approval for full rollout of a high-risk solution."
-    },
-    {
-      "id": "ev_monitoring_report",
-      "name": "Monitoring Report",
-      "type": "Report",
-      "description": "Periodic production quality, drift, cost, and incident report."
-    },
-    {
-      "id": "ev_periodic_eval",
-      "name": "Periodic Evaluation Report",
-      "type": "Report",
-      "description": "Scheduled re-evaluation, and re-evaluation after any model change."
-    },
-    {
-      "id": "ev_value_report",
-      "name": "Value Realization Report",
-      "type": "Report",
-      "description": "Realized value and adoption versus the value hypothesis."
-    },
-    {
-      "id": "ev_independent_review",
-      "name": "Independent Review",
-      "type": "Report",
-      "description": "Annual review by someone outside the team of a high-risk solution in production."
-    }
+    { "id": "ev_opportunity_brief", "name": "AI Opportunity Brief", "type": "Brief", "description": "One-page framing of the problem, users, outcome, and why AI." },
+    { "id": "ev_risk_assessment", "name": "Initial Risk Assessment", "type": "Assessment", "description": "Inherent risk tier with rationale and initial risk register." },
+    { "id": "ev_data_assessment", "name": "Data Assessment", "type": "Assessment", "description": "Data sources, quality, access rights, sensitivity, and gaps." },
+    { "id": "ev_feasibility", "name": "Feasibility Assessment", "type": "Assessment", "description": "Technical approach options, spike results, and constraints." },
+    { "id": "ev_value_hypothesis", "name": "Value Hypothesis", "type": "Business Case", "description": "Expected value, assumptions, and how it will be measured." },
+    { "id": "ev_privacy_screen", "name": "Privacy Screening", "type": "Assessment", "description": "Early screen for personal data, consent, and legal constraints." },
+    { "id": "ev_autonomy", "name": "Autonomy & Decision Boundaries", "type": "Design", "description": "What the AI may do on its own, what requires a human, and hard limits." },
+    { "id": "ev_solution_design", "name": "Solution Design", "type": "Design", "description": "Architecture, model/pattern selection, integrations, and data flow." },
+    { "id": "ev_eval_plan", "name": "Evaluation Plan", "type": "Plan", "description": "Evaluation criteria, datasets, thresholds, and acceptance bar." },
+    { "id": "ev_oversight_design", "name": "Human Oversight Design", "type": "Design", "description": "Where humans review, approve, or override AI output, and how." },
+    { "id": "ev_secpriv_design", "name": "Security & Privacy Considerations", "type": "Design", "description": "Threat model, data handling, and privacy-by-design decisions." },
+    { "id": "ev_ux_design", "name": "UX Design & Prototype", "type": "Design", "description": "Workflow integration and interaction design, tested with users." },
+    { "id": "ev_redteam_plan", "name": "Adversarial Test Plan", "type": "Plan", "description": "Planned red-team, bias, and misuse testing for higher-risk AI." },
+    { "id": "ev_working_solution", "name": "Working Solution Demo", "type": "Record", "description": "Recorded demonstration of the working solution end-to-end." },
+    { "id": "ev_config_record", "name": "Configuration & Version Record", "type": "Record", "description": "Model, prompt, retrieval, and parameter versions in use." },
+    { "id": "ev_test_plan", "name": "Test Plan", "type": "Plan", "description": "Functional, evaluation, and acceptance test approach." },
+    { "id": "ev_known_limits", "name": "Known Limitations", "type": "Record", "description": "Documented failure modes and where the solution should not be used." },
+    { "id": "ev_oversight_impl", "name": "Override Controls Verification", "type": "Record", "description": "Proof that review, override, and kill-switch controls work as designed." },
+    { "id": "ev_eval_results", "name": "Evaluation Results", "type": "Report", "description": "Results against the evaluation plan with pass/fail per criterion." },
+    { "id": "ev_oversight_validation", "name": "Human Oversight Validation", "type": "Report", "description": "Evidence that humans can review, correct, and override AI output in practice." },
+    { "id": "ev_uat", "name": "UAT Sign-off", "type": "Sign-off", "description": "Business owner acceptance of the solution for production use." },
+    { "id": "ev_risk_review", "name": "Risk Review", "type": "Report", "description": "Pre-production review of the risk register and mitigations." },
+    { "id": "ev_security_review", "name": "Security Review", "type": "Report", "description": "Security assessment results, including prompt-injection testing." },
+    { "id": "ev_privacy_review", "name": "Privacy Review", "type": "Report", "description": "Privacy impact review and required controls." },
+    { "id": "ev_residual_risk", "name": "Residual Risk Assessment", "type": "Assessment", "description": "Remaining risk after mitigation and recommendation to accept." },
+    { "id": "ev_residual_acceptance", "name": "Residual Risk Acceptance", "type": "Approval", "description": "Executive sponsor's explicit acceptance of residual risk." },
+    { "id": "ev_redteam", "name": "Adversarial Test Report", "type": "Report", "description": "Red-team, bias, and misuse test findings and fixes." },
+    { "id": "ev_prod_readiness", "name": "Production Readiness Checklist", "type": "Checklist", "description": "Operational, security, and support readiness checklist." },
+    { "id": "ev_monitoring_plan", "name": "Monitoring Plan", "type": "Plan", "description": "What will be monitored in production, thresholds, and owners." },
+    { "id": "ev_golive", "name": "Go-Live Approval", "type": "Approval", "description": "Recorded approval to release to production." },
+    { "id": "ev_board_approval", "name": "Governance Board Approval", "type": "Approval", "description": "AI governance board approval for high-risk deployment." },
+    { "id": "ev_runbook", "name": "Support Runbook", "type": "Runbook", "description": "Support model, escalation paths, and known-issue handling." },
+    { "id": "ev_training_plan", "name": "Training & Comms Plan", "type": "Plan", "description": "Training materials, communications, and rollout messaging." },
+    { "id": "ev_pilot_eval", "name": "Pilot Evaluation Report", "type": "Report", "description": "Production-scale results from the pilot cohort versus the evaluation bar." },
+    { "id": "ev_monitoring_live", "name": "Monitoring Dashboard", "type": "Record", "description": "Live production monitoring with alerting configured." },
+    { "id": "ev_rollback", "name": "Rollback Plan", "type": "Plan", "description": "How to disable or roll back the AI safely." },
+    { "id": "ev_monitoring_report", "name": "Monitoring Report", "type": "Report", "description": "Periodic production performance and drift report." },
+    { "id": "ev_incident_process", "name": "Incident Management Process", "type": "Runbook", "description": "How AI incidents are detected, triaged, and resolved." },
+    { "id": "ev_periodic_eval", "name": "Periodic Evaluation Report", "type": "Report", "description": "Scheduled re-evaluation against the original criteria." },
+    { "id": "ev_value_report", "name": "Value Realization Report", "type": "Report", "description": "Realized value versus the value hypothesis." },
+    { "id": "ev_pir", "name": "Post-Implementation Review", "type": "Report", "description": "Lessons learned and improvement recommendations." }
   ],
   "activityTemplates": [
-    {
-      "id": "f_problem",
-      "stage": "frame",
-      "name": "Frame the problem and outcome",
-      "description": "Describe the problem in today's workflow, who it affects, and the measurable outcome you want.",
-      "why": "A clear problem and a measurable outcome keep the team from building a solution in search of a problem.",
-      "consequence": "Effort goes into a capability nobody asked for.",
-      "ownerRole": "product_manager",
-      "contributorRoles": [
-        "business_owner",
-        "executive_sponsor"
-      ],
-      "dimension": "product",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_opportunity_brief",
-      "priority": "high"
-    },
-    {
-      "id": "f_baseline",
-      "stage": "frame",
-      "name": "Capture today's baseline",
-      "description": "Measure how the workflow performs today on the metric you want to move.",
-      "why": "You can't prove an improvement without knowing where you started.",
-      "consequence": "The PoC's value signal has nothing to compare against.",
-      "ownerRole": "data_owner",
-      "contributorRoles": [
-        "business_owner"
-      ],
-      "dimension": "business_value",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": null,
-      "priority": "high"
-    },
-    {
-      "id": "f_why_ai",
-      "stage": "frame",
-      "name": "Explain why AI beats simpler options",
-      "description": "Say why AI is a better fit than rules, a process change, or existing tools.",
-      "why": "Prevents using AI where simpler, cheaper, more reliable options exist.",
-      "consequence": "Unneeded complexity and cost.",
-      "ownerRole": "solution_architect",
-      "contributorRoles": [
-        "product_manager"
-      ],
-      "dimension": "technical",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [],
-      "evidence": null,
-      "priority": "medium"
-    },
-    {
-      "id": "f_risk_screen",
-      "stage": "frame",
-      "name": "Screen the risk tier",
-      "description": "Set the initial risk tier with a short rationale and list the first risks to watch.",
-      "why": "The risk tier decides how much rigor every later stage needs.",
-      "consequence": "Controls are too heavy for a small idea, or too light for a risky one.",
-      "ownerRole": "governance_risk",
-      "contributorRoles": [
-        "product_manager"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_risk_screen",
-      "priority": "high"
-    },
-    {
-      "id": "f_data_check",
-      "stage": "frame",
-      "name": "Check that usable data exists",
-      "description": "Confirm a sample of the data the PoC needs exists and can be used for a test.",
-      "why": "No data, no proof. Finding out now costs a day; finding out in Build costs a quarter.",
-      "consequence": "The PoC stalls waiting for data.",
-      "ownerRole": "data_owner",
-      "contributorRoles": [
-        "solution_architect"
-      ],
-      "dimension": "technical",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": null,
-      "priority": "high"
-    },
-    {
-      "id": "f_privacy_screen",
-      "stage": "frame",
-      "name": "Screen privacy and legal constraints",
-      "description": "Check early for personal data, consent, and legal limits on the data and the use.",
-      "why": "Privacy issues found late can force a redesign or kill a project.",
-      "consequence": "Late-stage redesign or legal exposure.",
-      "ownerRole": "privacy_legal",
-      "contributorRoles": [
-        "data_owner"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "high"
-      ],
-      "evidence": "ev_privacy_screen",
-      "priority": "medium"
-    },
-    {
-      "id": "f_autonomy",
-      "stage": "frame",
-      "name": "Draft autonomy boundaries",
-      "description": "Sketch what the AI may do on its own and what always needs a person.",
-      "why": "Autonomy is the biggest driver of consequence; draw the line before testing it.",
-      "consequence": "The PoC tests a level of autonomy nobody would approve.",
-      "ownerRole": "solution_architect",
-      "contributorRoles": [
-        "governance_risk",
-        "business_owner"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "high"
-      ],
-      "blockingFor": [
-        "high"
-      ],
-      "evidence": null,
-      "priority": "high"
-    },
-    {
-      "id": "f_build_buy",
-      "stage": "frame",
-      "name": "Compare build, buy, and partner options",
-      "description": "Check whether a vendor or platform already does this well enough.",
-      "why": "Avoids rebuilding commodity capability.",
-      "consequence": "Possible overspend.",
-      "ownerRole": "solution_architect",
-      "contributorRoles": [
-        "finance"
-      ],
-      "dimension": "technical",
-      "requiredFor": [],
-      "blockingFor": [],
-      "evidence": null,
-      "priority": "low"
-    },
-    {
-      "id": "p_golden_set",
-      "stage": "prove",
-      "name": "Build the golden eval set",
-      "description": "Collect real cases with known good answers and agree how answers are scored.",
-      "why": "Writing the eval before the build is what makes the PoC result believable.",
-      "consequence": "Success gets defined after the fact, and every PoC seems to work.",
-      "ownerRole": "qa_evaluation",
-      "contributorRoles": [
-        "business_owner",
-        "data_owner"
-      ],
-      "dimension": "ai_evaluation",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_eval_plan",
-      "priority": "high"
-    },
-    {
-      "id": "p_prototype",
-      "stage": "prove",
-      "name": "Build the PoC on sample data",
-      "description": "Build the smallest version that can answer the hypothesis, on approved sample data, with no production writes.",
-      "why": "A sandboxed PoC tests the idea without risking real systems or customers.",
-      "consequence": "Too much is built before anyone knows it works.",
-      "ownerRole": "engineering",
-      "contributorRoles": [
-        "solution_architect"
-      ],
-      "dimension": "technical",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_poc_demo",
-      "priority": "high"
-    },
-    {
-      "id": "p_eval_run",
-      "stage": "prove",
-      "name": "Run the eval and record results",
-      "description": "Run the PoC against the golden set and record the pass rate and failure examples.",
-      "why": "This is the quality half of the Proof gate.",
-      "consequence": "Scale decisions rest on demos instead of measured quality.",
-      "ownerRole": "qa_evaluation",
-      "contributorRoles": [],
-      "dimension": "ai_evaluation",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_poc_eval",
-      "priority": "high"
-    },
-    {
-      "id": "p_value_signal",
-      "stage": "prove",
-      "name": "Measure the value signal",
-      "description": "Measure the effect on the key metric with capped pilot users or a replay of real work.",
-      "why": "A model that works but saves nothing is not worth scaling.",
-      "consequence": "Build money goes to something that won't pay back.",
-      "ownerRole": "business_owner",
-      "contributorRoles": [
-        "product_manager",
-        "ux_research"
-      ],
-      "dimension": "business_value",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_value_signal",
-      "priority": "high"
-    },
-    {
-      "id": "p_unit_economics",
-      "stage": "prove",
-      "name": "Estimate the cost to run at scale",
-      "description": "Estimate cost per task and annual run cost at full volume, including model and infrastructure costs.",
-      "why": "AI has a running cost per use; value minus run cost is the real return.",
-      "consequence": "A solution that costs more to run than it saves.",
-      "ownerRole": "finance",
-      "contributorRoles": [
-        "solution_architect",
-        "engineering"
-      ],
-      "dimension": "business_value",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_unit_economics",
-      "priority": "medium"
-    },
-    {
-      "id": "p_prod_data",
-      "stage": "prove",
-      "name": "Confirm production data access and rights",
-      "description": "Confirm the production data can be accessed, is good enough, and may be used this way.",
-      "why": "Sample data is easy; production data is where projects stall.",
-      "consequence": "Build starts and then waits months for data access.",
-      "ownerRole": "data_owner",
-      "contributorRoles": [
-        "privacy_legal"
-      ],
-      "dimension": "technical",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_data_assessment",
-      "priority": "high"
-    },
-    {
-      "id": "p_scale_plan",
-      "stage": "prove",
-      "name": "Write the scale recommendation",
-      "description": "Recommend scale, iterate, pivot, or stop, with the build plan, team, and budget ask.",
-      "why": "Gives the sponsor one clear recommendation to decide on.",
-      "consequence": "The Proof gate becomes a debate instead of a decision.",
-      "ownerRole": "product_manager",
-      "contributorRoles": [
-        "executive_sponsor",
-        "solution_architect"
-      ],
-      "dimension": "product",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_scale_plan",
-      "priority": "high"
-    },
-    {
-      "id": "p_security_check",
-      "stage": "prove",
-      "name": "Check PoC data handling with Security",
-      "description": "Confirm sample data, access, and the model provider setup are safe for a test.",
-      "why": "A PoC on real data is still a data exposure.",
-      "consequence": "Sensitive data leaks during a test.",
-      "ownerRole": "security",
-      "contributorRoles": [
-        "privacy_legal"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "moderate",
-        "high"
-      ],
-      "evidence": null,
-      "priority": "medium"
-    },
-    {
-      "id": "p_redteam_smoke",
-      "stage": "prove",
-      "name": "Run a red-team smoke test",
-      "description": "Spend a day trying to make the PoC fail or misbehave: misuse, bias, and prompt injection.",
-      "why": "High-risk failure modes should surface before build money is spent.",
-      "consequence": "Serious failure modes are found after the build.",
-      "ownerRole": "qa_evaluation",
-      "contributorRoles": [
-        "security"
-      ],
-      "dimension": "ai_evaluation",
-      "requiredFor": [
-        "high"
-      ],
-      "blockingFor": [
-        "high"
-      ],
-      "evidence": "ev_redteam_smoke",
-      "priority": "high"
-    },
-    {
-      "id": "p_autonomy",
-      "stage": "prove",
-      "name": "Define autonomy level and decision boundaries",
-      "description": "Agree, with evidence from the PoC, what the AI may do on its own and what needs a human.",
-      "why": "High-risk AI needs explicit, agreed limits before it is built for real.",
-      "consequence": "Autonomy creeps beyond what anyone approved.",
-      "ownerRole": "solution_architect",
-      "contributorRoles": [
-        "governance_risk",
-        "business_owner"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "high"
-      ],
-      "blockingFor": [
-        "high"
-      ],
-      "evidence": "ev_autonomy",
-      "priority": "high"
-    },
-    {
-      "id": "b_design",
-      "stage": "build",
-      "name": "Design the solution and human oversight",
-      "description": "Decide the architecture, model and pattern, data flow, and where people review, approve, or override.",
-      "why": "Oversight designed in from the start works; oversight bolted on later gets skipped.",
-      "consequence": "Rework late in the build, or weak human control.",
-      "ownerRole": "solution_architect",
-      "contributorRoles": [
-        "ux_research",
-        "security",
-        "product_manager"
-      ],
-      "dimension": "technical",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_solution_design",
-      "priority": "high"
-    },
-    {
-      "id": "b_build",
-      "stage": "build",
-      "name": "Build the production version",
-      "description": "Build and integrate the production version, recording the model, prompt, and config versions in use.",
-      "why": "Versioned configuration is how you know what changed when quality moves.",
-      "consequence": "Nobody can explain why answers changed.",
-      "ownerRole": "engineering",
-      "contributorRoles": [
-        "solution_architect"
-      ],
-      "dimension": "technical",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_working_solution",
-      "priority": "high"
-    },
-    {
-      "id": "b_eval_suite",
-      "stage": "build",
-      "name": "Run the eval suite on every change",
-      "description": "Grow the golden set into an eval suite and run it on every model, prompt, or data change.",
-      "why": "AI quality moves with every change; continuous evaluation catches regressions early.",
-      "consequence": "A small change quietly makes answers worse.",
-      "ownerRole": "qa_evaluation",
-      "contributorRoles": [
-        "engineering"
-      ],
-      "dimension": "ai_evaluation",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_eval_results",
-      "priority": "high"
-    },
-    {
-      "id": "b_limits",
-      "stage": "build",
-      "name": "Document known limitations",
-      "description": "Write down known failure modes and where the solution should not be used.",
-      "why": "Users and supporters need to know where not to trust it.",
-      "consequence": "Misuse in situations it can't handle.",
-      "ownerRole": "solution_architect",
-      "contributorRoles": [
-        "qa_evaluation"
-      ],
-      "dimension": "product",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_known_limits",
-      "priority": "medium"
-    },
-    {
-      "id": "b_uat",
-      "stage": "build",
-      "name": "Complete UAT",
-      "description": "The business tests the solution in realistic scenarios and signs off.",
-      "why": "The business must accept the solution before real users see it.",
-      "consequence": "A release the business doesn't trust.",
-      "ownerRole": "business_owner",
-      "contributorRoles": [
-        "qa_evaluation",
-        "product_manager"
-      ],
-      "dimension": "product",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_uat",
-      "priority": "high"
-    },
-    {
-      "id": "b_risk_review",
-      "stage": "build",
-      "name": "Review risks before release",
-      "description": "Review the risk register and confirm every serious risk has a working mitigation.",
-      "why": "Confirms mitigations are real and not just written down.",
-      "consequence": "Known risks reach users unmitigated.",
-      "ownerRole": "governance_risk",
-      "contributorRoles": [
-        "product_manager"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_risk_review",
-      "priority": "high"
-    },
-    {
-      "id": "b_oversight",
-      "stage": "build",
-      "name": "Validate human oversight in practice",
-      "description": "Show that people can review, correct, and override AI output under real workload.",
-      "why": "Oversight that works on paper often fails under real workload.",
-      "consequence": "Automation bias lets errors through unreviewed.",
-      "ownerRole": "security",
-      "contributorRoles": [
-        "ux_research",
-        "business_owner"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_oversight_validation",
-      "priority": "high"
-    },
-    {
-      "id": "b_secpriv",
-      "stage": "build",
-      "name": "Complete security and privacy review",
-      "description": "Assess security threats, prompt injection, access controls, and personal data handling.",
-      "why": "AI adds new attack surfaces and new ways to mishandle data.",
-      "consequence": "Security or privacy incidents after release.",
-      "ownerRole": "security",
-      "contributorRoles": [
-        "privacy_legal"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_security_review",
-      "priority": "high"
-    },
-    {
-      "id": "b_monitoring",
-      "stage": "build",
-      "name": "Define production monitoring plan",
-      "description": "Decide what to watch in production, the alert thresholds, the owners, and how to roll back.",
-      "why": "AI quality drifts. You need to know before your users do.",
-      "consequence": "Silent degradation in production.",
-      "ownerRole": "operations",
-      "contributorRoles": [
-        "qa_evaluation",
-        "engineering"
-      ],
-      "dimension": "operational",
-      "requiredFor": [
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_monitoring_plan",
-      "priority": "high"
-    },
-    {
-      "id": "b_redteam",
-      "stage": "build",
-      "name": "Run adversarial and bias testing",
-      "description": "Red-team the production version for misuse, bias, and prompt injection.",
-      "why": "High-risk AI must be stress-tested before real people depend on it.",
-      "consequence": "Harmful or unfair outcomes in production.",
-      "ownerRole": "qa_evaluation",
-      "contributorRoles": [
-        "security"
-      ],
-      "dimension": "ai_evaluation",
-      "requiredFor": [
-        "high"
-      ],
-      "blockingFor": [
-        "high"
-      ],
-      "evidence": "ev_redteam",
-      "priority": "high"
-    },
-    {
-      "id": "b_override",
-      "stage": "build",
-      "name": "Verify override and kill-switch controls",
-      "description": "Prove that review, override, and kill-switch controls work as designed.",
-      "why": "High-risk AI needs a proven way for people to stop it.",
-      "consequence": "No way to stop a misbehaving system quickly.",
-      "ownerRole": "engineering",
-      "contributorRoles": [
-        "security"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "high"
-      ],
-      "blockingFor": [
-        "high"
-      ],
-      "evidence": "ev_oversight_impl",
-      "priority": "high"
-    },
-    {
-      "id": "b_residual",
-      "stage": "build",
-      "name": "Obtain executive residual-risk acceptance",
-      "description": "The executive sponsor explicitly accepts the risk that remains after mitigation.",
-      "why": "High-risk AI needs a named leader who accepts what is left.",
-      "consequence": "Nobody is accountable for the remaining risk.",
-      "ownerRole": "executive_sponsor",
-      "contributorRoles": [
-        "governance_risk"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "high"
-      ],
-      "blockingFor": [
-        "high"
-      ],
-      "evidence": "ev_residual_acceptance",
-      "priority": "high"
-    },
-    {
-      "id": "b_integration",
-      "stage": "build",
-      "name": "Integrate with target systems",
-      "description": "Connect to the systems people already work in.",
-      "why": "AI outside the workflow doesn't get used.",
-      "consequence": "Low adoption.",
-      "ownerRole": "engineering",
-      "contributorRoles": [],
-      "dimension": "technical",
-      "requiredFor": [],
-      "blockingFor": [],
-      "evidence": null,
-      "priority": "medium"
-    },
-    {
-      "id": "b_perf",
-      "stage": "build",
-      "name": "Performance and load testing",
-      "description": "Test latency and throughput at expected production volume.",
-      "why": "Slow AI is abandoned AI.",
-      "consequence": "Poor experience at scale.",
-      "ownerRole": "engineering",
-      "contributorRoles": [],
-      "dimension": "technical",
-      "requiredFor": [],
-      "blockingFor": [],
-      "evidence": null,
-      "priority": "medium"
-    },
-    {
-      "id": "l_pilot",
-      "stage": "launch",
-      "name": "Release to a pilot cohort",
-      "description": "Release to a small, named group of users first and expand on evidence.",
-      "why": "A pilot limits the blast radius while real-world performance is proven.",
-      "consequence": "Everyone is exposed to undiscovered issues at once.",
-      "ownerRole": "product_manager",
-      "contributorRoles": [
-        "operations",
-        "change_management"
-      ],
-      "dimension": "product",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": null,
-      "priority": "high"
-    },
-    {
-      "id": "l_runbook",
-      "stage": "launch",
-      "name": "Stand up support and the runbook",
-      "description": "Set up the support model, escalation paths, and known-issue handling.",
-      "why": "Users need somewhere to go when the AI is wrong.",
-      "consequence": "Issues pile up with no owner.",
-      "ownerRole": "operations",
-      "contributorRoles": [
-        "change_management"
-      ],
-      "dimension": "operational",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_runbook",
-      "priority": "high"
-    },
-    {
-      "id": "l_training",
-      "stage": "launch",
-      "name": "Deliver training and communications",
-      "description": "Train users on how to use it, and when not to trust it.",
-      "why": "Trained users get more value and catch more errors.",
-      "consequence": "Low adoption and misuse.",
-      "ownerRole": "change_management",
-      "contributorRoles": [
-        "ux_research"
-      ],
-      "dimension": "adoption",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_training_plan",
-      "priority": "medium"
-    },
-    {
-      "id": "l_monitoring",
-      "stage": "launch",
-      "name": "Turn on live monitoring and alerts",
-      "description": "Switch on production monitoring for quality, drift, cost, and incidents, with alerts.",
-      "why": "You can't manage what you can't see.",
-      "consequence": "Problems are found by users first.",
-      "ownerRole": "operations",
-      "contributorRoles": [
-        "engineering"
-      ],
-      "dimension": "operational",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_monitoring_live",
-      "priority": "high"
-    },
-    {
-      "id": "l_pilot_results",
-      "stage": "launch",
-      "name": "Compare pilot results to the eval bar",
-      "description": "Measure accuracy, overrides, escalations, and adoption on real traffic against the targets.",
-      "why": "Offline evaluation never fully predicts production behavior.",
-      "consequence": "Full rollout proceeds on lab results alone.",
-      "ownerRole": "qa_evaluation",
-      "contributorRoles": [
-        "business_owner",
-        "change_management"
-      ],
-      "dimension": "ai_evaluation",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_pilot_eval",
-      "priority": "high"
-    },
-    {
-      "id": "l_rollout",
-      "stage": "launch",
-      "name": "Plan the phased rollout and rollback",
-      "description": "Decide who gets it when, and how to switch it off safely if needed.",
-      "why": "A planned rollout with a tested way back keeps surprises small.",
-      "consequence": "No safe way back when something goes wrong.",
-      "ownerRole": "product_manager",
-      "contributorRoles": [
-        "operations",
-        "engineering"
-      ],
-      "dimension": "operational",
-      "requiredFor": [
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [
-        "moderate",
-        "high"
-      ],
-      "evidence": "ev_rollback",
-      "priority": "medium"
-    },
-    {
-      "id": "l_board",
-      "stage": "launch",
-      "name": "Get governance board approval for full rollout",
-      "description": "Present pilot evidence and residual risk to the AI governance board.",
-      "why": "High-risk AI needs board-level approval before everyone depends on it.",
-      "consequence": "High-risk AI scales without oversight.",
-      "ownerRole": "governance_risk",
-      "contributorRoles": [
-        "executive_sponsor"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "high"
-      ],
-      "blockingFor": [
-        "high"
-      ],
-      "evidence": "ev_board_approval",
-      "priority": "high"
-    },
-    {
-      "id": "r_monitor",
-      "stage": "run",
-      "name": "Monitor quality, drift, cost, and incidents",
-      "description": "Review production quality, drift, run cost, and incidents on a regular cadence.",
-      "why": "AI degrades quietly; regular review catches it.",
-      "consequence": "Silent quality loss and cost creep.",
-      "ownerRole": "operations",
-      "contributorRoles": [
-        "qa_evaluation"
-      ],
-      "dimension": "operational",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [],
-      "evidence": "ev_monitoring_report",
-      "priority": "high"
-    },
-    {
-      "id": "r_reeval",
-      "stage": "run",
-      "name": "Re-evaluate on schedule and after model changes",
-      "description": "Re-run the eval suite on a schedule and after every model, prompt, or data change.",
-      "why": "Model providers update and retire models; every change can move quality.",
-      "consequence": "A model update silently lowers quality.",
-      "ownerRole": "qa_evaluation",
-      "contributorRoles": [
-        "engineering"
-      ],
-      "dimension": "ai_evaluation",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [],
-      "evidence": "ev_periodic_eval",
-      "priority": "high"
-    },
-    {
-      "id": "r_value",
-      "stage": "run",
-      "name": "Measure adoption and realized value",
-      "description": "Measure usage and realized value against the value hypothesis.",
-      "why": "Value is the reason it exists; measure it like revenue.",
-      "consequence": "Nobody knows if it paid off.",
-      "ownerRole": "finance",
-      "contributorRoles": [
-        "change_management",
-        "product_manager"
-      ],
-      "dimension": "business_value",
-      "requiredFor": [
-        "low",
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [],
-      "evidence": "ev_value_report",
-      "priority": "high"
-    },
-    {
-      "id": "r_risk_review",
-      "stage": "run",
-      "name": "Quarterly risk review",
-      "description": "Review the risk register, incidents, and any changes since the last review.",
-      "why": "Risk changes as usage, data, and models change.",
-      "consequence": "Stale controls on a changing system.",
-      "ownerRole": "governance_risk",
-      "contributorRoles": [
-        "product_manager"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "moderate",
-        "high"
-      ],
-      "blockingFor": [],
-      "evidence": null,
-      "priority": "medium"
-    },
-    {
-      "id": "r_independent",
-      "stage": "run",
-      "name": "Annual independent review",
-      "description": "Someone outside the team reviews the solution, its controls, and its outcomes.",
-      "why": "High-risk AI needs a fresh pair of eyes at least once a year.",
-      "consequence": "Blind spots persist.",
-      "ownerRole": "governance_risk",
-      "contributorRoles": [
-        "executive_sponsor"
-      ],
-      "dimension": "risk_governance",
-      "requiredFor": [
-        "high"
-      ],
-      "blockingFor": [],
-      "evidence": "ev_independent_review",
-      "priority": "medium"
-    },
-    {
-      "id": "r_feedback",
-      "stage": "run",
-      "name": "Collect user feedback",
-      "description": "Gather what users like, dislike, and need next.",
-      "why": "Feedback drives the next round of improvements.",
-      "consequence": "Improvements miss what users need.",
-      "ownerRole": "ux_research",
-      "contributorRoles": [],
-      "dimension": "adoption",
-      "requiredFor": [],
-      "blockingFor": [],
-      "evidence": null,
-      "priority": "low"
-    }
+    { "id": "d_problem", "stage": "discover", "name": "Define the problem statement", "description": "Write a crisp problem statement grounded in today's workflow and pain points.", "why": "Every later decision is judged against the problem. A vague problem produces a vague solution.", "consequence": "Without it, the Discover gate cannot pass and design debates become opinion-driven.", "ownerRole": "product_manager", "contributorRoles": ["business_owner", "ux_research"], "dimension": "product", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_opportunity_brief", "priority": "high" },
+    { "id": "d_users", "stage": "discover", "name": "Identify target users and workflow", "description": "Name the users, the moment in their workflow the AI supports, and what they do today.", "why": "Adoption depends on fitting a real workflow, not a demo.", "consequence": "Risk of building for an imagined user.", "ownerRole": "ux_research", "contributorRoles": ["business_owner"], "dimension": "adoption", "requiredFor": ["low", "moderate", "high"], "blockingFor": [], "evidence": null, "priority": "high" },
+    { "id": "d_outcome", "stage": "discover", "name": "Define the desired business outcome", "description": "State the measurable outcome the business wants, not the feature.", "why": "Outcomes anchor value measurement and prioritization.", "consequence": "Value cannot be measured or defended later.", "ownerRole": "business_owner", "contributorRoles": ["product_manager", "finance"], "dimension": "business_value", "requiredFor": ["low", "moderate", "high"], "blockingFor": [], "evidence": null, "priority": "high" },
+    { "id": "d_sponsor", "stage": "discover", "name": "Secure an executive sponsor", "description": "Confirm an accountable executive who owns the business case.", "why": "AI initiatives stall without someone empowered to make trade-offs and accept risk.", "consequence": "No one can accept residual risk or approve go-live.", "ownerRole": "product_manager", "contributorRoles": ["executive_sponsor"], "dimension": "product", "requiredFor": ["low", "moderate", "high"], "blockingFor": [], "evidence": null, "priority": "high" },
+    { "id": "d_why_ai", "stage": "discover", "name": "Articulate why AI", "description": "Explain why AI beats rules, process change, or existing tools for this problem.", "why": "Prevents using AI where simpler, cheaper, more reliable options exist.", "consequence": "Risk of unnecessary complexity and cost.", "ownerRole": "solution_architect", "contributorRoles": ["product_manager"], "dimension": "technical", "requiredFor": ["low", "moderate", "high"], "blockingFor": [], "evidence": null, "priority": "medium" },
+    { "id": "d_baseline", "stage": "discover", "name": "Capture current-state baseline", "description": "Measure how the workflow performs today so improvement can be proven.", "why": "Without a baseline, realized value is a guess.", "consequence": "Value claims will be challenged by Finance.", "ownerRole": "data_owner", "contributorRoles": ["business_owner"], "dimension": "business_value", "requiredFor": ["moderate", "high"], "blockingFor": [], "evidence": null, "priority": "medium" },
+
+    { "id": "a_risk", "stage": "assess", "name": "Complete initial risk assessment", "description": "Classify inherent risk, record initial risks, and confirm the risk tier.", "why": "The risk tier determines how much rigor the rest of the lifecycle requires.", "consequence": "Controls may be under- or over-applied.", "ownerRole": "governance_risk", "contributorRoles": ["security", "product_manager"], "dimension": "risk_governance", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_risk_assessment", "priority": "high" },
+    { "id": "a_data", "stage": "assess", "name": "Complete data assessment", "description": "Assess data availability, quality, access rights, and sensitivity.", "why": "AI quality is bounded by data quality, and data rights are a hard constraint.", "consequence": "Late discovery of unusable or restricted data.", "ownerRole": "data_owner", "contributorRoles": ["privacy_legal", "solution_architect"], "dimension": "technical", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_data_assessment", "priority": "high" },
+    { "id": "a_feasibility", "stage": "assess", "name": "Assess technical feasibility", "description": "Run a spike or prototype to confirm the approach can plausibly meet the bar.", "why": "Cheap feasibility checks avoid expensive dead ends.", "consequence": "Build may start on an approach that cannot work.", "ownerRole": "solution_architect", "contributorRoles": ["engineering"], "dimension": "technical", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_feasibility", "priority": "high" },
+    { "id": "a_stakeholders", "stage": "assess", "name": "Identify key stakeholders", "description": "Assign the business owner, data owner, security, and evaluation leads.", "why": "Specialized work needs named owners before it can be scheduled.", "consequence": "Activities stall without accountable owners.", "ownerRole": "product_manager", "contributorRoles": ["executive_sponsor"], "dimension": "adoption", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": null, "priority": "medium" },
+    { "id": "a_value", "stage": "assess", "name": "Document initial value hypothesis", "description": "Quantify expected value and the assumptions behind it.", "why": "Investment decisions need a credible, testable value case.", "consequence": "The initiative may be deprioritized at the next funding review.", "ownerRole": "finance", "contributorRoles": ["business_owner", "product_manager"], "dimension": "business_value", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_value_hypothesis", "priority": "high" },
+    { "id": "a_privacy_screen", "stage": "assess", "name": "Privacy and legal screening", "description": "Screen for personal data, consent, and legal obligations early.", "why": "Privacy constraints can change the design fundamentally.", "consequence": "Rework or legal exposure discovered late.", "ownerRole": "privacy_legal", "contributorRoles": ["data_owner"], "dimension": "risk_governance", "requiredFor": ["moderate", "high"], "blockingFor": ["high"], "evidence": "ev_privacy_screen", "priority": "medium" },
+    { "id": "a_autonomy", "stage": "assess", "name": "Define autonomy level and decision boundaries", "description": "Decide what the AI may do on its own and what always requires a human.", "why": "Autonomy is the largest driver of consequence when the AI is wrong.", "consequence": "Unbounded autonomy cannot pass governance review.", "ownerRole": "solution_architect", "contributorRoles": ["governance_risk", "business_owner"], "dimension": "risk_governance", "requiredFor": ["high"], "blockingFor": ["high"], "evidence": "ev_autonomy", "priority": "high", "tags": ["human_oversight"] },
+    { "id": "a_build_buy", "stage": "assess", "name": "Evaluate build vs. buy options", "description": "Compare vendor, platform, and custom options.", "why": "Avoids rebuilding commodity capability.", "consequence": "Possible overspend.", "ownerRole": "solution_architect", "contributorRoles": ["finance"], "dimension": "technical", "requiredFor": [], "blockingFor": [], "evidence": null, "priority": "low" },
+
+    { "id": "ds_solution", "stage": "design", "name": "Produce solution design", "description": "Document architecture, model/pattern choice, integrations, and data flow.", "why": "A shared design lets security, data, and engineering review the same thing.", "consequence": "Build starts without agreement and reviews happen too late.", "ownerRole": "solution_architect", "contributorRoles": ["engineering", "security"], "dimension": "technical", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_solution_design", "priority": "high" },
+    { "id": "ds_eval", "stage": "design", "name": "Define evaluation approach", "description": "Set evaluation criteria, datasets, thresholds, and the acceptance bar.", "why": "If you can't define good, you can't prove the AI is good enough.", "consequence": "Validation becomes subjective and gate reviews stall.", "ownerRole": "qa_evaluation", "contributorRoles": ["solution_architect", "business_owner"], "dimension": "ai_evaluation", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_eval_plan", "priority": "high" },
+    { "id": "ds_oversight", "stage": "design", "name": "Design human oversight approach", "description": "Define where humans review, approve, correct, or override AI output.", "why": "Human oversight is the primary control for AI error in business workflows.", "consequence": "The solution cannot demonstrate accountable human control.", "ownerRole": "ux_research", "contributorRoles": ["governance_risk", "business_owner"], "dimension": "risk_governance", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_oversight_design", "priority": "high", "tags": ["human_oversight"] },
+    { "id": "ds_secpriv", "stage": "design", "name": "Document security and privacy considerations", "description": "Threat model the solution and decide on data handling controls.", "why": "Security and privacy are far cheaper to design in than bolt on.", "consequence": "Late security findings force redesign.", "ownerRole": "security", "contributorRoles": ["privacy_legal", "solution_architect"], "dimension": "risk_governance", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_secpriv_design", "priority": "high" },
+    { "id": "ds_metrics", "stage": "design", "name": "Define success metrics and targets", "description": "Define business, adoption, and AI performance metrics with baselines and targets.", "why": "Metrics turn the value hypothesis into something you can manage.", "consequence": "No way to prove the solution delivered value.", "ownerRole": "product_manager", "contributorRoles": ["finance", "data_owner"], "dimension": "business_value", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": null, "priority": "high" },
+    { "id": "ds_ux", "stage": "design", "name": "Design user experience and workflow integration", "description": "Prototype how the AI shows up in the user's workflow and test it with users.", "why": "Good AI with a poor workflow fit does not get used.", "consequence": "Adoption risk.", "ownerRole": "ux_research", "contributorRoles": ["business_owner"], "dimension": "product", "requiredFor": ["moderate", "high"], "blockingFor": [], "evidence": "ev_ux_design", "priority": "medium" },
+    { "id": "ds_redteam_plan", "stage": "design", "name": "Plan expanded evaluation (adversarial and bias)", "description": "Plan red-team, bias, and misuse testing proportionate to the risk.", "why": "High-risk AI must be tested for how it fails, not just how it succeeds.", "consequence": "High-risk deployment cannot be justified.", "ownerRole": "qa_evaluation", "contributorRoles": ["security", "governance_risk"], "dimension": "ai_evaluation", "requiredFor": ["high"], "blockingFor": ["high"], "evidence": "ev_redteam_plan", "priority": "high" },
+    { "id": "ds_change_plan", "stage": "design", "name": "Draft change management approach", "description": "Outline stakeholder impacts, communications, and training needs.", "why": "Adoption is designed, not hoped for.", "consequence": "Late scramble on training and comms.", "ownerRole": "change_management", "contributorRoles": ["product_manager"], "dimension": "adoption", "requiredFor": ["moderate", "high"], "blockingFor": [], "evidence": null, "priority": "medium" },
+
+    { "id": "b_build", "stage": "build", "name": "Build working solution", "description": "Deliver an end-to-end working solution in a non-production environment.", "why": "Validation needs something real to validate.", "consequence": "Nothing to evaluate.", "ownerRole": "engineering", "contributorRoles": ["solution_architect"], "dimension": "technical", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_working_solution", "priority": "high" },
+    { "id": "b_config", "stage": "build", "name": "Record configuration and version information", "description": "Version the model, prompts, retrieval settings, and parameters.", "why": "You cannot validate, monitor, or roll back what you cannot identify.", "consequence": "Evaluation results can't be tied to a specific version.", "ownerRole": "engineering", "contributorRoles": ["solution_architect"], "dimension": "technical", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_config_record", "priority": "high" },
+    { "id": "b_testplan", "stage": "build", "name": "Prepare test plan", "description": "Plan functional, evaluation, and acceptance testing.", "why": "Validation runs smoothly only if it's planned in Build.", "consequence": "Validation start is delayed.", "ownerRole": "qa_evaluation", "contributorRoles": ["engineering", "business_owner"], "dimension": "ai_evaluation", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_test_plan", "priority": "high" },
+    { "id": "b_limits", "stage": "build", "name": "Document known limitations", "description": "Record known failure modes and situations where the AI should not be used.", "why": "Honest limitations protect users and set expectations.", "consequence": "Users over-trust the AI.", "ownerRole": "solution_architect", "contributorRoles": ["qa_evaluation"], "dimension": "product", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_known_limits", "priority": "medium" },
+    { "id": "b_data_pipeline", "stage": "build", "name": "Prepare data and knowledge sources", "description": "Clean, index, and govern the data or knowledge the AI depends on.", "why": "Retrieval and grounding quality drive answer quality.", "consequence": "Poor answers traced to stale or missing content.", "ownerRole": "data_owner", "contributorRoles": ["engineering"], "dimension": "technical", "requiredFor": ["low", "moderate", "high"], "blockingFor": [], "evidence": null, "priority": "medium" },
+    { "id": "b_guardrails", "stage": "build", "name": "Implement guardrails and fallback behavior", "description": "Add input/output filtering, confidence thresholds, and graceful fallbacks.", "why": "Guardrails contain the impact when the AI is wrong.", "consequence": "Unsafe or off-policy outputs reach users.", "ownerRole": "engineering", "contributorRoles": ["security"], "dimension": "risk_governance", "requiredFor": ["moderate", "high"], "blockingFor": ["high"], "evidence": null, "priority": "high" },
+    { "id": "b_oversight_impl", "stage": "build", "name": "Implement human review and override controls", "description": "Build the review queue, override, and kill-switch controls.", "why": "High-risk AI requires working human controls, not just a design.", "consequence": "Oversight design exists only on paper.", "ownerRole": "engineering", "contributorRoles": ["ux_research", "governance_risk"], "dimension": "risk_governance", "requiredFor": ["high"], "blockingFor": ["high"], "evidence": "ev_oversight_impl", "priority": "high", "tags": ["human_oversight"] },
+    { "id": "b_integration", "stage": "build", "name": "Integrate with target systems", "description": "Connect to CRM, ticketing, or other systems of record.", "why": "Value comes from being in the workflow.", "consequence": "Swivel-chair usage reduces adoption.", "ownerRole": "engineering", "contributorRoles": [], "dimension": "technical", "requiredFor": [], "blockingFor": [], "evidence": null, "priority": "low" },
+
+    { "id": "v_eval", "stage": "validate", "name": "Run evaluation and document results", "description": "Execute the evaluation plan and document results against thresholds.", "why": "This is the core evidence that the AI performs well enough.", "consequence": "No defensible basis for deployment.", "ownerRole": "qa_evaluation", "contributorRoles": ["solution_architect"], "dimension": "ai_evaluation", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_eval_results", "priority": "high" },
+    { "id": "v_oversight", "stage": "validate", "name": "Validate human oversight in practice", "description": "Demonstrate that users can review, correct, and override AI output in the real workflow.", "why": "Oversight that works on paper often fails under real workload.", "consequence": "Blocks the Validate gate for moderate and high risk.", "ownerRole": "security", "contributorRoles": ["ux_research", "business_owner"], "dimension": "risk_governance", "requiredFor": ["moderate", "high"], "blockingFor": ["moderate", "high"], "evidence": "ev_oversight_validation", "priority": "high", "tags": ["human_oversight"] },
+    { "id": "v_uat", "stage": "validate", "name": "Complete UAT", "description": "Business users test the solution in realistic scenarios and sign off.", "why": "The business must accept the solution before it touches real work.", "consequence": "Deployment without business acceptance.", "ownerRole": "business_owner", "contributorRoles": ["qa_evaluation", "product_manager"], "dimension": "product", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_uat", "priority": "high" },
+    { "id": "v_risk_review", "stage": "validate", "name": "Conduct risk review", "description": "Review the risk register, mitigations, and open issues before production.", "why": "Confirms mitigations are real and nothing material is unaddressed.", "consequence": "Unreviewed risk goes to production.", "ownerRole": "governance_risk", "contributorRoles": ["security", "product_manager"], "dimension": "risk_governance", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_risk_review", "priority": "high" },
+    { "id": "v_security", "stage": "validate", "name": "Complete security review", "description": "Security assessment including prompt-injection and data leakage testing.", "why": "AI introduces new attack surfaces that need explicit testing.", "consequence": "Exploitable weaknesses in production.", "ownerRole": "security", "contributorRoles": ["engineering"], "dimension": "risk_governance", "requiredFor": ["moderate", "high"], "blockingFor": ["moderate", "high"], "evidence": "ev_security_review", "priority": "high" },
+    { "id": "v_privacy", "stage": "validate", "name": "Complete privacy review", "description": "Privacy impact review of personal data use, retention, and access.", "why": "Personal data use must be lawful and proportionate.", "consequence": "Regulatory and reputational exposure.", "ownerRole": "privacy_legal", "contributorRoles": ["data_owner"], "dimension": "risk_governance", "requiredFor": ["moderate", "high"], "blockingFor": ["moderate", "high"], "evidence": "ev_privacy_review", "priority": "high" },
+    { "id": "v_residual", "stage": "validate", "name": "Assess residual risk", "description": "Document remaining risk after mitigation and recommend acceptance or further action.", "why": "Leaders need to knowingly accept the risk that remains.", "consequence": "Risk is accepted implicitly rather than explicitly.", "ownerRole": "governance_risk", "contributorRoles": ["security", "executive_sponsor"], "dimension": "risk_governance", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_residual_risk", "priority": "high" },
+    { "id": "v_residual_accept", "stage": "validate", "name": "Obtain executive residual-risk acceptance", "description": "Executive sponsor explicitly accepts the residual risk in writing.", "why": "High-risk AI requires accountable, named risk acceptance.", "consequence": "Blocks deployment of high-risk solutions.", "ownerRole": "executive_sponsor", "contributorRoles": ["governance_risk"], "dimension": "risk_governance", "requiredFor": ["high"], "blockingFor": ["high"], "evidence": "ev_residual_acceptance", "priority": "high" },
+    { "id": "v_redteam", "stage": "validate", "name": "Run adversarial and bias testing", "description": "Execute the adversarial test plan and remediate findings.", "why": "High-risk AI must be stress-tested for misuse and unfair outcomes.", "consequence": "Unknown failure modes in production.", "ownerRole": "qa_evaluation", "contributorRoles": ["security"], "dimension": "ai_evaluation", "requiredFor": ["high"], "blockingFor": ["high"], "evidence": "ev_redteam", "priority": "high" },
+    { "id": "v_readiness", "stage": "validate", "name": "Complete production readiness checklist", "description": "Confirm operational, security, and support readiness items.", "why": "A structured checklist catches the boring things that cause outages.", "consequence": "Avoidable go-live incidents.", "ownerRole": "operations", "contributorRoles": ["engineering"], "dimension": "operational", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_prod_readiness", "priority": "medium" },
+    { "id": "v_monitoring", "stage": "validate", "name": "Define production monitoring plan", "description": "Decide what to monitor in production, alert thresholds, and who responds.", "why": "AI quality drifts. You need to know before your customers do.", "consequence": "Blocks the Validate gate for moderate and high risk.", "ownerRole": "operations", "contributorRoles": ["qa_evaluation", "solution_architect"], "dimension": "operational", "requiredFor": ["moderate", "high"], "blockingFor": ["moderate", "high"], "evidence": "ev_monitoring_plan", "priority": "high" },
+    { "id": "v_perf", "stage": "validate", "name": "Performance and load testing", "description": "Test latency and throughput at expected production volume.", "why": "Slow AI is abandoned AI.", "consequence": "Poor user experience at scale.", "ownerRole": "engineering", "contributorRoles": [], "dimension": "technical", "requiredFor": ["moderate", "high"], "blockingFor": [], "evidence": null, "priority": "medium" },
+
+    { "id": "dp_golive", "stage": "deploy", "name": "Obtain go-live approval", "description": "Record the decision to release to production, with any conditions.", "why": "Go-live is a business decision that must be explicit and owned.", "consequence": "Release without accountable approval.", "ownerRole": "executive_sponsor", "contributorRoles": ["product_manager"], "dimension": "risk_governance", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_golive", "priority": "high" },
+    { "id": "dp_board", "stage": "deploy", "name": "Obtain governance board deployment approval", "description": "Present evidence to the AI governance board for explicit approval.", "why": "High-risk AI requires an independent approval beyond the sponsor.", "consequence": "Blocks high-risk deployment.", "ownerRole": "governance_risk", "contributorRoles": ["executive_sponsor", "product_manager"], "dimension": "risk_governance", "requiredFor": ["high"], "blockingFor": ["high"], "evidence": "ev_board_approval", "priority": "high" },
+    { "id": "dp_support", "stage": "deploy", "name": "Stand up support model and runbook", "description": "Define support tiers, escalation paths, and known-issue handling.", "why": "Users need help on day one.", "consequence": "Issues go unresolved and trust erodes.", "ownerRole": "operations", "contributorRoles": ["engineering"], "dimension": "operational", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_runbook", "priority": "high" },
+    { "id": "dp_training", "stage": "deploy", "name": "Deliver training and communications", "description": "Train users, including when not to trust the AI, and communicate the rollout.", "why": "Users must know how to use the AI and how to challenge it.", "consequence": "Low adoption or over-reliance.", "ownerRole": "change_management", "contributorRoles": ["ux_research"], "dimension": "adoption", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_training_plan", "priority": "high" },
+    { "id": "dp_monitoring", "stage": "deploy", "name": "Activate production monitoring and alerting", "description": "Turn on the monitoring defined in the plan, with alerting to named owners.", "why": "Monitoring must be live before users are.", "consequence": "Silent failure in production.", "ownerRole": "operations", "contributorRoles": ["engineering"], "dimension": "operational", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_monitoring_live", "priority": "high" },
+    { "id": "dp_rollback", "stage": "deploy", "name": "Confirm rollback plan", "description": "Verify the AI can be disabled or rolled back safely and quickly.", "why": "The ability to turn it off is a core control.", "consequence": "Incidents can't be contained.", "ownerRole": "engineering", "contributorRoles": ["operations"], "dimension": "operational", "requiredFor": ["moderate", "high"], "blockingFor": ["moderate", "high"], "evidence": "ev_rollback", "priority": "medium" },
+    { "id": "dp_pilot_eval", "stage": "deploy", "name": "Evaluate pilot at production scale", "description": "Measure accuracy, overrides, and escalations on real production traffic during the pilot before full rollout.", "why": "Offline evaluation never fully predicts production behavior; the pilot is where real-world performance is proven.", "consequence": "Full rollout proceeds on lab results alone.", "ownerRole": "qa_evaluation", "contributorRoles": ["operations", "business_owner"], "dimension": "ai_evaluation", "requiredFor": ["moderate", "high"], "blockingFor": ["moderate", "high"], "evidence": "ev_pilot_eval", "priority": "high" },
+    { "id": "dp_rollout", "stage": "deploy", "name": "Execute phased rollout", "description": "Release to a pilot cohort first, then expand on evidence.", "why": "Phased rollout limits blast radius.", "consequence": "Full-scale exposure to undiscovered issues.", "ownerRole": "product_manager", "contributorRoles": ["operations", "change_management"], "dimension": "product", "requiredFor": ["moderate", "high"], "blockingFor": ["high"], "evidence": null, "priority": "medium" },
+
+    { "id": "o_monitor", "stage": "operate", "name": "Monitor performance and drift", "description": "Review production quality, drift, and alert history on a set cadence.", "why": "Production behavior diverges from test behavior over time.", "consequence": "Gradual quality decay goes unnoticed.", "ownerRole": "operations", "contributorRoles": ["qa_evaluation"], "dimension": "operational", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_monitoring_report", "priority": "high" },
+    { "id": "o_incident", "stage": "operate", "name": "Operate incident management", "description": "Detect, triage, and resolve AI incidents with a documented process.", "why": "AI incidents need fast, consistent handling.", "consequence": "Incidents escalate unnecessarily.", "ownerRole": "operations", "contributorRoles": ["security"], "dimension": "operational", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_incident_process", "priority": "high" },
+    { "id": "o_periodic_eval", "stage": "operate", "name": "Run periodic evaluation", "description": "Re-run the evaluation suite on a schedule and after any change.", "why": "Confirms the AI still meets the bar it was approved against.", "consequence": "Approval basis silently expires.", "ownerRole": "qa_evaluation", "contributorRoles": ["solution_architect"], "dimension": "ai_evaluation", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_periodic_eval", "priority": "high" },
+    { "id": "o_adoption", "stage": "operate", "name": "Measure adoption", "description": "Track eligible vs. active users, frequency, and satisfaction.", "why": "Unused AI delivers no value.", "consequence": "Adoption problems are discovered too late.", "ownerRole": "change_management", "contributorRoles": ["product_manager"], "dimension": "adoption", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": null, "priority": "medium" },
+    { "id": "o_value", "stage": "operate", "name": "Measure realized value", "description": "Compare realized value against the value hypothesis.", "why": "Proves the investment and informs what to do next.", "consequence": "Funding decisions are made without evidence.", "ownerRole": "finance", "contributorRoles": ["business_owner"], "dimension": "business_value", "requiredFor": ["low", "moderate", "high"], "blockingFor": ["low", "moderate", "high"], "evidence": "ev_value_report", "priority": "high" },
+    { "id": "o_feedback", "stage": "operate", "name": "Collect user feedback", "description": "Gather qualitative feedback and feature requests from users.", "why": "Feedback drives the improvement backlog.", "consequence": "Improvements target the wrong things.", "ownerRole": "ux_research", "contributorRoles": [], "dimension": "product", "requiredFor": [], "blockingFor": [], "evidence": null, "priority": "low" },
+
+    { "id": "i_review", "stage": "improve", "name": "Conduct post-implementation review", "description": "Capture lessons learned and compare outcomes to the original case.", "why": "Builds organizational learning across the AI portfolio.", "consequence": "Same mistakes repeat on the next initiative.", "ownerRole": "product_manager", "contributorRoles": ["executive_sponsor", "business_owner"], "dimension": "product", "requiredFor": ["low", "moderate", "high"], "blockingFor": [], "evidence": "ev_pir", "priority": "medium" },
+    { "id": "i_backlog", "stage": "improve", "name": "Prioritize improvement backlog", "description": "Prioritize improvements based on value, feedback, and incidents.", "why": "Keeps investment pointed at the highest value.", "consequence": "Improvement effort is unfocused.", "ownerRole": "product_manager", "contributorRoles": ["engineering"], "dimension": "business_value", "requiredFor": ["low", "moderate", "high"], "blockingFor": [], "evidence": null, "priority": "medium" },
+    { "id": "i_reassess", "stage": "improve", "name": "Re-assess risk after material changes", "description": "Re-run risk assessment after model, data, or scope changes.", "why": "Material changes can change the risk tier.", "consequence": "Operating outside the approved risk envelope.", "ownerRole": "governance_risk", "contributorRoles": ["product_manager"], "dimension": "risk_governance", "requiredFor": ["low", "moderate", "high"], "blockingFor": [], "evidence": null, "priority": "medium" },
+    { "id": "i_retire", "stage": "improve", "name": "Define retirement criteria", "description": "Agree the conditions under which the solution should be retired.", "why": "Responsible AI includes knowing when to stop.", "consequence": "Zombie AI keeps running after it stops adding value.", "ownerRole": "product_manager", "contributorRoles": ["executive_sponsor"], "dimension": "operational", "requiredFor": ["high"], "blockingFor": [], "evidence": null, "priority": "low" }
   ],
   "gates": [
     {
-      "stage": "frame",
-      "name": "Commit to a test",
-      "question": "Is this worth testing?",
-      "description": "Confirms the problem is real, the outcome is measurable, the risk is screened, and the PoC's rules are agreed before it starts.",
-      "advanceLabel": "Fund the PoC",
-      "approverRoles": [
-        "executive_sponsor"
-      ],
-      "outcomes": [
-        "advance",
-        "park",
-        "stop"
-      ],
+      "stage": "discover",
+      "name": "Opportunity Gate",
+      "description": "Confirms the opportunity is framed well enough to invest in assessment.",
       "criteria": [
-        {
-          "id": "g_f_problem",
-          "type": "field",
-          "field": "businessProblem",
-          "minLength": 20,
-          "label": "Problem statement documented",
-          "description": "At least a sentence describing the problem in today's workflow."
-        },
-        {
-          "id": "g_f_users",
-          "type": "field",
-          "field": "targetUsers",
-          "minLength": 3,
-          "label": "Target users defined",
-          "description": "Who uses or is affected by the solution."
-        },
-        {
-          "id": "g_f_outcome",
-          "type": "field",
-          "field": "desiredOutcome",
-          "minLength": 15,
-          "label": "Business outcome defined",
-          "description": "A measurable outcome, not a feature."
-        },
-        {
-          "id": "g_f_owners",
-          "type": "role",
-          "roles": [
-            "executive_sponsor",
-            "product_manager"
-          ],
-          "label": "Sponsor and product owner named",
-          "description": "Named accountable owners."
-        },
-        {
-          "id": "g_f_charter",
-          "type": "proof",
-          "check": "charter",
-          "label": "PoC charter agreed",
-          "description": "A hypothesis, a timebox, a budget cap, and pass thresholds set before the PoC starts."
-        }
+        { "id": "g_d_problem", "type": "field", "field": "businessProblem", "minLength": 20, "label": "Problem statement documented", "description": "At least a sentence describing the problem in today's workflow." },
+        { "id": "g_d_users", "type": "field", "field": "targetUsers", "minLength": 3, "label": "Target users defined", "description": "Who uses or is affected by the solution." },
+        { "id": "g_d_outcome", "type": "field", "field": "desiredOutcome", "minLength": 15, "label": "Business outcome defined", "description": "A measurable outcome, not a feature." },
+        { "id": "g_d_owners", "type": "role", "roles": ["executive_sponsor", "product_manager"], "label": "Executive sponsor and product owner assigned", "description": "Named accountable owners." }
       ]
     },
     {
-      "stage": "prove",
-      "name": "Proof gate",
-      "question": "Does it work, and is it worth scaling?",
-      "description": "Nothing gets build money until a time-boxed proof on real data clears the thresholds in its charter. Scale, iterate, pivot, or stop.",
-      "advanceLabel": "Scale",
-      "approverRoles": [
-        "executive_sponsor"
-      ],
-      "outcomes": [
-        "advance",
-        "iterate",
-        "pivot",
-        "park",
-        "stop"
-      ],
+      "stage": "assess",
+      "name": "Feasibility & Risk Gate",
+      "description": "Confirms the solution is feasible, the data is usable, risk is understood, and value is plausible.",
       "criteria": [
-        {
-          "id": "g_p_quality",
-          "type": "proof",
-          "check": "quality",
-          "label": "Quality meets the charter",
-          "description": "Pass rate on the golden eval set meets the charter threshold."
-        },
-        {
-          "id": "g_p_value",
-          "type": "proof",
-          "check": "value",
-          "label": "Value signal meets the charter",
-          "description": "Measured improvement against the baseline meets the charter target."
-        },
-        {
-          "id": "g_p_cost",
-          "type": "proof",
-          "check": "economics",
-          "label": "Run cost within the ceiling",
-          "description": "Projected annual run cost stays under the charter's share of expected value."
-        },
-        {
-          "id": "g_p_risks",
-          "type": "risks",
-          "rule": "no_unmitigated_high",
-          "label": "No unmitigated high or critical risks",
-          "description": "Every open high or critical risk has a mitigation and an owner."
-        }
+        { "id": "g_a_team", "type": "role", "roles": ["business_owner", "data_owner", "security"], "label": "Key stakeholders identified", "description": "Business owner, data owner, and security are named on the team." }
+      ]
+    },
+    {
+      "stage": "design",
+      "name": "Design Gate",
+      "description": "Confirms there is an agreed design, an evaluation approach, human oversight, and success measures.",
+      "criteria": [
+        { "id": "g_ds_metrics", "type": "metrics", "minDefined": 2, "label": "Success metrics defined with baselines and targets", "description": "At least two metrics with a baseline and a target." }
       ]
     },
     {
       "stage": "build",
-      "name": "Release readiness",
-      "question": "Is it ready for real users?",
-      "description": "Confirms a production-grade version exists, its evaluation holds, and the controls its risk tier needs are in place. Decided by someone outside the build team.",
-      "advanceLabel": "Release to a pilot",
-      "approverRoles": [
-        "executive_sponsor",
-        "business_owner",
-        "governance_risk"
-      ],
-      "outcomes": [
-        "advance",
-        "park",
-        "stop"
-      ],
-      "criteria": [
-        {
-          "id": "g_b_metrics",
-          "type": "metrics",
-          "minDefined": 2,
-          "label": "Success metrics have baselines and targets",
-          "description": "At least two metrics with a baseline and a target."
-        },
-        {
-          "id": "g_b_risks",
-          "type": "risks",
-          "rule": "no_unmitigated_high",
-          "label": "No unmitigated high or critical risks",
-          "description": "Every open high or critical risk has a mitigation and an owner."
-        }
-      ]
-    },
-    {
-      "stage": "launch",
-      "name": "Scale-out",
-      "question": "Does it hold up with real users?",
-      "description": "Confirms the pilot met its bar, people are using it, and support is in place before everyone gets it.",
-      "advanceLabel": "Expand to everyone",
-      "approverRoles": [
-        "executive_sponsor",
-        "operations"
-      ],
-      "outcomes": [
-        "advance",
-        "roll_back",
-        "park",
-        "stop"
-      ],
-      "criteria": [
-        {
-          "id": "g_l_measured",
-          "type": "metrics",
-          "minDefined": 2,
-          "requireCurrent": true,
-          "label": "Pilot results measured",
-          "description": "At least two metrics with current values from the pilot."
-        }
-      ]
-    },
-    {
-      "stage": "run",
-      "name": "Quarterly value review",
-      "question": "Is it still working and worth it?",
-      "description": "A recurring review rather than an exit: keep investing, fix what slipped, or retire it responsibly.",
-      "approverRoles": [
-        "executive_sponsor"
-      ],
-      "outcomes": [
-        "sustain",
-        "retire"
-      ],
+      "name": "Build Gate",
+      "description": "Confirms a working, versioned solution exists with a test plan and documented limitations.",
       "criteria": []
+    },
+    {
+      "stage": "validate",
+      "name": "Validation Gate",
+      "description": "Confirms the evidence supports putting the solution in front of real users.",
+      "criteria": [
+        { "id": "g_v_risks", "type": "risks", "rule": "no_unmitigated_high", "label": "No unmitigated high or critical risks", "description": "Every open high or critical risk has a mitigation and an owner." }
+      ]
+    },
+    {
+      "stage": "deploy",
+      "name": "Go-Live Gate",
+      "description": "Confirms people, process, and monitoring are ready and go-live is explicitly approved.",
+      "criteria": []
+    },
+    {
+      "stage": "operate",
+      "name": "Operational Review Gate",
+      "description": "Confirms the solution is monitored, evaluated, adopted, and delivering measured value before entering improvement or retirement planning.",
+      "criteria": [
+        { "id": "g_o_value", "type": "metrics", "minDefined": 2, "requireCurrent": true, "label": "Value and adoption measured", "description": "At least two metrics with current values recorded." }
+      ]
     }
   ]
 }
