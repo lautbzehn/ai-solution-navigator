@@ -13,7 +13,9 @@ import { cn } from '@/lib/cn'
    last steps are centered statements. The six between travel the product:
    a pointer glides to where the tour is heading and "clicks" the sidebar to
    change pages, then the spotlight settles and the callout appears.
-   Skip ends it; Help and the About page replay it from the start.
+   Skip ends it; Help and the About page replay it from the start. However it ends, once it
+   has moved past the welcome it brings the viewer home: My Overview, at the top, with its
+   sections showing in the sidebar.
    ?tour=on in a URL opens it straight away; ?tour=off keeps both it and the intro away. */
 
 const DEMO = '/solutions/s_support'
@@ -191,6 +193,26 @@ export function OnboardingTour() {
   const statement = !step.targets
   const last = i === STEPS.length - 1
 
+  // Ending the tour. Skipping the welcome leaves the viewer where they were; anything later
+  // returns them to where the app starts, with the sidebar back to its defaults.
+  const homeAfter = useRef(false)
+  const close = useCallback(() => {
+    endTour()
+    if (STEPS[i].id === 'welcome') return
+    useUI.getState().resetNav()
+    homeAfter.current = true
+    navigate('/', { replace: samePath(path.current, '/') })
+  }, [i, endTour, navigate])
+
+  // Once home, start at the top. This runs after the page's own scroll restoration,
+  // which would otherwise return to wherever the tour last scrolled My Overview.
+  useEffect(() => {
+    if (!homeAfter.current || location.pathname !== '/') return
+    homeAfter.current = false
+    const t = window.setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 0)
+    return () => window.clearTimeout(t)
+  }, [location])
+
   useEffect(() => {
     if (!open) {
       setEntered(false)
@@ -253,6 +275,8 @@ export function OnboardingTour() {
         await waitFor(() => samePath(path.current, step.route!))
         if (!alive()) return
       }
+      // A closing statement sits over the top of its page, where the viewer will pick up.
+      if (!step.targets) window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
       // 2. Find what this step is about, and bring it into view.
       const el = step.targets ? await waitFor(() => firstVisible(step.targets)) : null
       if (!alive()) return
@@ -305,9 +329,9 @@ export function OnboardingTour() {
   const next = useCallback(() => {
     if (!ready) return
     forward.current = true
-    if (last) endTour()
+    if (last) close()
     else setI((n) => n + 1)
-  }, [ready, last, endTour])
+  }, [ready, last, close])
   const back = useCallback(() => {
     if (!ready) return
     forward.current = false
@@ -323,7 +347,7 @@ export function OnboardingTour() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()
-        endTour()
+        close()
       } else if (e.key === 'ArrowRight') next()
       else if (e.key === 'ArrowLeft') back()
       else if (e.key === 'Tab' && card.current) {
@@ -342,7 +366,7 @@ export function OnboardingTour() {
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [open, next, back, endTour])
+  }, [open, next, back, close])
 
   if (!open) return null
 
@@ -404,7 +428,7 @@ export function OnboardingTour() {
         )}
       >
         {step.id !== 'finale' && (
-          <button onClick={endTour} aria-label="Skip the tour" className="absolute top-3 right-3 rounded-md p-1.5 text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg">
+          <button onClick={close} aria-label="Skip the tour" className="absolute top-3 right-3 rounded-md p-1.5 text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg">
             <X className="size-4" />
           </button>
         )}
@@ -431,7 +455,7 @@ export function OnboardingTour() {
           {!statement && <Dots i={i} from={from} />}
           <div className={cn('flex items-center gap-2', statement && 'flex-col-reverse sm:flex-row')}>
             {step.id === 'welcome' && (
-              <Button variant="ghost" onClick={endTour}>
+              <Button variant="ghost" onClick={close}>
                 Skip the tour
               </Button>
             )}
