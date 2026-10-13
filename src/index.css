@@ -238,7 +238,7 @@
   --ring: color-mix(in oklch, var(--success) 75%, transparent);
 }
 .intro-card {
-  /* Dan's note: warm ink with an ember edge, set apart from the app's graphite and the tour's emerald. */
+  /* The welcome note: warm ink with an ember edge, set apart from the app's graphite and the tour's emerald. */
   background: #17120f;
   border: 1px solid color-mix(in oklch, var(--forge) 55%, transparent);
   box-shadow:
@@ -260,7 +260,7 @@
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
 }
 .intro-disclaimer {
-  /* The data disclaimer: its own panel with a beet tint, so it never reads as part of Dan's note. */
+  /* The data disclaimer: its own panel with a beet tint, so it never reads as part of the welcome note. */
   background: rgb(224 69 127 / 0.07);
   box-shadow: inset 0 0 0 1px rgb(224 69 127 / 0.32);
 }

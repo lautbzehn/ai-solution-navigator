@@ -45,6 +45,14 @@ export function decide(state: { spentUsd: number; budgetUsd: number; minuteHits:
   return { ok: true }
 }
 
+/**
+ * Storage keys from earlier days. The guard only needs today's spend and today's per-visitor counts,
+ * so older keys are removed to keep Durable Object storage from growing without bound.
+ */
+export function staleKeys(keys: Iterable<string>, day: string): string[] {
+  return [...keys].filter((k) => (k.startsWith('day:') && !k.startsWith(`day:${day}:`)) || (k.startsWith('spent:') && k !== `spent:${day}`))
+}
+
 export const budgetFrom = (raw?: string) => {
   const n = Number(raw)
   return Number.isFinite(n) && n > 0 ? n : LIMITS.dailyBudgetUsd

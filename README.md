@@ -6,7 +6,7 @@
 <p align="center">
   <a href="https://navigator.icarianforge.com"><img alt="Live demo" src="https://img.shields.io/badge/Live_demo-navigator.icarianforge.com-f97343?style=flat-square&labelColor=1c1917"></a>
   <a href="https://github.com/lautbzehn/ai-solution-navigator/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/lautbzehn/ai-solution-navigator/ci.yml?branch=main&style=flat-square&label=CI&labelColor=1c1917"></a>
-  <img alt="Tests" src="https://img.shields.io/badge/tests-32_passing-34d399?style=flat-square&labelColor=1c1917">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-45_passing-34d399?style=flat-square&labelColor=1c1917">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&labelColor=1c1917&logo=typescript&logoColor=white">
   <img alt="React 19" src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&labelColor=1c1917&logo=react&logoColor=61dafb">
   <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-f38020?style=flat-square&labelColor=1c1917&logo=cloudflare&logoColor=f38020">
@@ -17,7 +17,7 @@
 <p align="center">
   <a href="https://navigator.icarianforge.com"><b>Try the live demo</b></a> ·
   <a href="docs/case-study_v1.4_10.11.2026.md">The story behind it</a> ·
-  <a href="docs/architecture_v1.0_10.11.2026.md">Architecture</a> ·
+  <a href="docs/architecture_v1.1_10.13.2026.md">Architecture</a> ·
   <a href="docs/adr">Decision records</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
@@ -116,13 +116,13 @@ flowchart LR
   Guard -- "within limits" --> Claude["Claude API<br/>structured output"]
 ```
 
-Layers flow one way: UI → domain → data → AI integration. The domain is pure TypeScript with no React, so it is tested directly. Full detail in **[docs/architecture](docs/architecture_v1.0_10.11.2026.md)**.
+Layers flow one way: UI → domain → data → AI integration. The domain is pure TypeScript with no React, so it is tested directly. Full detail in **[docs/architecture](docs/architecture_v1.1_10.13.2026.md)**.
 </details>
 
 <details>
 <summary><b>Quality and security</b></summary>
 
-- **Tests:** 32 Vitest tests across domain logic, the gatekeeper and decision rules, the advisor areas, the sidebar memory, and the server guardrails. CI runs them, the type check, and a production build on every pull request.
+- **Tests:** 45 Vitest tests across domain logic, the gatekeeper and decision rules, the advisor areas, the sidebar memory, saved-data validation, tour placement, and the server guardrails. CI runs them, the type check, and a production build on every pull request.
 - **Type safety:** TypeScript in strict mode end to end, including the Worker.
 - **Server-side checks:** the store re-validates every gate decision; the UI is never trusted.
 - **Advisor guardrails** (`server/guard.ts`): only the app's own pages may call it, requests over 64 KB are refused, each visitor (an anonymous hash, never a raw IP) gets 6 questions a minute and 20 a day, and the whole site has a daily spend cap (`ADVISOR_DAILY_BUDGET_USD`, default $5) enforced in a Durable Object.
@@ -137,7 +137,7 @@ Layers flow one way: UI → domain → data → AI integration. The domain is pu
 ```bash
 npm ci
 npm run dev        # http://localhost:5173
-npm test           # 32 tests
+npm test           # 45 tests
 npm run typecheck
 npm run build      # type check and production build
 ```
