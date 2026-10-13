@@ -1,5 +1,5 @@
-import { handleAdvisor, MAX_BODY_BYTES, type AdvisorEnv } from '../server/advisor'
-import { budgetFrom, clientIdFor, decide, today, type AdvisorGuard, type GuardVerdict } from '../server/guard'
+import { handleAdvisor, MAX_BODY_BYTES, TOO_LARGE, type AdvisorEnv } from '../server/advisor'
+import { budgetFrom, clientIdFor, decide, staleKeys, today, type AdvisorGuard, type GuardVerdict } from '../server/guard'
 
 /* Cloudflare Worker for navigator.icarianforge.com.
    Static files (the built app in ./dist) are served by the assets binding;
@@ -12,6 +12,8 @@ import { budgetFrom, clientIdFor, decide, today, type AdvisorGuard, type GuardVe
 interface DurableObjectStorage {
   get<T>(key: string): Promise<T | undefined>
   put<T>(key: string, value: T): Promise<void>
+  list<T>(options: { prefix: string }): Promise<Map<string, T>>
+  delete(keys: string[]): Promise<number>
 }
 interface DurableObjectState {
   storage: DurableObjectStorage
@@ -33,6 +35,11 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
     if (url.pathname === '/api/advisor') {
+      // Refuse oversized requests from the declared length, before reading the body into memory.
+      const declared = Number(request.headers.get('Content-Length'))
+      if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
+        return Response.json({ error: TOO_LARGE }, { status: 413, headers: { 'Cache-Control': 'no-store' } })
+      }
       const raw = request.method === 'POST' ? await request.text() : ''
       let body: unknown
       if (raw && raw.length <= MAX_BODY_BYTES) {
@@ -78,6 +85,8 @@ function durableGuard(ns: DurableObjectNamespace): AdvisorGuard {
 /** Keeps the advisor's counters: today's spend, and each visitor's recent and daily question counts. */
 export class AdvisorGuardObject {
   private minute = new Map<string, number[]>()
+  /** The last day this instance removed earlier days' keys. */
+  private prunedDay = ''
   constructor(
     private state: DurableObjectState,
     private env: Env,
@@ -88,6 +97,10 @@ export class AdvisorGuardObject {
     const now = Date.now()
     const day = today(now)
     const budgetUsd = budgetFrom(this.env.ADVISOR_DAILY_BUDGET_USD)
+    if (this.prunedDay !== day) {
+      await this.prune(day)
+      this.prunedDay = day
+    }
     const spentKey = `spent:${day}`
     const spentUsd = (await this.state.storage.get<number>(spentKey)) ?? 0
 
@@ -112,5 +125,12 @@ export class AdvisorGuardObject {
       await this.state.storage.put(dayKey, dayCount + 1)
     }
     return Response.json(verdict)
+  }
+
+  /** Deletes earlier days' counters, in chunks of 128 keys (the storage API's limit per call). */
+  private async prune(day: string) {
+    const keys = [...(await this.state.storage.list({ prefix: 'day:' })).keys(), ...(await this.state.storage.list({ prefix: 'spent:' })).keys()]
+    const stale = staleKeys(keys, day)
+    for (let i = 0; i < stale.length; i += 128) await this.state.storage.delete(stale.slice(i, i + 128))
   }
 }

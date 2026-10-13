@@ -1,6 +1,6 @@
 # Architecture
 
-**v1.0 · 10.11.2026** · Forge AI Solution Navigator 1.2
+**v1.1 · 10.13.2026** · Forge AI Solution Navigator 1.2
 
 ## Goals and constraints
 
@@ -78,12 +78,12 @@ sequenceDiagram
 
 ## Persistence
 
-The store persists through a `StateStorage` adapter (`src/data/storage.ts`) to `localStorage`, versioned with a reseed on any version mismatch so old demo data never breaks a new release. Swapping in a server database is a one-file change. See [ADR 0002](adr/0002-browser-local-persistence_v1.0_10.11.2026.md).
+The store persists through a `StateStorage` adapter (`src/data/storage.ts`) to `localStorage`, versioned with a reseed on any version mismatch so old demo data never breaks a new release. Saved data is treated as untrusted input: on load, `src/data/persistence.ts` checks its shape (every collection, record ids, known stages, settings) and falls back to a fresh demo if anything is malformed. Swapping in a server database is a one-file change. See [ADR 0002](adr/0002-browser-local-persistence_v1.0_10.11.2026.md).
 
 ## The AI advisor
 
 1. The browser builds a compact JSON snapshot of the solution or portfolio (`src/ai/context.ts`).
-2. In live mode it posts to `/api/advisor`. The Worker checks the origin, a client header, the body size (64 KB), the visitor's limits (6 a minute, 20 a day, keyed by an anonymous hash), and the site-wide daily budget (default $5), all held in a Durable Object.
+2. In live mode it posts to `/api/advisor`. The Worker refuses oversized requests from their declared length before reading them, then checks the origin, a client header, the body size (64 KB), the visitor's limits (6 a minute, 20 a day, keyed by an anonymous hash), and the site-wide daily budget (default $5), all held in a Durable Object that deletes earlier days' counters.
 3. `server/advisor.ts` calls Claude with structured JSON output, validates the answer, and logs model, tokens, cost, and latency.
 4. Any refusal, limit, or failure falls back to the deterministic advisor in the browser, which costs nothing.
 
@@ -95,7 +95,7 @@ See [SECURITY.md](../SECURITY.md). In short: no secrets in the repository, serve
 
 ## Testing and delivery
 
-- **32 Vitest tests:** domain rules, gatekeepers and decisions, advisor areas, the sidebar memory, and server guardrails.
+- **45 Vitest tests:** domain rules, gatekeepers and decisions, advisor areas, the sidebar memory, saved-data validation, tour placement, and server guardrails.
 - **CI** ([`ci.yml`](../.github/workflows/ci.yml)): every pull request is tested and built; every merge to `main` deploys and then confirms the live site serves the new build.
 - **Dependabot** keeps npm packages and GitHub Actions current.
 
