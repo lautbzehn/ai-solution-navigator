@@ -1,6 +1,6 @@
 # Architecture
 
-**v1.1 · 10.13.2026** · Forge AI Solution Navigator 1.2
+**v1.1 · 10.13.2026** · Forge AI Solution Navigator 1.3
 
 ## Goals and constraints
 
