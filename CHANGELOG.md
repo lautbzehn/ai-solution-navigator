@@ -4,6 +4,9 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 
 ## [Unreleased]
 
+### Changed
+- The welcome note greets you from Dan and keeps to two points, why he built it and what it does, with roomier spacing, a note to check back for what's new, and a shorter Dwight disclaimer.
+
 ## [1.3.0] · 2026-10-13
 
 ### Changed
