@@ -4,7 +4,10 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 
 ## [Unreleased]
 
+## [1.3.0] · 2026-10-13
+
 ### Changed
+- Dependencies: Vite 8.3.4 and lucide-react 1.53.
 - The guided tour is split by responsibility: the script (`tourSteps.tsx`), layout math (`tourGeometry.ts`, unit-tested), static panels (`TourPanels.tsx`), and the motion and state in `OnboardingTour.tsx`.
 - In the sidebar, a category's name now opens and closes its sections on its own page, just like the arrow. From anywhere else it goes to that page with its sections showing.
 - However the guided tour ends (finished, skipped, or Escape), it brings you back to where the app starts: My Overview, scrolled to the top, with its sections showing in the sidebar. Skipping on the welcome screen leaves you where you are.
