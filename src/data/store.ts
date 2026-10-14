@@ -29,6 +29,7 @@ import type {
 } from '@/domain/types'
 import { buildSeed } from './seed'
 import { CURRENT_USER_ID } from './seed/people'
+import { isRestorableState } from './persistence'
 import { safeLocalStorage } from './storage'
 
 export type Theme = 'dark' | 'light'
@@ -644,6 +645,8 @@ export const useStore = create<Store>()(
       }),
       // Schema changed: start from a fresh demo rather than mis-reading old data.
       migrate: () => ({ ...buildSeed(), settings: DEFAULT_SETTINGS }) as unknown as Store,
+      // Saved data is untrusted input. Anything malformed falls back to the fresh demo already in memory.
+      merge: (persisted, current) => (isRestorableState(persisted) ? { ...current, ...(persisted as Partial<Store>) } : current),
     },
   ),
 )

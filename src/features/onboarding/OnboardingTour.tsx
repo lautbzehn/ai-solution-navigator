@@ -1,156 +1,33 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
-import { ArrowLeft, ArrowRight, Check, LayoutDashboard, ShieldCheck, Sparkles, X } from 'lucide-react'
-import { Logo } from '@/components/layout/Logo'
-import { BrandName } from '@/components/brand/ForgeMark'
+import { ArrowLeft, ArrowRight, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useUI } from '@/data/ui'
 import { cn } from '@/lib/cn'
+import { boxOf, firstVisible, place, restPoint, type Box } from './tourGeometry'
+import { Dots, Finale, Welcome } from './TourPanels'
+import { STEPS } from './tourSteps'
 
 /* An eight-step product tour. A new browser session first sees the note from Dan
    (IntroDialog), whose "Take the tour" opens this past its welcome step. The first and
    last steps are centered statements. The six between travel the product:
    a pointer glides to where the tour is heading and "clicks" the sidebar to
    change pages, then the spotlight settles and the callout appears.
-   Skip ends it; Help and the About page replay it from the start.
-   ?tour=on in a URL opens it straight away; ?tour=off keeps both it and the intro away. */
+   Skip ends it; Help and the About page replay it from the start. However it ends, once it
+   has moved past the welcome it brings the viewer home: My Overview, at the top, with its
+   sections showing in the sidebar.
+   ?tour=on in a URL opens it straight away; ?tour=off keeps both it and the intro away.
+   This file holds the motion and state; the script is in tourSteps.tsx, the layout math in
+   tourGeometry.ts, and the static panels in TourPanels.tsx. */
 
-const DEMO = '/solutions/s_support'
 /** Pace of the guided motion. Deliberately unhurried so the eye can follow. */
 const GLIDE_MS = 1100
 const CLICK_MS = 520
 const SETTLE_MS = 420
 
-type Side = 'right' | 'bottom' | 'left' | 'top'
-interface Step {
-  id: string
-  /** The page this step lives on. The tour navigates there first. */
-  route?: string
-  /** What the pointer clicks to get to that page; first visible wins. */
-  via?: string[]
-  /** Candidate spotlight targets, first visible wins. None = a centered statement. */
-  targets?: string[]
-  side?: Side
-  /** Where the pointer rests relative to the target. */
-  point?: 'right' | 'below'
-  title?: string
-  body?: ReactNode
-}
-
-const STEPS: Step[] = [
-  { id: 'welcome' },
-  {
-    id: 'attention',
-    route: '/',
-    via: ['nav[aria-label="Primary"] a[href="/"]'],
-    targets: ['#attention', 'main [data-section-header]'],
-    side: 'bottom',
-    title: 'Start with what needs attention',
-    body: "My Overview opens with your briefing and what is yours. Needs your attention shows what's blocked or at risk, why, and the next step for each.",
-  },
-  {
-    id: 'solution',
-    route: DEMO,
-    via: [`nav[aria-label="Primary"] a[href="${DEMO}"]`, 'nav[aria-label="Primary"] a[href="/solutions"]'],
-    targets: ['[aria-label="Next best action"]'],
-    side: 'bottom',
-    title: 'Every solution shows its next move',
-    body: 'Open any initiative to see its stage, readiness, and gate. The next best action names the one thing to drive now, who owns it, and why it matters.',
-  },
-  {
-    id: 'gate',
-    route: DEMO,
-    targets: ['#gate', 'main [data-section-header]'],
-    side: 'top',
-    title: "See exactly why it can't advance",
-    body: 'Each gate lists every open requirement and its owner. Select one to open the work and see what is missing. A checked box only counts once its evidence is approved.',
-  },
-  {
-    id: 'advisor',
-    route: DEMO,
-    targets: ['#gate [aria-label^="AI advisor"]', 'main [aria-label^="AI advisor"]', '[data-tour="advisor"]'],
-    side: 'left',
-    title: 'Ask the AI advisor about any area',
-    body: (
-      <>
-        Select the <Sparkles className="inline size-3.5 align-[-2px] text-accent" aria-label="star" /> star on any section, like this gate, for an analysis of just that area. Or open AI advisor in the top bar to ask anything. Decisions stay with your team.
-      </>
-    ),
-  },
-  {
-    id: 'reports',
-    route: '/reports',
-    via: ['nav[aria-label="Primary"] a[href="/reports"]'],
-    targets: ['section[aria-labelledby="insights-title"]', 'main [data-section-header]'],
-    side: 'bottom',
-    title: 'Report to leadership in one place',
-    body: 'Reports leads with the three most important insights, then health, delivery, risk, value, and AI quality, each folded to a headline until you need it.',
-  },
-  {
-    id: 'help',
-    route: '/reports',
-    targets: ['[data-tour="help"]'],
-    side: 'left',
-    point: 'below',
-    title: 'Help is one click away',
-    body: 'Quick how-to guides, answers by topic, and this tour whenever you want it again.',
-  },
-  { id: 'finale', route: '/', via: ['nav[aria-label="Primary"] a[href="/"]'] },
-]
-
-const visible = (el: Element | null): el is HTMLElement => {
-  if (!el) return false
-  const r = el.getBoundingClientRect()
-  return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden'
-}
-const firstVisible = (selectors?: string[]) => selectors?.map((s) => document.querySelector(s)).find(visible) ?? null
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(v, Math.max(lo, hi)))
 const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms))
 const samePath = (a: string, b: string) => a.replace(/\/$/, '') === b.replace(/\/$/, '')
-
-interface Box {
-  top: number
-  left: number
-  width: number
-  height: number
-}
-
-/** The spotlight box around an element, kept on screen even for tall targets. */
-function boxOf(el: HTMLElement): Box {
-  const r = el.getBoundingClientRect()
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  const pad = 6
-  const top = Math.max(r.top - pad, 8)
-  const bottom = Math.min(r.bottom + pad, vh - 8)
-  return { top, left: Math.max(r.left - pad, 8), width: Math.min(r.width + pad * 2, vw - 16), height: Math.max(bottom - top, 24) }
-}
-
-/** Where the pointer rests: just outside the spotlight, pointing at it, so it
-    never covers the text it is showing. Falls back to below, then mirrored on the left. */
-function restPoint(el: HTMLElement, prefer: 'right' | 'below' = 'right'): { x: number; y: number; flip: boolean } {
-  const b = boxOf(el)
-  const right = { x: b.left + b.width + 3, y: b.top + Math.min(b.height / 2, 22), flip: false }
-  const below = { x: b.left + b.width / 2, y: b.top + b.height + 3, flip: false }
-  if (prefer === 'right' && right.x + 22 <= window.innerWidth) return right
-  if (below.y + 28 <= window.innerHeight) return below
-  return { x: b.left - 3, y: right.y, flip: true }
-}
-
-function place(r: Box | null, side: Side, cw: number, ch: number, vw: number, vh: number) {
-  const m = 16
-  const gap = 14
-  const center = { left: (vw - cw) / 2, top: Math.max(m, (vh - ch) / 2) }
-  if (!r) return center
-  for (const s of [side, 'bottom', 'right', 'left', 'top'] as Side[]) {
-    if (s === 'right' && r.left + r.width + gap + cw <= vw - m) return { left: r.left + r.width + gap, top: clamp(r.top + 8, m, vh - ch - m) }
-    if (s === 'left' && r.left - gap - cw >= m) return { left: r.left - gap - cw, top: clamp(r.top, m, vh - ch - m) }
-    if (s === 'bottom' && r.top + r.height + gap + ch <= vh - m) return { top: r.top + r.height + gap, left: clamp(r.left + r.width / 2 - cw / 2, m, vw - cw - m) }
-    if (s === 'top' && r.top - gap - ch >= m) return { top: r.top - gap - ch, left: clamp(r.left + r.width / 2 - cw / 2, m, vw - cw - m) }
-  }
-  return center
-}
 
 interface Pointer {
   x: number
@@ -190,6 +67,26 @@ export function OnboardingTour() {
   const step = STEPS[i]
   const statement = !step.targets
   const last = i === STEPS.length - 1
+
+  // Ending the tour. Skipping the welcome leaves the viewer where they were; anything later
+  // returns them to where the app starts, with the sidebar back to its defaults.
+  const homeAfter = useRef(false)
+  const close = useCallback(() => {
+    endTour()
+    if (STEPS[i].id === 'welcome') return
+    useUI.getState().resetNav()
+    homeAfter.current = true
+    navigate('/', { replace: samePath(path.current, '/') })
+  }, [i, endTour, navigate])
+
+  // Once home, start at the top. This runs after the page's own scroll restoration,
+  // which would otherwise return to wherever the tour last scrolled My Overview.
+  useEffect(() => {
+    if (!homeAfter.current || location.pathname !== '/') return
+    homeAfter.current = false
+    const t = window.setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 0)
+    return () => window.clearTimeout(t)
+  }, [location])
 
   useEffect(() => {
     if (!open) {
@@ -253,6 +150,8 @@ export function OnboardingTour() {
         await waitFor(() => samePath(path.current, step.route!))
         if (!alive()) return
       }
+      // A closing statement sits over the top of its page, where the viewer will pick up.
+      if (!step.targets) window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
       // 2. Find what this step is about, and bring it into view.
       const el = step.targets ? await waitFor(() => firstVisible(step.targets)) : null
       if (!alive()) return
@@ -305,9 +204,9 @@ export function OnboardingTour() {
   const next = useCallback(() => {
     if (!ready) return
     forward.current = true
-    if (last) endTour()
+    if (last) close()
     else setI((n) => n + 1)
-  }, [ready, last, endTour])
+  }, [ready, last, close])
   const back = useCallback(() => {
     if (!ready) return
     forward.current = false
@@ -323,7 +222,7 @@ export function OnboardingTour() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()
-        endTour()
+        close()
       } else if (e.key === 'ArrowRight') next()
       else if (e.key === 'ArrowLeft') back()
       else if (e.key === 'Tab' && card.current) {
@@ -342,7 +241,7 @@ export function OnboardingTour() {
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [open, next, back, endTour])
+  }, [open, next, back, close])
 
   if (!open) return null
 
@@ -404,7 +303,7 @@ export function OnboardingTour() {
         )}
       >
         {step.id !== 'finale' && (
-          <button onClick={endTour} aria-label="Skip the tour" className="absolute top-3 right-3 rounded-md p-1.5 text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg">
+          <button onClick={close} aria-label="Skip the tour" className="absolute top-3 right-3 rounded-md p-1.5 text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg">
             <X className="size-4" />
           </button>
         )}
@@ -431,7 +330,7 @@ export function OnboardingTour() {
           {!statement && <Dots i={i} from={from} />}
           <div className={cn('flex items-center gap-2', statement && 'flex-col-reverse sm:flex-row')}>
             {step.id === 'welcome' && (
-              <Button variant="ghost" onClick={endTour}>
+              <Button variant="ghost" onClick={close}>
                 Skip the tour
               </Button>
             )}
@@ -466,71 +365,5 @@ export function OnboardingTour() {
       </div>
     </div>,
     document.body,
-  )
-}
-
-function Dots({ i, from = 0 }: { i: number; from?: number }) {
-  return (
-    <span className="flex items-center gap-1.5" aria-hidden>
-      {STEPS.slice(from).map((s, k) => {
-        const n = k + from
-        return (
-          <span key={s.id} className={cn('h-1.5 rounded-full transition-all duration-300', n === i ? 'w-5 bg-success' : n < i ? 'w-1.5 bg-success/50' : 'w-1.5 bg-fg-faint/40')} />
-        )
-      })}
-    </span>
-  )
-}
-
-function Welcome() {
-  const points = [
-    { icon: <LayoutDashboard />, title: 'See the whole portfolio', body: 'Readiness, risk, and value for every AI initiative on one screen.' },
-    { icon: <ShieldCheck />, title: 'Know what blocks each gate', body: 'Gates explain themselves, with an owner and the next best action.' },
-    { icon: <Sparkles />, title: 'Ask the AI advisor', body: 'An analysis of any area in one click. Decisions stay with your team.' },
-  ]
-  return (
-    <div className="text-center">
-      <div className="flex items-center justify-center gap-2.5">
-        <Logo size={30} />
-        <BrandName className="text-[13px] font-semibold tracking-[-0.01em] text-fg-muted" />
-      </div>
-      <h2 id="tour-title" className="mx-auto mt-4 max-w-[560px] text-[24px] leading-[1.15] font-semibold tracking-[-0.03em] text-balance text-fg sm:mt-5 sm:text-[34px]">
-        Move AI from promising pilot to proven production.
-      </h2>
-      <div id="tour-body" className="mx-auto mt-3 grid max-w-[560px] gap-2.5 text-[14px] leading-relaxed text-pretty text-fg-muted sm:mt-4 sm:gap-3 sm:text-[15.5px]">
-        <p>Most AI initiatives stall between pilot and production. Not because the model fails, but because readiness, risk, evidence, and ownership are scattered across decks, spreadsheets, and status meetings.</p>
-        <p className="text-fg">Navigator puts every initiative on one governed lifecycle with a live readiness score, so you always know where it stands, what is blocking it, and who owns the next step.</p>
-      </div>
-      <ul className="mt-5 grid gap-2 text-left sm:mt-6 sm:grid-cols-3 sm:gap-2.5">
-        {points.map((p) => (
-          <li key={p.title} className="flex gap-3 rounded-xl bg-black/20 p-3 ring-1 ring-white/[0.06] sm:block sm:p-3.5">
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent-fg ring-1 ring-accent-line [&_svg]:size-4">{p.icon}</span>
-            <span className="block min-w-0">
-              <span className="block text-[13px] font-semibold text-fg sm:mt-2.5">{p.title}</span>
-              <span className="mt-0.5 block text-[12.5px] leading-snug text-fg-subtle">{p.body}</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function Finale() {
-  return (
-    <div className="text-center">
-      <span className="mx-auto grid size-14 place-items-center rounded-full bg-success-soft text-success-fg ring-1 ring-success/30">
-        <Check className="size-7" strokeWidth={2.4} />
-      </span>
-      <h2 id="tour-title" className="mt-5 text-[26px] leading-tight font-semibold tracking-[-0.03em] text-fg sm:text-[30px]">
-        Thanks for taking the tour.
-      </h2>
-      <div id="tour-body" className="mt-3 grid gap-3">
-        <p className="text-[16px] leading-relaxed text-fg">Now go navigate and explore on your own. Have at it.</p>
-        <p className="text-[13px] leading-relaxed text-fg-subtle">
-          A good first stop: Needs your attention on My Overview. Star the solutions you care about to keep them in your sidebar. Help has guides, answers, and this tour anytime.
-        </p>
-      </div>
-    </div>
   )
 }

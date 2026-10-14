@@ -45,6 +45,7 @@ export interface AdvisorDeps {
 
 /** Requests larger than this are refused before they are parsed or sent anywhere. */
 export const MAX_BODY_BYTES = 64 * 1024
+export const TOO_LARGE = 'That request is too large for the advisor. Try asking about one solution at a time.'
 export const LIVE_ORIGINS = ['https://navigator.icarianforge.com', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:4173']
 export const CLIENT_HEADER = 'x-navigator-client'
 
@@ -160,7 +161,7 @@ export async function handleAdvisor(method: string, body: unknown, env: AdvisorE
     return { status: 403, body: { error: 'The live advisor only answers questions asked from the Navigator itself.' } }
   }
   if ((meta.bodyBytes ?? 0) > MAX_BODY_BYTES || JSON.stringify(body ?? '').length > MAX_BODY_BYTES) {
-    return { status: 413, body: { error: 'That request is too large for the advisor. Try asking about one solution at a time.' } }
+    return { status: 413, body: { error: TOO_LARGE } }
   }
 
   const parsed = parseBody(body)

@@ -12,6 +12,22 @@ const readCollapsed = () => {
   }
 }
 
+const NAV_KEY = 'asn-nav-open'
+const readNavOpen = (): Record<string, boolean> => {
+  try {
+    return JSON.parse(window.localStorage.getItem(NAV_KEY) ?? '{}') as Record<string, boolean>
+  } catch {
+    return {}
+  }
+}
+const saveNavOpen = (choices: Record<string, boolean>) => {
+  try {
+    window.localStorage.setItem(NAV_KEY, JSON.stringify(choices))
+  } catch {
+    /* per-viewer convenience only */
+  }
+}
+
 const readRecent = (): string[] => {
   try {
     const raw = window.localStorage.getItem('asn-recent')
@@ -39,6 +55,12 @@ interface UIState {
   endTour(): void
   /** A question queued for the advisor panel, e.g. from a star icon. The id makes repeat clicks count. */
   advisorRequest?: { id: number; question: string; area?: AdvisorArea }
+  /** Sidebar groups the viewer opened or closed. Without a choice, the current page's group is open and the rest are closed. */
+  navOpen: Record<string, boolean>
+  /** Record a choice for one group, or pass undefined to return it to the default. */
+  setNavOpen(key: string, open: boolean | undefined): void
+  /** Every group back to the default. */
+  resetNav(): void
   /** Solutions this viewer opened, most recent first. */
   recentlyViewed: string[]
   markViewed(solutionId: string): void
@@ -58,6 +80,18 @@ interface UIState {
 
 export const useUI = create<UIState>((set, get) => ({
   sidebarCollapsed: readCollapsed(),
+  navOpen: readNavOpen(),
+  setNavOpen(key, open) {
+    const next = { ...get().navOpen }
+    if (open === undefined) delete next[key]
+    else next[key] = open
+    saveNavOpen(next)
+    set({ navOpen: next })
+  },
+  resetNav() {
+    saveNavOpen({})
+    set({ navOpen: {} })
+  },
   recentlyViewed: readRecent(),
   markViewed(solutionId) {
     const next = [solutionId, ...get().recentlyViewed.filter((x) => x !== solutionId)].slice(0, 8)

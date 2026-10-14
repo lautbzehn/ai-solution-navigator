@@ -5,9 +5,15 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 ## [Unreleased]
 
 ### Changed
+- The guided tour is split by responsibility: the script (`tourSteps.tsx`), layout math (`tourGeometry.ts`, unit-tested), static panels (`TourPanels.tsx`), and the motion and state in `OnboardingTour.tsx`.
+- In the sidebar, a category's name now opens and closes its sections on its own page, just like the arrow. From anywhere else it goes to that page with its sections showing.
+- However the guided tour ends (finished, skipped, or Escape), it brings you back to where the app starts: My Overview, scrolled to the top, with its sections showing in the sidebar. Skipping on the welcome screen leaves you where you are.
 - The welcome note reads like Dan talking to a friend: "Hi, I'm Dan West. Thanks for stopping by.", why he built it, what it does, who decides, what it's based on, and an invitation to explore.
 
 ### Security
+- Saved demo data is validated on load (collections, record ids, known stages, settings); anything malformed falls back to a fresh demo instead of crashing the app.
+- The advisor refuses oversized requests from their declared length, before reading the body, and its rate-limit storage deletes earlier days' counters.
+- `.dev.vars` is gitignored, and `.env.example` documents every advisor setting.
 - A strict Content Security Policy: the browser runs only the app's own scripts, and nothing can load from other sites except Cloudflare Web Analytics. Also adds `Cross-Origin-Opener-Policy` and extends HSTS to subdomains.
 
 ## [1.2.0] · 2026-10-10
