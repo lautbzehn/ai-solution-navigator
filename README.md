@@ -32,7 +32,7 @@
 
 **Why it's credible.** The lifecycle follows recognized practice rather than inventing its own: the AI system life cycle in **ISO/IEC 22989**, the **NIST AI Risk Management Framework**, and **Stage-Gate** decision points. The product manager's view sits on top.
 
-> Built by **[Dan West](https://www.icarianforge.com)**, an AI strategy and adoption leader with nearly 20 years in IT. I designed it and directed Claude Code as the engineering team, the same way I'd lead a product team. All people, companies, and figures in the demo are fictional (Dunder Mifflin, with The Office cast).
+> Built by **[Dan West](https://www.icarianforge.com)**, an AI strategy and operations leader with nearly 20 years in IT. I designed it and directed Claude Code as the engineering team, the same way I'd lead a product team. All people, companies, and figures in the demo are fictional (Dunder Mifflin, with The Office cast).
 
 <p>
   <img src="docs/screenshots/dashboard.png" alt="My Overview: a personal briefing, four headline numbers, and the projects that need attention" width="100%">

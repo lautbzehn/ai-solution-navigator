@@ -4,6 +4,9 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 
 ## [Unreleased]
 
+### Changed
+- Dan's title reads "AI strategy and operations leader" in the README and Help, matching his résumé.
+
 ### Added
 - Anonymous visit counts for Dan, the same as on www.icarianforge.com: the pages you open, for how long, and links that take you out of the app. Never its buttons, and never anything you type or change. No cookies, nothing at all under Global Privacy Control, and a new Help answer, "Is my visit counted?", says so. The script is `public/insights.js`, reporting to www.icarianforge.com/api/i.
 
