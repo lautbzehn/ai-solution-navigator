@@ -127,7 +127,7 @@ export function IntroDialog() {
                 </p>
                 <p className="mt-1.5 text-[13.5px] leading-relaxed text-fg-muted">
                   It's a working demo, and I'm still adding to it, so check back to see what's new. Open a project, approve some evidence, put one on hold. Nothing you
-                  do leaves your browser.
+                  type or change leaves your browser.
                 </p>
               </div>
               <figure className="intro-disclaimer rounded-xl px-6 py-4 text-center">
