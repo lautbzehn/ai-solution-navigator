@@ -1,8 +1,9 @@
 # Browser protections for every page and file: HTTPS only, no MIME sniffing, no framing by other sites,
 # a trimmed referrer, no camera, microphone, location or payment access, and a content policy that only
 # runs this app's own scripts (plus Cloudflare Web Analytics). The advisor is same-origin (/api/advisor).
+# Visit counts (/insights.js) report to www.icarianforge.com/api/i.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com https://www.icarianforge.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
