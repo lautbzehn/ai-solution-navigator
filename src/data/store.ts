@@ -203,8 +203,14 @@ export const useStore = create<Store>()(
             : x,
         )
         const label = (v: LifecycleState) => (v === 'on_hold' ? 'On hold' : v === 'stopped' ? 'Stopped' : 'Active')
+        // Hold and Stop at a gate count toward pass rate as decisions that didn't pass. Resume isn't a gate call.
+        const gate = evaluateGate(bundleFor(s, solutionId)!)
+        const gateAttempts =
+          next === 'active' || gate.isFinal
+            ? s.gateAttempts
+            : [...s.gateAttempts, { id: uid('ga'), solutionId, stage: sol.stage, ts, passed: false, blockers: gate.unmet.map((u) => u.label), decision: next === 'on_hold' ? ('hold' as const) : ('stop' as const) }]
         commit(
-          { solutions, decisions: [decision, ...s.decisions] },
+          { solutions, decisions: [decision, ...s.decisions], gateAttempts },
           [
             { solutionId, action: 'created', entityType: 'decision', entityId: decisionId, entityName: decision.title },
             { solutionId, action: 'status_changed', entityType: 'solution', entityId: solutionId, entityName: sol.name, field: 'state', from: label(current), to: label(next) },
@@ -574,17 +580,9 @@ export const useStore = create<Store>()(
           const gate = evaluateGate(bundle)
           const ts = nowIso()
           const from = bundle.solution.stage
-          if (!gate.canAdvance) {
-            commit(
-              {
-                gateAttempts: [...s.gateAttempts, { id: uid('ga'), solutionId, stage: from, ts, passed: false, blockers: gate.unmet.map((u) => u.label) }],
-              },
-              [{ solutionId, action: 'gate_blocked', entityType: 'gate', entityId: solutionId, entityName: bundle.solution.name, field: 'stage', from: stageDef(from).name, to: `${gate.unmet.length} requirements unmet` }],
-            )
-            return { ok: false, unmet: gate.unmet }
-          }
+          // A blocked gate isn't a decision, so nothing is logged and pass rate is untouched.
+          if (!gate.canAdvance) return { ok: false, unmet: gate.unmet }
           if (!canDecideGate(bundle.solution, decision.ownerId)) return { ok: false, unmet: [], reason: `Only the ${gatekeeperPhrase(from)} can decide this gate, and never the solution owner.` }
-          if (decision.rationale.trim().length < 10) return { ok: false, unmet: [], reason: 'Add a short rationale so the decision is auditable.' }
           const to = nextStage(from)!
           const decisionId = uid('dc')
           const gateDecision: Decision = {
@@ -618,7 +616,7 @@ export const useStore = create<Store>()(
             {
               solutions,
               decisions: [gateDecision, ...s.decisions],
-              gateAttempts: [...s.gateAttempts, { id: uid('ga'), solutionId, stage: from, ts, passed: true, blockers: [] }],
+              gateAttempts: [...s.gateAttempts, { id: uid('ga'), solutionId, stage: from, ts, passed: true, blockers: [], decision: 'go' }],
             },
             [
               { solutionId, action: 'created', entityType: 'decision', entityId: decisionId, entityName: gateDecision.title },

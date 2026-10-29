@@ -435,7 +435,7 @@ export function answerPortfolio(question: string, c: PortfolioContext, area?: Ad
       const there = slow[0] ? c.solutions.filter((s) => s.stage === slow[0].name) : []
       return {
         ...blank,
-        summary: `${d.gatePassRatePct !== null ? `Gate pass rate is ${d.gatePassRatePct}%` : 'No gate attempts yet'}${d.avgDaysToProduction !== null ? `, and solutions take ${d.avgDaysToProduction} days on average to reach production` : ''}. ${slow[0] ? `${slow[0].name} is the slowest stage: ${slow[0].avgDays} days on average against a typical ${slow[0].typicalDays}, main reason: ${slow[0].primaryReason}.` : 'No stage is running over its typical duration.'} ${d.blockedActivities} ${d.blockedActivities === 1 ? 'activity is' : 'activities are'} blocked and ${d.overdueActivities} overdue.`,
+        summary: `${d.gatePassRatePct !== null ? `Gate pass rate is ${d.gatePassRatePct}%` : 'No gate decisions yet'}${d.avgDaysToProduction !== null ? `, and solutions take ${d.avgDaysToProduction} days on average to reach production` : ''}. ${slow[0] ? `${slow[0].name} is the slowest stage: ${slow[0].avgDays} days on average against a typical ${slow[0].typicalDays}, main reason: ${slow[0].primaryReason}.` : 'No stage is running over its typical duration.'} ${d.blockedActivities} ${d.blockedActivities === 1 ? 'activity is' : 'activities are'} blocked and ${d.overdueActivities} overdue.`,
         recommendations: [...there, ...attention.filter((s) => !there.includes(s))].slice(0, 4).map(toRec),
         gateOutlook: insight(/bottleneck|gate/i),
       }

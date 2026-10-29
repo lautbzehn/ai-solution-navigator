@@ -25,7 +25,7 @@ export const GUIDES: Guide[] = [
   {
     id: 'advance',
     title: 'Move a solution to the next stage',
-    steps: ['In Work, complete the gate activities and attach their evidence.', 'Get each piece of evidence approved. A checked box alone does not count.', 'Select Advance in the header to run the gate review and record the decision.'],
+    steps: ['In Work, complete the gate activities and attach their evidence.', 'Get each piece of evidence approved. A checked box alone does not count.', 'When every requirement is met, select Request decision in the header so a gatekeeper can record Go.'],
     to: '/solutions/s_support/work',
   },
   {

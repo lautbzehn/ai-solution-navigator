@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowRight, Check, CircleX, LockOpen, OctagonX, Pause, PartyPopper, Play, ShieldAlert, UserCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { EVIDENCE_TONE } from '@/components/status'
@@ -20,10 +20,14 @@ import { useWorkspace } from './context'
 
 type Choice = 'go' | 'hold' | 'stop'
 
-/** Gate review: explains exactly why a stage can't advance, and records the
-    gatekeeper's decision: Go (advance), Hold (pause, progress kept) or Stop
-    (end it). Only a team member in one of the gate's gatekeeper roles may
-    decide, never the solution owner. The store re-validates on submit. */
+const RATIONALE_MIN = 10
+
+/** Gate review: explains exactly why a stage can't advance and points at the
+    next thing to fix. While the gate is blocked, resolving the next blocker is
+    the main action; a gatekeeper's Hold or Stop sits below as a secondary call.
+    Once every requirement is met, Go is the main action. Only a team member in
+    one of the gate's gatekeeper roles decides, never the solution owner. Nothing
+    is logged until a decision is submitted. The store re-validates on submit. */
 export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { insight, openActivity, goTab } = useWorkspace()
   const advanceStage = useStore((s) => s.advanceStage)
@@ -36,55 +40,38 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
   const state = stateOf(solution)
   const keepers = gatekeepers(solution)
   const defaultOwner = keepers.find((k) => k.roleId === 'executive_sponsor')?.personId ?? keepers[0]?.personId ?? ''
-  const [choice, setChoice] = useState<Choice>(gate.canAdvance ? 'go' : 'hold')
   const [ownerId, setOwnerId] = useState(defaultOwner)
   const [conditions, setConditions] = useState('')
   const [rationale, setRationale] = useState('')
   const [error, setError] = useState<string>()
-  const [loggedAttempt, setLoggedAttempt] = useState(false)
 
   useEffect(() => {
     if (open) {
-      setChoice(gate.canAdvance ? 'go' : 'hold')
       setOwnerId(defaultOwner)
       setConditions('')
       setRationale('')
       setError(undefined)
-      setLoggedAttempt(false)
     }
     // Reset only when the review opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
-
-  // Opening the gate while it's blocked counts as an attempt (feeds gate pass rate).
-  useEffect(() => {
-    if (open && state === 'active' && !gate.canAdvance && !gate.isFinal && !loggedAttempt) {
-      advanceStage(solution.id, { ownerId: solution.ownerId, conditions: '', rationale: '' })
-      setLoggedAttempt(true)
-    }
-  }, [open, state, gate.canAdvance, gate.isFinal, loggedAttempt, advanceStage, solution.id, solution.ownerId])
 
   const from = stageDef(solution.stage).name
   const to = gate.nextStage ? stageDef(gate.nextStage).name : undefined
   const unmet = sortUnmet(gate.unmet)
   const met = gate.criteria.filter((c) => c.met)
   const short = solution.name.replace(/^AI /, '')
+  const passable = gate.canAdvance && !!to
 
-  const check = () => {
+  /** Go may stand without a reason; Hold, Stop and Resume need one so the call is auditable. */
+  const ready = (needsRationale: boolean) => {
     if (!ownerId) return setError(`Choose who is deciding. Only the ${gatekeeperPhrase(solution.stage)} can decide this gate.`), false
-    if (rationale.trim().length < 10) return setError('Add a short rationale (at least 10 characters) so the decision is auditable.'), false
+    if (needsRationale && rationale.trim().length < RATIONALE_MIN) return setError(`Add a short rationale (at least ${RATIONALE_MIN} characters) so the decision is auditable.`), false
     return true
   }
 
-  const submit = () => {
-    if (!check()) return
-    if (state === 'on_hold') {
-      const r = resumeSolution(solution.id, { ownerId, rationale })
-      if (!r.ok) return setError(r.reason)
-      onOpenChange(false)
-      toast.success(`${short} resumed in ${from}`, { description: 'Decision recorded in the decision log.' })
-      return
-    }
+  const decide = (choice: Choice) => {
+    if (!ready(choice !== 'go')) return
     if (choice === 'go') {
       const r = advanceStage(solution.id, { ownerId, conditions, rationale })
       if (!r.ok) return setError(r.reason ?? 'Requirements changed since this review opened. Please re-check the gate.')
@@ -97,6 +84,14 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
     onOpenChange(false)
     if (choice === 'hold') toast(`${short} is on hold in ${from}`, { description: 'Progress is kept. Resume it from the gate review.' })
     else toast(`${short} was stopped at the ${from} gate`, { description: 'The record and the reason stay in the decision log.' })
+  }
+
+  const resume = () => {
+    if (!ready(true)) return
+    const r = resumeSolution(solution.id, { ownerId, rationale })
+    if (!r.ok) return setError(r.reason)
+    onOpenChange(false)
+    toast.success(`${short} resumed in ${from}`, { description: 'Decision recorded in the decision log.' })
   }
 
   const jump = (c: CriterionResult) => {
@@ -130,21 +125,24 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
           </Select>
         )}
       </Field>
-      <Field label="Rationale" required error={error && error.includes('rationale') ? error : undefined}>
+      <Field
+        label="Rationale"
+        required={!passable}
+        hint={passable && state === 'active' ? 'Optional for Go. Holding or stopping needs one.' : undefined}
+        error={error && error.includes('rationale') ? error : undefined}
+      >
         {(p) => (
           <Textarea
             {...p}
             rows={2}
             value={rationale}
-            onChange={(e) => setRationale(e.target.value)}
+            onChange={(e) => (setRationale(e.target.value), setError(undefined))}
             placeholder={
               state === 'on_hold'
                 ? 'e.g. Funding is confirmed for next quarter; pick up where we left off.'
-                : choice === 'go'
+                : passable
                   ? `e.g. ${from} evidence reviewed with the sponsor; proceed to ${to}.`
-                  : choice === 'hold'
-                    ? 'e.g. Waiting on the data-sharing agreement; revisit next month.'
-                    : 'e.g. The pilot showed no time saved; the team moves to a better-value idea.'
+                  : 'e.g. Waiting on the data-sharing agreement; revisit next month.'
             }
           />
         )}
@@ -159,6 +157,8 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
       , someone other than the solution owner.
     </div>
   )
+
+  const otherError = error && !error.includes('rationale') && <p role="alert" className="text-[12.5px] text-danger-fg">{error}</p>
 
   // A stopped solution is closed: show why, nothing to decide.
   if (state === 'stopped') {
@@ -180,7 +180,7 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
         footer={
           <>
             <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button variant="primary" onClick={submit} disabled={!keepers.length}>
+            <Button variant="primary" onClick={resume} disabled={!keepers.length}>
               <Play /> Resume work
             </Button>
           </>
@@ -193,17 +193,13 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
         <section className="grid gap-3">
           {keeperNote}
           {deciderFields}
-          {error && !error.includes('rationale') && <p role="alert" className="text-[12.5px] text-danger-fg">{error}</p>}
+          {otherError}
         </section>
       </Modal>
     )
   }
 
-  const options: { id: Choice; label: string; body: string; icon: ReactNode; disabled?: boolean }[] = [
-    { id: 'go', label: 'Go', body: to ? (gate.canAdvance ? `Advance to ${to}.` : 'Every requirement must be met first.') : 'Final stage.', icon: <ArrowRight />, disabled: !gate.canAdvance || !to },
-    { id: 'hold', label: 'Hold', body: `Pause in ${from}. Progress is kept; resume anytime.`, icon: <Pause /> },
-    { id: 'stop', label: 'Stop', body: 'End the project here. The record and the reason stay.', icon: <OctagonX /> },
-  ]
+  const nextBlocker = unmet[0]
 
   return (
     <Modal
@@ -218,16 +214,16 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
       description={gate.gate?.description ?? 'Improve / Retire is continuous. A gatekeeper can still put it on hold or stop it.'}
       footer={
         <>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button variant={choice === 'stop' ? 'danger' : 'primary'} onClick={submit} disabled={!keepers.length || (choice === 'go' && !gate.canAdvance)}>
-            {choice === 'go' ? (
-              <>Go: advance to {to} <ArrowRight /></>
-            ) : choice === 'hold' ? (
-              <><Pause /> Put on hold</>
-            ) : (
-              <><OctagonX /> Stop the project</>
-            )}
-          </Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>{gate.isFinal ? 'Close' : 'Cancel'}</Button>
+          {passable ? (
+            <Button variant="primary" onClick={() => decide('go')} disabled={!keepers.length}>
+              Go: advance to {to} <ArrowRight />
+            </Button>
+          ) : nextBlocker ? (
+            <Button variant="primary" onClick={() => jump(nextBlocker)}>
+              Resolve next blocker <ArrowRight />
+            </Button>
+          ) : null}
         </>
       }
     >
@@ -294,45 +290,33 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
         </section>
       )}
 
-      <section className="mt-5 grid gap-3 border-t border-border pt-4">
+      <section className="mt-5 grid gap-3 border-t border-border pt-4" aria-label="Gate decision">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="text-[13px] font-semibold text-fg">Gate decision</h3>
           {keeperNote}
         </div>
-        <div role="radiogroup" aria-label="Gate decision" className="grid gap-2 sm:grid-cols-3">
-          {options.map((o) => (
-            <button
-              key={o.id}
-              type="button"
-              role="radio"
-              aria-checked={choice === o.id}
-              disabled={o.disabled}
-              onClick={() => (setChoice(o.id), setError(undefined))}
-              className={cn(
-                'flex flex-col items-start gap-1 rounded-xl px-3.5 py-3 text-left ring-1 transition-colors disabled:cursor-not-allowed disabled:opacity-45 [&_svg]:size-4',
-                choice === o.id
-                  ? o.id === 'go'
-                    ? 'bg-success-soft ring-success/45'
-                    : o.id === 'hold'
-                      ? 'bg-info-soft ring-info/45'
-                      : 'bg-danger-soft ring-danger/45'
-                  : 'bg-surface-2 ring-border hover:bg-surface-3',
-              )}
-            >
-              <span className="flex items-center gap-1.5 text-[13.5px] font-semibold text-fg">
-                {o.icon} {o.label}
-              </span>
-              <span className="text-[12px] leading-snug text-fg-subtle">{o.body}</span>
-            </button>
-          ))}
-        </div>
+        <p className="text-[12.5px] text-fg-subtle">
+          {passable
+            ? 'Go is selected. Add any conditions, then record it below. A gatekeeper can still hold or stop instead.'
+            : gate.isFinal
+              ? 'No exit gate here. A gatekeeper can still put the project on hold or stop it.'
+              : 'Go opens once every requirement is met. Until then, a gatekeeper can put the project on hold or stop it.'}
+        </p>
         {deciderFields}
-        {choice === 'go' && keepers.length > 0 && (
+        {passable && keepers.length > 0 && (
           <Field label="Conditions" optionalLabel hint="Anything the team must do as a condition of approval.">
             {(p) => <Textarea {...p} rows={2} value={conditions} onChange={(e) => setConditions(e.target.value)} placeholder="e.g. Start with a 10% pilot cohort." />}
           </Field>
         )}
-        {error && !error.includes('rationale') && <p role="alert" className="text-[12.5px] text-danger-fg">{error}</p>}
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" onClick={() => decide('hold')} disabled={!keepers.length}>
+            <Pause /> Put on hold
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => decide('stop')} disabled={!keepers.length}>
+            <OctagonX /> Stop the project
+          </Button>
+        </div>
+        {otherError}
       </section>
     </Modal>
   )

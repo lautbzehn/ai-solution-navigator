@@ -42,7 +42,7 @@ export function buildSeed(now = Date.now()): DB {
   return db
 }
 
-/** One passed attempt per completed stage, plus a few realistic failed attempts. */
+/** One Go per completed stage, plus a few earlier Hold calls where a gatekeeper sent the work back. */
 function seedGateAttempts(db: DB): GateAttempt[] {
   const out: GateAttempt[] = []
   const failures: Record<string, { stage: string; daysBefore: number; blockers: string[] }[]> = {
@@ -60,9 +60,9 @@ function seedGateAttempts(db: DB): GateAttempt[] {
       const exit = new Date(visit.exitedAt).getTime()
       for (const f of failures[s.id] ?? []) {
         if (f.stage !== visit.stage) continue
-        out.push({ id: `ga_${s.id}_${visit.stage}_f`, solutionId: s.id, stage: visit.stage, ts: new Date(exit - f.daysBefore * DAY).toISOString(), passed: false, blockers: f.blockers })
+        out.push({ id: `ga_${s.id}_${visit.stage}_f`, solutionId: s.id, stage: visit.stage, ts: new Date(exit - f.daysBefore * DAY).toISOString(), passed: false, blockers: f.blockers, decision: 'hold' })
       }
-      out.push({ id: `ga_${s.id}_${visit.stage}`, solutionId: s.id, stage: visit.stage, ts: visit.exitedAt, passed: true, blockers: [] })
+      out.push({ id: `ga_${s.id}_${visit.stage}`, solutionId: s.id, stage: visit.stage, ts: visit.exitedAt, passed: true, blockers: [], decision: 'go' })
     }
   }
   return out

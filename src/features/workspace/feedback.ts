@@ -24,7 +24,7 @@ function announce(before: Snapshot, after: Snapshot, opts: ImpactOptions) {
   if (after.gateOpen && !before.gateOpen && after.next) {
     toast.success(`Gate open: ready to advance to ${stageDef(after.next).name}`, {
       description: `All requirements met. Readiness ${before.readiness} → ${after.readiness}.`,
-      action: opts.onGateOpen ? { label: 'Review gate', onClick: opts.onGateOpen } : undefined,
+      action: opts.onGateOpen ? { label: 'Request decision', onClick: opts.onGateOpen } : undefined,
       duration: 8000,
     })
     return

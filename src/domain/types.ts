@@ -368,6 +368,8 @@ export interface GateAttempt {
   ts: string
   passed: boolean
   blockers: string[]
+  /** The gatekeeper's call. Pass rate counts only attempts that carry one; older saved data may lack it. */
+  decision?: 'go' | 'hold' | 'stop'
 }
 
 export interface ReadinessSnapshot {

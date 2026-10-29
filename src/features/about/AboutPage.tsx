@@ -37,7 +37,7 @@ const IDEAS: { icon: ReactNode; title: string; body: string }[] = [
 
 const TRY = [
   { step: 'Open the AI Customer Support Resolution Assistant.', to: '/solutions/s_support' },
-  { step: 'Click "Advance to Deploy." It says no, and tells you exactly why.' },
+  { step: 'Click "Review gate · 3 open." It says no, tells you exactly why, and takes you to the next blocker.' },
   { step: 'Mark one of the missing pieces done. Notice it still waits for the proof to be approved.' },
   { step: 'Approve the proof and watch the readiness score climb.' },
 ]

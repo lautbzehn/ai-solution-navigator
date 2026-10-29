@@ -63,7 +63,7 @@ export const GLOSSARY = {
   },
   gatePassRate: {
     title: 'Gate pass rate',
-    body: 'Share of gate attempts that passed on the first try. Failed attempts mean a team asked to advance before requirements were met.',
+    body: 'Share of gate decisions that were Go. A Hold or Stop means a gatekeeper sent the work back before it was ready to advance. Opening a gate to look never counts.',
   },
   reworkRate: {
     title: 'Rework rate',

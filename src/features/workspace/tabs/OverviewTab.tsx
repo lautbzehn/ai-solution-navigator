@@ -12,7 +12,7 @@ import { InfoTip } from '@/components/ui/Tooltip'
 import { stageDef } from '@/config'
 import { useStore } from '@/data/store'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
-import { gateLabel } from '@/domain/gates'
+import { gateActionLabel, gateLabel } from '@/domain/gates'
 import { AI_PATTERN, RISK_CATEGORY, SEVERITY_ORDER } from '@/domain/labels'
 import { sortUnmet } from '@/domain/nextAction'
 import { cn } from '@/lib/cn'
@@ -65,7 +65,7 @@ export function OverviewTab() {
           <>
             {!gate.isFinal && (
               <Button variant={gate.canAdvance ? 'primary' : 'ghost'} size="xs" onClick={openGate} className="hidden sm:inline-flex">
-                {gate.canAdvance ? 'Review gate' : 'Check gate'} <ArrowRight />
+                {gateActionLabel(gate)} <ArrowRight />
               </Button>
             )}
             <AdvisorSpark area="gate" />

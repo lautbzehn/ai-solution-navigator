@@ -26,7 +26,8 @@ export function summarize(items: SolutionInsight[], gateAttempts: GateAttempt[])
     })
     .filter((x): x is number => x !== undefined)
   const ids = new Set(items.map((i) => i.bundle.solution.id))
-  const attempts = gateAttempts.filter((g) => ids.has(g.solutionId))
+  // Pass rate counts gatekeepers' decisions only, never someone opening a gate to look.
+  const attempts = gateAttempts.filter((g) => g.decision && ids.has(g.solutionId))
   return {
     total: items.length,
     inAssessment: items.filter((i) => i.bundle.solution.stage === 'assess').length,
