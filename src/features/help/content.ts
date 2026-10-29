@@ -72,6 +72,7 @@ export const FAQS: Faq[] = [
   { category: 'Readiness', q: 'Can we change how readiness is weighted?', a: 'Yes. Open Lifecycle Framework, then Readiness weights. Every score in the portfolio recalculates immediately.' },
   { category: 'Risk and evidence', q: 'How is the risk tier chosen?', a: 'The new-solution wizard recommends one from impact, data sensitivity, and autonomy. Higher tiers add required controls and stronger gate criteria.' },
   { category: 'Risk and evidence', q: "Why doesn't a completed activity count fully?", a: "Readiness and gates give full credit only when the evidence is approved, so 'done' always means 'proven'." },
+  { category: 'Risk and evidence', q: 'Who approves evidence?', a: "Anyone on the team except the person who owns it. The owner drafts it and submits it for review. Then a teammate chooses Approve, picks who is signing off, and adds a one-line note on what they checked. The app logs who approved it and when, and never lets owners sign off their own work." },
   { category: 'Risk and evidence', q: 'What happens to a high-severity risk with no mitigation?', a: 'It lowers Risk & Governance readiness and blocks the Validate gate until a mitigation is recorded.' },
   { category: 'Reports', q: 'Where do the report numbers come from?', a: "They're calculated live from every solution's activities, evidence, risks, metrics, and gate history." },
   { category: 'Reports', q: 'Can I filter the reports?', a: 'Yes, by date range, lifecycle stage, and risk tier. The insights recalculate for whatever you select.' },

@@ -33,6 +33,8 @@ export function describe(e: AuditEntry) {
       return <>removed <b>{e.entityName}</b> from the team</>
     case 'status_changed':
       return <>changed {ENTITY[e.entityType]} <b>{e.entityName}</b> from {e.from} to <b>{e.to}</b></>
+    case 'approved':
+      return <>approved {e.from ? `${e.from}'s` : 'the'} <b>{e.entityName}</b>{e.to ? <> for {e.to}</> : null}</>
     default:
       return <>updated {FIELD[e.field ?? ''] ?? e.field} on <b>{e.entityName}</b>{e.from && e.to && e.from.length < 40 && e.to.length < 40 ? <> from {e.from} to {e.to}</> : null}</>
   }

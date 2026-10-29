@@ -5,14 +5,21 @@ import { bundleFor } from '@/domain/db'
 import { evaluateGate } from '@/domain/gates'
 import { computeReadiness } from '@/domain/readiness'
 
+type ImpactOptions = { onGateOpen?: () => void; quiet?: boolean }
+type Snapshot = NonNullable<ReturnType<typeof snapshot>>
+
 /** Run a mutation and surface its consequences: readiness movement and gate
     changes. This is what makes "complete an activity → see readiness change"
-    visible instead of silent. */
-export function withImpact(solutionId: string, mutate: () => void, opts: { onGateOpen?: () => void; quiet?: boolean } = {}) {
+    visible instead of silent. Hands back whatever the mutation returned. */
+export function withImpact<T>(solutionId: string, mutate: () => T, opts: ImpactOptions = {}): T {
   const before = snapshot(solutionId)
-  mutate()
+  const result = mutate()
   const after = snapshot(solutionId)
-  if (!before || !after) return
+  if (before && after) announce(before, after, opts)
+  return result
+}
+
+function announce(before: Snapshot, after: Snapshot, opts: ImpactOptions) {
   const delta = after.readiness - before.readiness
   if (after.gateOpen && !before.gateOpen && after.next) {
     toast.success(`Gate open: ready to advance to ${stageDef(after.next).name}`, {

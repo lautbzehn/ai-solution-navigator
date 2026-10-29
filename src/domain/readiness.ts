@@ -8,8 +8,10 @@ import type { Activity, ActivityStatus, DimensionId, Evidence, EvidenceStatus, S
    It is NOT a measure of AI safety or model quality alone.
 
    · Each required activity in scope earns credit by status.
-   · Completed work earns full credit only when its evidence is approved —
-     a checked box without evidence is not readiness.
+   · Completed work counts when its evidence is approved. Until then it earns
+     part of the credit, by how far the evidence has got: in review 0.7, draft
+     0.4. Missing evidence earns nothing on a gate-blocking activity, the same
+     as the gate, and 0.3 on any other. A checked box is not proof.
    · Open high-severity risks without mitigation pull Risk & Governance down.
    · Dimension scores roll up by configurable weights. */
 
@@ -21,17 +23,19 @@ const STATUS_CREDIT: Record<ActivityStatus, number> = {
   not_applicable: 0,
 }
 
-const COMPLETE_EVIDENCE_CREDIT: Record<EvidenceStatus, number> = {
+const COMPLETE_EVIDENCE_CREDIT: Record<Exclude<EvidenceStatus, 'missing'>, number> = {
   approved: 1,
   not_required: 1,
-  in_review: 0.85,
-  draft: 0.7,
-  missing: 0.6,
+  in_review: 0.7,
+  draft: 0.4,
 }
+
+const COMPLETE_MISSING_CREDIT = { blocking: 0, other: 0.3 }
 
 export function activityCredit(activity: Activity, evidence?: Evidence): number {
   if (activity.status === 'complete') {
     if (!activity.evidenceTemplateId || !evidence) return 1
+    if (evidence.status === 'missing') return activity.blocking ? COMPLETE_MISSING_CREDIT.blocking : COMPLETE_MISSING_CREDIT.other
     return COMPLETE_EVIDENCE_CREDIT[evidence.status]
   }
   let credit = STATUS_CREDIT[activity.status]

@@ -128,7 +128,7 @@ export function OverviewTab() {
           <CardBody className="grid items-center gap-6 pt-5 md:grid-cols-[220px_minmax(0,1fr)]">
             <ReadinessGauge readiness={readiness} stage={solution.stage} size={150} />
             <div className="md:border-l md:border-border md:pl-6">
-              <p className="mb-2 px-2 text-[11.5px] text-fg-subtle">Hover, focus, or tap a dimension for the why and what would raise it.</p>
+              <p className="mb-2 px-2 text-[11.5px] text-fg-subtle">Completed work counts when its evidence is approved. Hover, focus, or tap a dimension for the why and what would raise it.</p>
               <DimensionBars readiness={readiness} />
             </div>
           </CardBody>

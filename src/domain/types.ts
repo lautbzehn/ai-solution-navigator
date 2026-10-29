@@ -236,6 +236,11 @@ export interface Evidence {
   date: string
   link?: string
   notes?: string
+  /** Who approved it: always someone other than the owner. Set only by the store's approve command. */
+  approvedById?: string
+  approvedAt?: string
+  /** The approver's one-line note on what they checked. */
+  approvalNote?: string
 }
 
 export type RiskCategory =
@@ -346,11 +351,12 @@ export interface AuditEntry {
   ts: string
   actorId: string
   solutionId?: string
-  action: 'created' | 'updated' | 'status_changed' | 'advanced' | 'gate_blocked' | 'commented' | 'assigned' | 'deleted'
+  action: 'created' | 'updated' | 'status_changed' | 'advanced' | 'gate_blocked' | 'commented' | 'assigned' | 'deleted' | 'approved'
   entityType: 'solution' | 'activity' | 'evidence' | 'risk' | 'decision' | 'metric' | 'change' | 'team' | 'gate'
   entityId: string
   entityName: string
   field?: string
+  /** Display values at the time. For 'approved': the evidence owner's name in `from`, the activity it backs in `to`. */
   from?: string
   to?: string
 }
