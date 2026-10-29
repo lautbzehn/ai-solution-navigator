@@ -48,10 +48,10 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = { weights: DEFAULT_WEIGHTS, advisorEnabled: true, advisorMode: 'auto', theme: 'dark' }
 
-export type NewSolution = Pick<
-  Solution,
-  'name' | 'description' | 'riskTier' | 'businessProblem' | 'targetUsers' | 'desiredOutcome' | 'whyAI' | 'aiPatterns' | 'dataSources' | 'expectedValue' | 'ownerId'
-> & { sponsorId?: string }
+/** Only a name, a problem and an owner are needed to start. Everything else can be Discover work.
+    With no risk tier, the solution starts as a Moderate placeholder until Assess confirms it. */
+export type NewSolution = Pick<Solution, 'name' | 'businessProblem' | 'ownerId'> &
+  Partial<Pick<Solution, 'description' | 'riskTier' | 'targetUsers' | 'desiredOutcome' | 'whyAI' | 'aiPatterns' | 'dataSources' | 'expectedValue'>> & { sponsorId?: string }
 
 export type AdvanceResult = { ok: true; decisionId: string } | { ok: false; unmet: CriterionResult[]; reason?: string }
 export type GateDecisionResult = { ok: true; decisionId: string } | { ok: false; reason: string }
@@ -255,40 +255,33 @@ export const useStore = create<Store>()(
           const solution: Solution = {
             id,
             name: input.name,
-            description: input.description,
+            description: input.description ?? input.businessProblem.trim().split(/(?<=\.)\s/)[0].slice(0, 180),
             ownerId: input.ownerId,
             stage: 'discover',
-            riskTier: input.riskTier,
+            riskTier: input.riskTier ?? 'moderate',
+            riskTierStatus: input.riskTier ? 'confirmed' : 'provisional',
             businessProblem: input.businessProblem,
-            targetUsers: input.targetUsers,
-            desiredOutcome: input.desiredOutcome,
-            whyAI: input.whyAI,
-            aiPatterns: input.aiPatterns,
-            dataSources: input.dataSources,
-            expectedValue: input.expectedValue,
+            targetUsers: input.targetUsers ?? '',
+            desiredOutcome: input.desiredOutcome ?? '',
+            whyAI: input.whyAI ?? '',
+            aiPatterns: input.aiPatterns ?? [],
+            dataSources: input.dataSources ?? '',
+            expectedValue: input.expectedValue ?? 0,
             realizedValue: 0,
             team,
             stageHistory: [{ stage: 'discover', enteredAt: ts }],
             createdAt: ts,
             updatedAt: ts,
           }
+          // Answers typed at create fill the solution's fields; the Discover activities stay open,
+          // because a sentence in a form isn't the work, and only proven work counts.
           const plan = instantiatePlan(solution, ts)
-          // Answers captured in the guided flow satisfy their Discover activities.
-          const done = new Set<string>()
-          if (input.businessProblem.trim().length >= 20) done.add('d_problem')
-          if (input.targetUsers.trim()) done.add('d_users')
-          if (input.desiredOutcome.trim().length >= 15) done.add('d_outcome')
-          if (input.whyAI.trim()) done.add('d_why_ai')
-          if (input.sponsorId) done.add('d_sponsor')
-          const activities = plan.activities.map((a) =>
-            a.templateId && done.has(a.templateId) ? { ...a, status: 'complete' as const, completedAt: ts } : a,
-          )
           const s = get()
           commit(
             {
               solutions: [solution, ...s.solutions],
-              activities: [...s.activities, ...activities],
-              evidence: [...s.evidence, ...plan.evidence.map((e) => (e.templateId === 'ev_opportunity_brief' && done.has('d_problem') ? { ...e, status: 'draft' as const } : e))],
+              activities: [...s.activities, ...plan.activities],
+              evidence: [...s.evidence, ...plan.evidence],
             },
             [{ solutionId: id, action: 'created', entityType: 'solution', entityId: id, entityName: solution.name }],
             id,
@@ -605,6 +598,8 @@ export const useStore = create<Store>()(
               ? {
                   ...sol,
                   stage: to,
+                  // Passing Assess is where a placeholder risk tier is confirmed.
+                  ...(from === 'assess' && sol.riskTierStatus === 'provisional' ? { riskTierStatus: 'confirmed' as const } : {}),
                   stageHistory: [
                     ...sol.stageHistory.map((v) => (v.stage === from && !v.exitedAt ? { ...v, exitedAt: ts } : v)),
                     { stage: to, enteredAt: ts },

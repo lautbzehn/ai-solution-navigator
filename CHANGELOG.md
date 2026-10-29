@@ -9,8 +9,11 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 - A Help answer, "Who approves evidence?"
 - Twelve tests for the readiness credit table and the approval rules (57 in total).
 - Three tests for gate decisions: opening a blocked gate logs nothing, Hold logs an attempt that didn't pass, and Go logs one that did (60 in total).
+- Three tests for the short create: step 1 alone lands in Discover as a Moderate placeholder with its Discover work open, enough answers set a confirmed tier, and passing Assess confirms a placeholder (63 in total).
 
 ### Changed
+- **Creating a solution takes a name, a problem, and an owner.** "Create now, fill in later" sits right on step 1. Step 2, "Anything else you already know?", is optional and collapsed: users, outcome and value, how AI helps, data, sponsor. Whatever is left blank is Discover work, and answers typed at create no longer tick off Discover activities.
+- **A placeholder risk tier says so.** Without enough answers to recommend one, a new solution starts as Moderate and its header reads "Risk tier is a placeholder until Assess confirms it." Passing the Assess gate confirms it.
 - **The gate review puts fixing first.** While a gate is blocked, its main button is "Resolve next blocker", which opens the first open requirement. Hold and Stop sit inside the Gate decision section as secondary choices. Once every requirement is met, the review opens with Go selected, and Go no longer needs a rationale (Hold and Stop still do).
 - **One name for the gate action**: "Review gate · 3 open" while blocked and "Request decision" once it can pass, in the header, the Overview, the next-action card and the gate-open toast. "Advance to {stage}" and "Check gate" are gone.
 - **Gate pass rate counts decisions, not peeks.** Opening a gate to look no longer logs a failed attempt; only a gatekeeper's Go, Hold or Stop counts. Reports, its Delivery insight and the glossary say so.

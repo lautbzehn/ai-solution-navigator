@@ -160,6 +160,8 @@ export interface Solution {
   ownerId: string
   stage: StageId
   riskTier: RiskTier
+  /** A tier set without enough answers is a placeholder until the Assess gate confirms it. Absent means confirmed. */
+  riskTierStatus?: 'provisional' | 'confirmed'
   businessProblem: string
   targetUsers: string
   desiredOutcome: string

@@ -37,7 +37,7 @@ export const GUIDES: Guide[] = [
   {
     id: 'create',
     title: 'Start a new AI initiative',
-    steps: ['Select New solution in the top bar.', 'Describe the problem, the users, and how AI will help.', 'Review the recommended risk tier. The plan and gates are generated to match it.'],
+    steps: ['Select New solution in the top bar.', 'Give it a name, describe the problem, and pick the owner. Then select Create now, fill in later.', 'Or add what you already know: users, outcome, how AI helps, data. With enough answers you get a recommended risk tier; otherwise it starts as a Moderate placeholder until Assess confirms it.'],
     action: 'create',
   },
   {
@@ -70,7 +70,7 @@ export const FAQS: Faq[] = [
   { category: 'Readiness', q: 'What does the readiness score measure?', a: 'How prepared the whole implementation is to move forward, across seven weighted dimensions. It is not a measure of model quality alone.' },
   { category: 'Readiness', q: "Why is a solution 'behind pace'?", a: 'Each stage expects a minimum readiness. Below it shows amber; more than 10 points below shows red.' },
   { category: 'Readiness', q: 'Can we change how readiness is weighted?', a: 'Yes. Open Lifecycle Framework, then Readiness weights. Every score in the portfolio recalculates immediately.' },
-  { category: 'Risk and evidence', q: 'How is the risk tier chosen?', a: 'The new-solution wizard recommends one from impact, data sensitivity, and autonomy. Higher tiers add required controls and stronger gate criteria.' },
+  { category: 'Risk and evidence', q: 'How is the risk tier chosen?', a: 'When you create a solution and add what the AI does, whose experience it reaches, and how sensitive the data is, the app recommends a tier from impact, data sensitivity, and autonomy. Without those answers it starts as a Moderate placeholder until the Assess gate confirms it. Higher tiers add required controls and stronger gate criteria.' },
   { category: 'Risk and evidence', q: "Why doesn't a completed activity count fully?", a: "Readiness and gates give full credit only when the evidence is approved, so 'done' always means 'proven'." },
   { category: 'Risk and evidence', q: 'Who approves evidence?', a: "Anyone on the team except the person who owns it. The owner drafts it and submits it for review. Then a teammate chooses Approve, picks who is signing off, and adds a one-line note on what they checked. The app logs who approved it and when, and never lets owners sign off their own work." },
   { category: 'Risk and evidence', q: 'What happens to a high-severity risk with no mitigation?', a: 'It lowers Risk & Governance readiness and blocks the Validate gate until a mitigation is recorded.' },
