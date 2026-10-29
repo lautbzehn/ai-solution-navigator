@@ -12,6 +12,7 @@ import { InfoTip, Tip } from '@/components/ui/Tooltip'
 import { DEFAULT_WEIGHTS, DIMENSIONS, evidenceTemplate, gateFor, lifecycle, riskBasedControls, roleName, STAGES } from '@/config'
 import { useStore } from '@/data/store'
 import { gatekeeperPhrase } from '@/domain/gatekeepers'
+import { tiersPhrase } from '@/domain/labels'
 import type { DimensionId, RiskTier, StageId } from '@/domain/types'
 import { cn } from '@/lib/cn'
 import { FrameworkFlow } from './FrameworkFlow'
@@ -111,7 +112,7 @@ export function FrameworkPage() {
                     <p className="text-fg-muted">To exit {def.name}, every activity marked as blocking for the solution's risk tier must be complete with approved evidence, plus:</p>
                     {gate.criteria.length ? (
                       <ul className="grid gap-1.5">
-                        {gate.criteria.map((c) => <li key={c.id} className="flex items-start gap-2"><Check className="mt-0.5 size-3.5 shrink-0 text-accent" /><span><span className="text-fg">{c.label}</span><span className="block text-[11.5px] text-fg-subtle">{c.description}</span></span></li>)}
+                        {gate.criteria.map((c) => <li key={c.id} className="flex items-start gap-2"><Check className="mt-0.5 size-3.5 shrink-0 text-accent" /><span><span className="flex flex-wrap items-center gap-1.5 text-fg">{c.label}{c.type === 'metric_threshold' && <Pill tone="muted" className="h-[18px] px-1.5 text-[10.5px]">{tiersPhrase(c.tiers)}</Pill>}</span><span className="block text-[11.5px] text-fg-subtle">{c.description}</span></span></li>)}
                       </ul>
                     ) : (
                       <p className="text-fg-subtle">No additional criteria beyond the blocking activities.</p>
@@ -119,7 +120,7 @@ export function FrameworkPage() {
                     <div className="grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
                       {TIERS.map((t) => (
                         <div key={t}>
-                          <p className="text-[20px] font-semibold tabular">{acts.filter((a) => a.blockingFor.includes(t)).length + gate.criteria.length}</p>
+                          <p className="text-[20px] font-semibold tabular">{acts.filter((a) => a.blockingFor.includes(t)).length + gate.criteria.filter((c) => c.type !== 'metric_threshold' || c.tiers.includes(t)).length}</p>
                           <p className="text-[11px] text-fg-subtle">gate items · {t}</p>
                         </div>
                       ))}

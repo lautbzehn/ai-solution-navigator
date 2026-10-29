@@ -13,7 +13,7 @@ import { useStore } from '@/data/store'
 import { gatekeeperPhrase, gatekeepers, stateOf } from '@/domain/gatekeepers'
 import { sortUnmet } from '@/domain/nextAction'
 import type { CriterionResult } from '@/domain/gates'
-import { EVIDENCE_STATUS } from '@/domain/labels'
+import { EVIDENCE_STATUS, tiersPhrase } from '@/domain/labels'
 import { cn } from '@/lib/cn'
 import { dueLabel } from '@/lib/format'
 import { useWorkspace } from './context'
@@ -98,6 +98,7 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
     onOpenChange(false)
     if (c.activityId) openActivity(c.activityId)
     else if (c.kind === 'role') goTab('team')
+    else if (c.kind === 'metric_threshold') goTab('metrics', 'ai_performance')
     else if (c.kind === 'metrics') goTab('metrics')
     else if (c.kind === 'risks') goTab('risks')
     else goTab('overview')
@@ -259,7 +260,7 @@ export function GateModal({ open, onOpenChange }: { open: boolean; onOpenChange:
               <li key={c.id} className="flex items-start gap-3 rounded-xl bg-surface-2 px-3.5 py-3 ring-1 ring-border">
                 <CircleX className="mt-0.5 size-4 shrink-0 text-danger" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13.5px] font-medium text-fg">{c.label}</p>
+                  <p className="flex flex-wrap items-center gap-1.5 text-[13.5px] font-medium text-fg">{c.label}{c.tiers && <Pill tone="muted" className="h-[18px] px-1.5 text-[10.5px]">{tiersPhrase(c.tiers)}</Pill>}</p>
                   <p className="mt-0.5 text-[12.5px] text-fg-subtle">{c.detail}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px]">
                     {c.ownerId && <PersonChip id={c.ownerId} />}

@@ -99,7 +99,7 @@ export function WorkspacePage() {
             insight,
             openActivity,
             openGate: () => setGateOpen(true),
-            goTab: (t: string) => navigate(`/solutions/${insight.bundle.solution.id}/${MERGED[t] ?? t}`),
+            goTab: (t: string, section?: string) => navigate(`/solutions/${insight.bundle.solution.id}/${MERGED[t] ?? t}${section ? `#${section}` : ''}`),
           }
         : null,
     [insight, openActivity, navigate],

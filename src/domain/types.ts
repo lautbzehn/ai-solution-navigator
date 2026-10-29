@@ -87,6 +87,8 @@ export type GateCriterionDef =
   | { id: string; type: 'role'; roles: RoleId[]; label: string; description: string }
   | { id: string; type: 'metrics'; minDefined: number; requireCurrent?: boolean; label: string; description: string }
   | { id: string; type: 'risks'; rule: 'no_unmitigated_high'; label: string; description: string }
+  /** A measured result must meet its target. Applies only to the risk tiers listed. */
+  | { id: string; type: 'metric_threshold'; metricKey: MetricKey; comparator: 'gte' | 'lte'; tiers: RiskTier[]; label: string; description: string }
 
 export interface GateDef {
   stage: StageId
@@ -308,6 +310,7 @@ export type MetricKey =
   | 'escalation_rate'
   | 'override_rate'
   | 'defect_rate'
+  | 'feasibility_eval_pass_rate'
 
 export interface MetricPoint {
   date: string

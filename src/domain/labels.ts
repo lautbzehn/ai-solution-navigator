@@ -38,6 +38,9 @@ export const PRIORITY: Record<Priority, string> = { high: 'High', medium: 'Mediu
 
 export const RISK_TIER: Record<RiskTier, string> = { low: 'Low', moderate: 'Moderate', high: 'High' }
 
+/** "Moderate and High risk": the tiers a gate criterion applies to, for its badge. */
+export const tiersPhrase = (tiers: RiskTier[]) => `${tiers.map((t) => RISK_TIER[t]).join(' and ')} risk`
+
 export const RISK_CATEGORY: Record<RiskCategory, string> = {
   data: 'Data',
   security: 'Security',
