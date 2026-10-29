@@ -15,6 +15,11 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 - A Help answer, "What does the Assess gate need from a feasibility spike?", and three tests for the new criterion (66 in total).
 
 ### Changed
+- **Five tabs instead of seven.** Overview, Work, Risks & decisions, Metrics, Team & history.
+  - **Evidence lives inside Work.** Expand any activity to see its evidence and submit or approve it right there. A Show filter (All, Gaps, Missing) and the evidence tallies sit above the list, and evidence not tied to an activity has its own group, Other evidence.
+  - **Stages open from the lifecycle bar.** Select a stage to see its purpose, progress, required activities, and gate in a side panel (a bottom sheet on phones).
+  - Old links still work: a Lifecycle link opens that stage's panel on Overview, and an Evidence link opens Work showing the gaps.
+  - Overview's gate section gains "Open in Work", and Help gains two answers on where evidence and stage details live now.
 - **Creating a solution takes a name, a problem, and an owner.** "Create now, fill in later" sits right on step 1. Step 2, "Anything else you already know?", is optional and collapsed: users, outcome and value, how AI helps, data, sponsor. Whatever is left blank is Discover work, and answers typed at create no longer tick off Discover activities.
 - **A placeholder risk tier says so.** Without enough answers to recommend one, a new solution starts as Moderate and its header reads "Risk tier is a placeholder until Assess confirms it." Passing the Assess gate confirms it.
 - **The gate review puts fixing first.** While a gate is blocked, its main button is "Resolve next blocker", which opens the first open requirement. Hold and Stop sit inside the Gate decision section as secondary choices. Once every requirement is met, the review opens with Go selected, and Go no longer needs a rationale (Hold and Stop still do).
