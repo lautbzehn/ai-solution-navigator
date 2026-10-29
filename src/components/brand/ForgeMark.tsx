@@ -54,7 +54,7 @@ export function ForgeFooter() {
 export function BrandName({ className }: { className?: string }) {
   return (
     <span className={className}>
-      <span className="text-forge">Forge</span> AI Solution Navigator
+      <span className="text-forge">Forge</span> Navigator
     </span>
   )
 }

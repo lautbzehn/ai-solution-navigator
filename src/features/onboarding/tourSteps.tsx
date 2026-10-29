@@ -69,7 +69,7 @@ export const STEPS: Step[] = [
     targets: ['section[aria-labelledby="insights-title"]', 'main [data-section-header]'],
     side: 'bottom',
     title: 'Report to leadership in one place',
-    body: 'Reports leads with the three most important insights, then health, delivery, risk, value, and AI quality, each folded to a headline until you need it.',
+    body: 'Portfolio leads with the three most important insights, then health, delivery, risk, value, and AI quality, each with its headline up front.',
   },
   {
     id: 'help',

@@ -75,7 +75,7 @@ export function ReportsPage() {
   const insights = useMemo(() => portfolioInsights(items, perf), [items, perf])
   const trend = useMemo(() => readinessTrend(snapshots, items.map((i) => i.bundle.solution.id), RANGE_WEEKS[filters.range]), [snapshots, items, filters.range])
 
-  const sections = useSections('reports', SECTIONS, ALIASES)
+  const sections = useSections('portfolio', SECTIONS, ALIASES, { openAll: true })
   const [allInsights, setAllInsights] = useState(false)
 
   const filtered = filters.stage || filters.risk
@@ -88,8 +88,8 @@ export function ReportsPage() {
   return (
     <Page>
       <PageHeader
-        title="Portfolio Intelligence"
-        subtitle="Executive reporting for the AI portfolio. Each section opens with its headline; expand only what you need."
+        title="Portfolio"
+        subtitle="The whole AI portfolio in one place, calculated live. Each section leads with its headline; fold away what you don't need."
         actions={<ExpandAllButton sections={sections} />}
       />
 

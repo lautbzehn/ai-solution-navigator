@@ -1,6 +1,6 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="Forge AI Solution Navigator: take AI from pilot to production, with proof. Eight lifecycle stages, Discover to Improve, each ending in a gate." src="docs/assets/banner-light.svg">
+  <img alt="Forge Navigator: take AI from pilot to production, with proof. Eight lifecycle stages, Discover to Improve, each ending in a gate." src="docs/assets/banner-light.svg">
 </picture>
 
 <p align="center">

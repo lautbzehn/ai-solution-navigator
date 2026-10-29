@@ -42,7 +42,7 @@ export function CommandPalette() {
       { id: 'new', label: 'Create a new solution', icon: <Plus className="size-4" />, group: 'Actions', run: () => { setPalette(false); setCreate(true) } },
       { id: 'dash', label: 'My Overview', icon: <LayoutDashboard className="size-4" />, group: 'Go to', run: go('/') },
       { id: 'sol', label: 'Solutions Hub', icon: <FolderKanban className="size-4" />, group: 'Go to', run: go('/solutions') },
-      { id: 'rep', label: 'Portfolio Intelligence', icon: <BarChart3 className="size-4" />, group: 'Go to', run: go('/reports') },
+      { id: 'rep', label: 'Portfolio', icon: <BarChart3 className="size-4" />, group: 'Go to', run: go('/reports') },
       { id: 'fw', label: 'Lifecycle Framework', icon: <BookOpenCheck className="size-4" />, group: 'Go to', run: go('/framework') },
       { id: 'about', label: 'About this project', icon: <Coffee className="size-4" />, group: 'Go to', run: go('/about') },
       { id: 'set', label: 'Settings', icon: <Settings className="size-4" />, group: 'Go to', run: go('/settings') },

@@ -43,12 +43,12 @@ export const GUIDES: Guide[] = [
   {
     id: 'report',
     title: 'Report to leadership',
-    steps: ['Open Reports.', 'Read the three key insights, then open only the section you need.', 'Filter by date range, lifecycle stage, or risk tier.'],
+    steps: ['Open Portfolio.', 'Read the three key insights, then fold away any section you don\'t need.', 'Filter by date range, lifecycle stage, or risk tier.'],
     to: '/reports',
   },
 ]
 
-export const FAQ_CATEGORIES = ['Getting around', 'Lifecycle and gates', 'Readiness', 'Risk and evidence', 'Reports', 'AI advisor', 'Demo data'] as const
+export const FAQ_CATEGORIES = ['Getting around', 'Lifecycle and gates', 'Readiness', 'Risk and evidence', 'Portfolio', 'AI advisor', 'Demo data'] as const
 export type FaqCategory = (typeof FAQ_CATEGORIES)[number]
 
 export interface Faq {
@@ -77,8 +77,8 @@ export const FAQS: Faq[] = [
   { category: 'Lifecycle and gates', q: 'How do I see a stage in detail?', a: "Select any stage on the lifecycle bar in a solution. A panel opens with the stage's purpose, progress, required activities, and its gate." },
   { category: 'Risk and evidence', q: 'Who approves evidence?', a: "Anyone on the team except the person who owns it. The owner drafts it and submits it for review. Then a teammate chooses Approve, picks who is signing off, and adds a one-line note on what they checked. The app logs who approved it and when, and never lets owners sign off their own work." },
   { category: 'Risk and evidence', q: 'What happens to a high-severity risk with no mitigation?', a: 'It lowers Risk & Governance readiness and blocks the Validate gate until a mitigation is recorded.' },
-  { category: 'Reports', q: 'Where do the report numbers come from?', a: "They're calculated live from every solution's activities, evidence, risks, metrics, and gate history." },
-  { category: 'Reports', q: 'Can I filter the reports?', a: 'Yes, by date range, lifecycle stage, and risk tier. The insights recalculate for whatever you select.' },
+  { category: 'Portfolio', q: 'Where do the Portfolio numbers come from?', a: "They're calculated live from every solution's activities, evidence, risks, metrics, and gate history." },
+  { category: 'Portfolio', q: 'Can I filter the Portfolio view?', a: 'Yes, by date range, lifecycle stage, and risk tier. The insights recalculate for whatever you select.' },
   { category: 'AI advisor', q: 'What does the star icon do?', a: 'It asks the AI advisor for an analysis of that specific area, such as a gate, the risks, or delivery across the portfolio.' },
   { category: 'AI advisor', q: 'Does the AI advisor make decisions?', a: 'No. It analyzes, recommends, and explains. Approvals, gate decisions, and legal or security determinations stay with your team.' },
   { category: 'AI advisor', q: 'Is it a live AI model?', a: 'By default it uses built-in guidance computed in your browser from the live data. When a server key is configured it answers with Claude, and falls back automatically if that is unavailable.' },

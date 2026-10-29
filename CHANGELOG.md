@@ -13,8 +13,14 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 - **A measured feasibility result at the Assess gate.** For Moderate and High risk, the Feasibility & Risk Gate now needs a result measured on sample data that meets a threshold the team set before running the spike. A new gate criterion type, `metric_threshold`, does the check and only applies to the tiers it names. The Framework page and the gate review show it with a tier badge, and the metric form gains a Feasibility result key. Low risk is unchanged.
 - The Autonomous Customer Case Classifier's spike measured 78% routing accuracy against an 85% threshold, so its gate shows the new criterion open. The four solutions that already passed Assess at Moderate or High have a met result on record.
 - A Help answer, "What does the Assess gate need from a feasibility spike?", and three tests for the new criterion (66 in total).
+- Four tests for the workspace tabs, old tab links, and the navigation names, including /portfolio (70 in total).
 
 ### Changed
+- **My Overview is about you; Portfolio is the portfolio.**
+  - My Overview keeps the greeting, your three chips, and Needs your attention, and adds **My work this week** (your open activities, soonest first, one click to open) and **Decisions waiting on you** (gates you can decide and decisions you own). The portfolio tiles, charts, and solution list move out; Portfolio and the Solutions Hub already have them.
+  - Reports is now **Portfolio** everywhere: sidebar, page title, breadcrumb, command palette, Help, and the tour. Its address stays /reports, and /portfolio leads there too.
+  - Sections on both pages start open (on phones, just the first). Collapse all stays, and your choice is remembered.
+- **The product is called Forge Navigator**, with "by Icarian Forge" under the name on larger screens. The tab title, intro, and README banner follow.
 - **Five tabs instead of seven.** Overview, Work, Risks & decisions, Metrics, Team & history.
   - **Evidence lives inside Work.** Expand any activity to see its evidence and submit or approve it right there. A Show filter (All, Gaps, Missing) and the evidence tallies sit above the list, and evidence not tied to an activity has its own group, Other evidence.
   - **Stages open from the lifecycle bar.** Select a stage to see its purpose, progress, required activities, and gate in a side panel (a bottom sheet on phones).

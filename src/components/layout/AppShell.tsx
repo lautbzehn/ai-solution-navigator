@@ -16,22 +16,14 @@ import { Tip } from '../ui/Tooltip'
 import { CommandPalette } from './CommandPalette'
 import { Sidebar, SidebarContent } from './Sidebar'
 import { AdvisorSlot } from './AdvisorSlot'
-
-const PAGE_NAMES: Record<string, string> = {
-  '': 'My Overview',
-  solutions: 'Solutions Hub',
-  reports: 'Portfolio Intelligence',
-  framework: 'Lifecycle Framework',
-  settings: 'Settings',
-  about: 'About this project',
-}
+import { pageName } from './nav'
 
 function Breadcrumbs() {
   const location = useLocation()
   const params = useParams()
   const solution = useStore((s) => s.solutions.find((x) => x.id === params.id))
   const [first] = location.pathname.split('/').filter(Boolean)
-  const crumbs: { label: string; to?: string }[] = [{ label: PAGE_NAMES[first ?? ''] ?? 'Not found', to: first ? `/${first}` : '/' }]
+  const crumbs: { label: string; to?: string }[] = [{ label: pageName(first ?? '') ?? 'Not found', to: first ? `/${first}` : '/' }]
   if (solution) crumbs.push({ label: solution.name })
   return (
     <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[13px]">
