@@ -10,6 +10,9 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 - Twelve tests for the readiness credit table and the approval rules (57 in total).
 - Three tests for gate decisions: opening a blocked gate logs nothing, Hold logs an attempt that didn't pass, and Go logs one that did (60 in total).
 - Three tests for the short create: step 1 alone lands in Discover as a Moderate placeholder with its Discover work open, enough answers set a confirmed tier, and passing Assess confirms a placeholder (63 in total).
+- **A measured feasibility result at the Assess gate.** For Moderate and High risk, the Feasibility & Risk Gate now needs a result measured on sample data that meets a threshold the team set before running the spike. A new gate criterion type, `metric_threshold`, does the check and only applies to the tiers it names. The Framework page and the gate review show it with a tier badge, and the metric form gains a Feasibility result key. Low risk is unchanged.
+- The Autonomous Customer Case Classifier's spike measured 78% routing accuracy against an 85% threshold, so its gate shows the new criterion open. The four solutions that already passed Assess at Moderate or High have a met result on record.
+- A Help answer, "What does the Assess gate need from a feasibility spike?", and three tests for the new criterion (66 in total).
 
 ### Changed
 - **Creating a solution takes a name, a problem, and an owner.** "Create now, fill in later" sits right on step 1. Step 2, "Anything else you already know?", is optional and collapsed: users, outcome and value, how AI helps, data, sponsor. Whatever is left blank is Discover work, and answers typed at create no longer tick off Discover activities.

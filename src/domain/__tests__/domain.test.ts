@@ -66,6 +66,29 @@ describe('risk-based rigor', () => {
   })
 })
 
+describe('feasibility threshold at the Assess gate', () => {
+  const FEASIBILITY = 'g_a_feasibility'
+  const classifier = () => bundleFor(buildSeed(), 's_classifier')!
+  const criterion = (b: ReturnType<typeof classifier>) => evaluateGate(b).criteria.find((c) => c.id === FEASIBILITY)
+
+  test('fails when the measured result is below the threshold set before the spike', () => {
+    const c = criterion(classifier())
+    expect(c).toMatchObject({ met: false, detail: '78% against a threshold of 85%', tiers: ['moderate', 'high'] })
+  })
+
+  test('passes once the result meets the threshold', () => {
+    const b = classifier()
+    b.metrics.find((m) => m.key === 'feasibility_eval_pass_rate')!.current = 86
+    expect(criterion(b)).toMatchObject({ met: true, detail: '86% meets the 85% threshold' })
+  })
+
+  test('is skipped for Low risk', () => {
+    const b = classifier()
+    b.solution = { ...b.solution, riskTier: 'low' }
+    expect(criterion(b)).toBeUndefined()
+  })
+})
+
 describe('validation', () => {
   test('metric targets must move in the direction of improvement', () => {
     expect(metricValues({ baseline: 18, target: 22 }, 'min', 'decrease').target).toBeDefined()

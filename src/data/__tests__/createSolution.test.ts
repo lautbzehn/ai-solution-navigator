@@ -38,12 +38,14 @@ describe('short create', () => {
   test('passing the Assess gate confirms a placeholder tier', () => {
     const store = useStore.getState()
     const id = store.createSolution(STEP_ONE)
-    // Move straight to a passable Assess gate: everything in Assess done and approved, the team staffed.
+    // Move straight to a passable Assess gate: everything in Assess done and approved, the team staffed,
+    // and (for Moderate) a feasibility result that meets its threshold.
     useStore.setState({
       solutions: useStore.getState().solutions.map((s) => (s.id === id ? { ...s, stage: 'assess', team: [...s.team, { personId: 'p_michael', roleId: 'executive_sponsor' }, { personId: 'p_toby', roleId: 'governance_risk' }, { personId: 'p_erin', roleId: 'business_owner' }, { personId: 'p_oscar', roleId: 'data_owner' }, { personId: 'p_dwight', roleId: 'security' }] } : s)),
       activities: useStore.getState().activities.map((a) => (a.solutionId === id && a.stage === 'assess' ? { ...a, status: 'complete' } : a)),
       evidence: useStore.getState().evidence.map((e) => (e.solutionId === id && e.stage === 'assess' ? { ...e, status: 'approved', approvedById: 'p_michael' } : e)),
     })
+    store.addMetric({ solutionId: id, name: 'Feasibility spike', category: 'ai_performance', key: 'feasibility_eval_pass_rate', description: '', target: 80, current: 84, unit: '%', direction: 'increase', ownerId: 'p_gabe', frequency: 'monthly', measurement: 'current' })
     const keeper = gatekeepers(solution(id))[0].personId
     const r = useStore.getState().advanceStage(id, { ownerId: keeper, conditions: '', rationale: '' })
     expect(r).toMatchObject({ ok: true })

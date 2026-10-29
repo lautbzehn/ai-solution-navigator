@@ -34,6 +34,7 @@ const KEYS: { value: MetricKey; label: string }[] = [
   { value: 'escalation_rate', label: 'Escalation rate' },
   { value: 'override_rate', label: 'Human override rate' },
   { value: 'defect_rate', label: 'Defect rate' },
+  { value: 'feasibility_eval_pass_rate', label: 'Feasibility result (Assess gate)' },
 ]
 
 export function MetricsTab() {

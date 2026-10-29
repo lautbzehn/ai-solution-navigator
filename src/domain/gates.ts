@@ -1,6 +1,7 @@
 import { gateFor, isFinalStage, nextStage, roleName, stageDef } from '@/config'
+import { withUnit } from '@/lib/format'
 import { evidenceForActivity, type SolutionBundle } from './db'
-import type { ActivityStatus, EvidenceStatus, GateDef, StageId } from './types'
+import type { ActivityStatus, EvidenceStatus, GateDef, RiskTier, StageId } from './types'
 
 /* Gate validation
    ---------------
@@ -8,10 +9,11 @@ import type { ActivityStatus, EvidenceStatus, GateDef, StageId } from './types'
    · every blocking activity instantiated for that stage (blocking is set per
      risk tier in lifecycle.json, so higher risk ⇒ more blocking controls), each
      of which also needs approved evidence when evidence is expected, and
-   · the gate's explicit criteria (fields, roles, metrics, risk rules).
+   · the gate's explicit criteria (fields, roles, metrics, measured
+     thresholds, risk rules). A criterion can name the risk tiers it applies to.
    The UI never just disables a button: every unmet criterion says why. */
 
-export type CriterionKind = 'activity' | 'field' | 'role' | 'metrics' | 'risks'
+export type CriterionKind = 'activity' | 'field' | 'role' | 'metrics' | 'risks' | 'metric_threshold'
 
 export interface CriterionResult {
   id: string
@@ -28,6 +30,8 @@ export interface CriterionResult {
   evidenceStatus?: EvidenceStatus
   dueDate?: string
   priority?: 'high' | 'medium' | 'low'
+  /** Risk tiers the criterion applies to, when it doesn't apply to all. */
+  tiers?: RiskTier[]
 }
 
 export interface GateResult {
@@ -120,6 +124,22 @@ export function evaluateGate(bundle: SolutionBundle, stage: StageId = bundle.sol
           met: defined >= c.minDefined,
           detail: `${defined} of ${c.minDefined} required metrics ${c.requireCurrent ? 'measured' : 'defined'}`,
         })
+        break
+      }
+      case 'metric_threshold': {
+        if (!c.tiers.includes(solution.riskTier)) break
+        const m = bundle.metrics.find((x) => x.key === c.metricKey && x.measurement !== 'not_applicable')
+        const measured = m?.current !== undefined
+        const hasTarget = m?.target !== undefined
+        const met = !!m && measured && hasTarget && (c.comparator === 'gte' ? m.current! >= m.target! : m.current! <= m.target!)
+        const detail = !m || !measured
+          ? 'Not measured yet'
+          : !hasTarget
+            ? 'No threshold set yet'
+            : met
+              ? `${withUnit(m.current, m.unit)} meets the ${withUnit(m.target, m.unit)} threshold`
+              : `${withUnit(m.current, m.unit)} against a threshold of ${withUnit(m.target, m.unit)}`
+        criteria.push({ id: c.id, kind: 'metric_threshold', label: c.label, description: c.description, met, detail, tiers: c.tiers, ownerId: m?.ownerId })
         break
       }
       case 'risks': {

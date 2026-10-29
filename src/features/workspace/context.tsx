@@ -5,7 +5,8 @@ export interface WorkspaceCtx {
   insight: SolutionInsight
   openActivity: (id: string) => void
   openGate: () => void
-  goTab: (tab: string) => void
+  /** Open a workspace tab, optionally with one of its sections open and in view. */
+  goTab: (tab: string, section?: string) => void
 }
 
 export const WorkspaceContext = createContext<WorkspaceCtx | null>(null)

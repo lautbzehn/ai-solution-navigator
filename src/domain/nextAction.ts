@@ -137,6 +137,7 @@ export function nextBestAction(bundle: SolutionBundle, gate: GateResult, readine
     risky ? `Define a mitigation for "${risky.title}"`
     : top.kind === 'role' ? `Assign the missing owners (${top.detail.replace('Missing: ', '')})`
     : top.kind === 'metrics' ? 'Define success metrics with baselines and targets'
+    : top.kind === 'metric_threshold' ? 'Measure the feasibility result against its threshold'
     : top.kind === 'field' ? `Document the ${top.label.replace(/ (documented|defined)$/i, '').toLowerCase()}`
     : top.label
   return {
@@ -146,7 +147,7 @@ export function nextBestAction(bundle: SolutionBundle, gate: GateResult, readine
       ? `${risky.severity === 'critical' ? 'A critical' : 'A high-severity'} ${risky.category} risk has no mitigation: ${risky.impact} Unmitigated high-severity risks lower Risk & Governance readiness and block the gate.`
       : `${top.description} Current state: ${top.detail}.`,
     ownerId: risky?.ownerId,
-    tab: risky ? 'risks' : top.kind === 'role' ? 'team' : top.kind === 'metrics' ? 'metrics' : 'overview',
+    tab: risky ? 'risks' : top.kind === 'role' ? 'team' : top.kind === 'metrics' || top.kind === 'metric_threshold' ? 'metrics' : 'overview',
     impact: blockingNote,
     blocking: true,
     criterionId: top.id,

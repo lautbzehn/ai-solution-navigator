@@ -104,6 +104,7 @@ export const SOLUTION_SEEDS: SolutionSeed[] = [
       { name: 'Active pilot agents', category: 'adoption', key: 'active_users', description: 'Agents using the assistant weekly during validation.', baseline: 0, target: 150, current: 24, unit: 'users', direction: 'increase', ownerId: 'p_kelly', frequency: 'weekly', measurement: 'current' },
       { name: 'Agent satisfaction', category: 'adoption', key: 'satisfaction', description: 'Pilot agents rating the assistant useful (1–5).', baseline: 3, target: 4.2, current: 4.1, unit: 'score', direction: 'increase', ownerId: 'p_pam', frequency: 'monthly', measurement: 'current' },
       { name: 'Annual support cost savings', category: 'financial', description: 'Agent hours saved × loaded cost.', baseline: 0, target: 650_000, unit: 'USD', direction: 'increase', ownerId: 'p_angela', frequency: 'quarterly', measurement: 'target' },
+      { name: 'Feasibility spike: answer accuracy', description: 'Suggestions judged correct on 200 sample tickets. Threshold set before the spike ran.', target: 80, current: 84, category: 'ai_performance', key: 'feasibility_eval_pass_rate', unit: '%', direction: 'increase', ownerId: 'p_gabe', frequency: 'monthly', measurement: 'current', trend: 'flat' },
     ],
     changes: [
       { type: 'scope', description: 'Added billing product line to scope', ownerId: 'p_jim', impact: 'Adds ~600 articles and refund scenarios to evaluation.', approvalRequired: true, status: 'implemented', daysAgo: 48 },
@@ -229,6 +230,7 @@ export const SOLUTION_SEEDS: SolutionSeed[] = [
     metrics: [
       { name: 'First-assignment routing accuracy', category: 'business', description: 'Cases routed to the correct team first time.', baseline: 71, target: 85, unit: '%', direction: 'increase', ownerId: 'p_erin', frequency: 'weekly', measurement: 'baseline' },
       { name: 'P1 time to first response', category: 'business', description: 'Minutes from case open to first response for P1.', baseline: 52, target: 26, unit: 'min', direction: 'decrease', ownerId: 'p_erin', frequency: 'weekly', measurement: 'baseline' },
+      { name: 'Feasibility spike: routing accuracy', description: 'Cases routed to the right team on a 500-case labeled sample. Threshold set before the spike ran.', target: 85, current: 78, category: 'ai_performance', key: 'feasibility_eval_pass_rate', unit: '%', direction: 'increase', ownerId: 'p_gabe', frequency: 'monthly', measurement: 'current', trend: 'flat' },
     ],
     changes: [{ type: 'risk', description: 'Risk tier raised from Moderate to High', ownerId: 'p_toby', impact: 'Adds autonomy boundaries, override controls, adversarial testing, and board approval.', approvalRequired: true, status: 'approved', daysAgo: 24 }],
   },
@@ -289,6 +291,7 @@ export const SOLUTION_SEEDS: SolutionSeed[] = [
       { name: 'Weekly opportunity update time', category: 'business', description: 'Minutes per rep per week.', baseline: 45, target: 15, unit: 'min', direction: 'decrease', ownerId: 'p_phyllis', frequency: 'monthly', measurement: 'target' },
       { name: 'CRM completeness', category: 'business', description: 'Required opportunity fields populated.', baseline: 58, target: 85, unit: '%', direction: 'increase', ownerId: 'p_oscar', frequency: 'monthly', measurement: 'target' },
       { name: 'Summary factual accuracy', category: 'ai_performance', key: 'accuracy', description: 'Summaries with no factual errors.', target: 95, current: 91, unit: '%', direction: 'increase', ownerId: 'p_holly', frequency: 'weekly', measurement: 'current' },
+      { name: 'Feasibility spike: summary accuracy', description: 'Summaries with no factual errors on 50 sample calls. Threshold set before the spike ran.', target: 85, current: 89, category: 'ai_performance', key: 'feasibility_eval_pass_rate', unit: '%', direction: 'increase', ownerId: 'p_gabe', frequency: 'monthly', measurement: 'current', trend: 'flat' },
     ],
     changes: [{ type: 'data_source', description: 'Added email threads as a summarization source', ownerId: 'p_gabe', impact: 'Requires privacy review of email content handling.', approvalRequired: true, status: 'approved', daysAgo: 15 }],
   },
@@ -457,6 +460,7 @@ export const SOLUTION_SEEDS: SolutionSeed[] = [
       { name: 'Detection precision', category: 'ai_performance', key: 'accuracy', description: 'Flags confirmed as true anomalies.', target: 90, current: 91, unit: '%', direction: 'increase', ownerId: 'p_holly', frequency: 'monthly', measurement: 'current' },
       { name: 'Analyst override rate', category: 'ai_performance', key: 'override_rate', description: 'Flags dismissed by analysts.', baseline: 25, target: 12, current: 9, unit: '%', direction: 'decrease', ownerId: 'p_holly', frequency: 'monthly', measurement: 'current' },
       { name: 'Defect rate', category: 'operational', key: 'defect_rate', description: 'Pipeline failures per 1,000 invoices.', baseline: 3, target: 1, current: 1.4, unit: 'per 1k', direction: 'decrease', ownerId: 'p_darryl', frequency: 'monthly', measurement: 'current' },
+      { name: 'Feasibility spike: anomaly precision', description: "Flags confirmed as true anomalies on last quarter's invoices. Threshold set before the spike ran.", target: 80, current: 86, category: 'ai_performance', key: 'feasibility_eval_pass_rate', unit: '%', direction: 'increase', ownerId: 'p_gabe', frequency: 'monthly', measurement: 'current', trend: 'flat' },
     ],
     changes: [
       { type: 'model', description: 'Retrained detector on FY26 vendor data', ownerId: 'p_oscar', impact: 'Precision +3 points; re-evaluated before release.', approvalRequired: true, status: 'implemented', daysAgo: 40 },
@@ -526,6 +530,7 @@ export const SOLUTION_SEEDS: SolutionSeed[] = [
       { name: 'New-rep ramp time', category: 'business', description: 'Months to full quota.', baseline: 6, target: 4, unit: 'months', direction: 'decrease', ownerId: 'p_andy', frequency: 'quarterly', measurement: 'target' },
       { name: 'Win rate', category: 'business', description: 'Closed-won share of qualified opportunities.', baseline: 21, target: 24, unit: '%', direction: 'increase', ownerId: 'p_andy', frequency: 'quarterly', measurement: 'target' },
       { name: 'Feedback relevance', category: 'ai_performance', key: 'accuracy', description: 'Coaching notes rated relevant by managers.', target: 85, current: 78, unit: '%', direction: 'increase', ownerId: 'p_holly', frequency: 'weekly', measurement: 'current' },
+      { name: 'Feasibility spike: feedback relevance', description: 'Coaching notes rated relevant on 40 consented sample calls. Threshold set before the spike ran.', target: 70, current: 74, category: 'ai_performance', key: 'feasibility_eval_pass_rate', unit: '%', direction: 'increase', ownerId: 'p_gabe', frequency: 'monthly', measurement: 'current', trend: 'flat' },
     ],
     changes: [],
   },
