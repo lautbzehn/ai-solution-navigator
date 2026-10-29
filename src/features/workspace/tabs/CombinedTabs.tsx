@@ -1,7 +1,6 @@
 import { Gavel, History, ShieldAlert, Users } from 'lucide-react'
 import { Section, SectionStack, useSections } from '@/components/layout/Section'
 import { useStore } from '@/data/store'
-import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { pluralize, relative } from '@/lib/format'
 import { useWorkspace } from '../context'
 import { DecisionsTab } from './DecisionsTab'
@@ -32,7 +31,6 @@ export function RisksAndDecisionsTab() {
             {pluralize(active.length, 'open risk')} · {unmitigated.length ? <span className="text-danger-fg">{unmitigated.length} high-severity without a mitigation</span> : 'every high-severity risk has a mitigation'}
           </>
         }
-        actions={<AdvisorSpark area="risks" />}
       >
         <RisksTab />
       </Section>
@@ -42,7 +40,6 @@ export function RisksAndDecisionsTab() {
         tone={pending ? 'warning' : undefined}
         title="Decision log"
         summary={<>{pending ? <span className="text-warning-fg">{pending} pending</span> : 'Nothing pending'} · {pluralize(decisions.length, 'decision')} recorded, including every gate decision</>}
-        actions={<AdvisorSpark area="decisions" />}
       >
         <DecisionsTab />
       </Section>
@@ -67,7 +64,6 @@ export function TeamAndHistoryTab() {
         icon={<Users />}
         title="Team"
         summary={`${pluralize(people, 'person', 'people')} across ${pluralize(roles, 'role')}. Every activity names one accountable owner.`}
-        actions={<AdvisorSpark area="team" />}
       >
         <TeamTab />
       </Section>
@@ -81,7 +77,6 @@ export function TeamAndHistoryTab() {
             {latest && <> · last activity {relative(latest.ts)}</>}
           </>
         }
-        actions={<AdvisorSpark area="history" />}
       >
         <HistoryTab />
       </Section>

@@ -15,7 +15,7 @@ import { STAGES, stageDef, stageOrder } from '@/config'
 import { usePortfolio, type SolutionInsight } from '@/data/hooks'
 import { needsAttention } from '@/domain/status'
 import { useStore } from '@/data/store'
-import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
+import { AskAIAboutPage } from '@/features/advisor/AdvisorSpark'
 import { FavoriteStar } from '@/components/FavoriteStar'
 import { READINESS_BUCKETS, bucketOf, inProductionStage } from '@/domain/portfolio'
 import { cn } from '@/lib/cn'
@@ -80,10 +80,10 @@ export function SolutionsPage() {
     <Page>
       <PageHeader
         title="Solutions Hub"
+        aside={<AskAIAboutPage area="portfolio" />}
         subtitle="Every AI initiative in the portfolio, where it is in the lifecycle, and what it needs next."
         actions={
           <>
-            <AdvisorSpark area="portfolio" />
             <Tip content="List shows details; Board groups solutions by lifecycle stage">
               <span>
                 <Segmented

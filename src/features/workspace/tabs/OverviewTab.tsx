@@ -11,7 +11,6 @@ import { Pill } from '@/components/ui/Pill'
 import { InfoTip } from '@/components/ui/Tooltip'
 import { stageDef } from '@/config'
 import { useStore } from '@/data/store'
-import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { gateActionLabel, gateLabel } from '@/domain/gates'
 import { AI_PATTERN, RISK_CATEGORY, SEVERITY_ORDER } from '@/domain/labels'
 import { sortUnmet } from '@/domain/nextAction'
@@ -73,7 +72,6 @@ export function OverviewTab() {
                 {gateActionLabel(gate)} <ArrowRight />
               </Button>
             )}
-            <AdvisorSpark area="gate" />
           </>
         }
       >
@@ -127,7 +125,6 @@ export function OverviewTab() {
             {weakest && <> · weakest: {weakest.name} ({weakest.score})</>}
           </>
         }
-        actions={<AdvisorSpark area="readiness" />}
       >
         <Card>
           <CardBody className="grid items-center gap-6 pt-5 md:grid-cols-[220px_minmax(0,1fr)]">
@@ -155,7 +152,6 @@ export function OverviewTab() {
             {blockers.length ? <span className="text-danger-fg">{pluralize(blockers.length, 'blocked activity', 'blocked activities')}</span> : 'nothing blocked'}
           </>
         }
-        actions={<AdvisorSpark area="risks" />}
       >
         <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2 xl:grid-cols-3">
           <Card>
@@ -225,7 +221,6 @@ export function OverviewTab() {
             {solution.desiredOutcome && <> · {solution.desiredOutcome}</>}
           </>
         }
-        actions={<AdvisorSpark area="case" />}
       >
         <Card>
           <CardBody className="grid gap-5 pt-5 md:grid-cols-2">
@@ -259,7 +254,6 @@ export function OverviewTab() {
         icon={<History />}
         title="Recent activity"
         summary={latest ? <>Latest {relative(latest.ts)}: {people.find((p) => p.id === latest.actorId)?.name ?? 'Someone'} {describe(latest)}</> : 'No activity yet. Changes you make appear here.'}
-        actions={<AdvisorSpark area="history" />}
       >
         <Card>
           <CardBody className="pt-5">

@@ -30,8 +30,8 @@ export const GUIDES: Guide[] = [
   },
   {
     id: 'advisor',
-    title: 'Get an AI analysis of any area',
-    steps: ['Find the star icon on a section header.', 'Select it. The AI advisor opens with an analysis of just that area.', 'Ask follow-up questions in the advisor panel.'],
+    title: 'Get an AI analysis of a page',
+    steps: ['Select Ask AI about this page, next to the page title.', 'The AI advisor opens with an analysis of what that page shows.', 'Ask follow-up questions in the advisor panel.'],
     to: '/solutions/s_support',
   },
   {
@@ -59,7 +59,7 @@ export interface Faq {
 
 export const FAQS: Faq[] = [
   { category: 'Getting around', q: "What's the fastest way to find a solution?", a: 'Press ⌘K (Ctrl K on Windows) anywhere and type its name, or open the Solutions Hub and filter by status, stage, risk, owner, or readiness. Star the ones you use most and they stay under Favorites in the sidebar.' },
-  { category: 'Getting around', q: 'Why are sections folded?', a: 'Each section shows a one-line headline so you can scan a page in seconds. Open only what you need, or use Expand all. The app remembers what you opened.' },
+  { category: 'Getting around', q: 'Can I fold sections away?', a: "Yes. Sections start open so you see everything; select a section's header to fold it to a one-line headline, or use Collapse all. The app remembers what you fold. On phones only the first section starts open." },
   { category: 'Getting around', q: 'What are the items under each sidebar page?', a: "They're the sections of that page. Select one to jump straight to it. Use the arrow beside any sidebar group to open or close it at any time; the sidebar remembers your choice." },
   { category: 'Getting around', q: 'How do I keep a solution handy?', a: 'Select the star beside its name. Starred solutions stay under Favorites in the sidebar; select the star again to remove one. Recently viewed shows the ones you opened last.' },
   { category: 'Lifecycle and gates', q: 'What are the eight stages?', a: 'Discover, Assess, Design, Build, Validate, Deploy, Operate, and Improve / Retire. Each ends in a gate except the last, which is continuous.' },
@@ -79,7 +79,7 @@ export const FAQS: Faq[] = [
   { category: 'Risk and evidence', q: 'What happens to a high-severity risk with no mitigation?', a: 'It lowers Risk & Governance readiness and blocks the Validate gate until a mitigation is recorded.' },
   { category: 'Portfolio', q: 'Where do the Portfolio numbers come from?', a: "They're calculated live from every solution's activities, evidence, risks, metrics, and gate history." },
   { category: 'Portfolio', q: 'Can I filter the Portfolio view?', a: 'Yes, by date range, lifecycle stage, and risk tier. The insights recalculate for whatever you select.' },
-  { category: 'AI advisor', q: 'What does the star icon do?', a: 'It asks the AI advisor for an analysis of that specific area, such as a gate, the risks, or delivery across the portfolio.' },
+  { category: 'AI advisor', q: 'What does the star icon do?', a: 'Ask AI about this page, next to each page title, opens the AI advisor on what that page shows. The star on a solution\'s next best action asks about that one step.' },
   { category: 'AI advisor', q: 'Does the AI advisor make decisions?', a: 'No. It analyzes, recommends, and explains. Approvals, gate decisions, and legal or security determinations stay with your team.' },
   { category: 'AI advisor', q: 'Is it a live AI model?', a: 'By default it uses built-in guidance computed in your browser from the live data. When a server key is configured it answers with Claude, and falls back automatically if that is unavailable.' },
   { category: 'Demo data', q: 'Is this real data?', a: 'No. Every person, solution, and number is fictional demo data.' },

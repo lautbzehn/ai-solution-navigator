@@ -53,12 +53,12 @@ export const STEPS: Step[] = [
   {
     id: 'advisor',
     route: DEMO,
-    targets: ['#gate [aria-label^="AI advisor"]', 'main [aria-label^="AI advisor"]', '[data-tour="advisor"]'],
+    targets: ['[data-tour="ask-ai"]', '[data-tour="advisor"]'],
     side: 'left',
-    title: 'Ask the AI advisor about any area',
+    title: 'Ask the AI advisor about any page',
     body: (
       <>
-        Select the <Sparkles className="inline size-3.5 align-[-2px] text-accent" aria-label="star" /> star on any section, like this gate, for an analysis of just that area. Or open AI advisor in the top bar to ask anything. Decisions stay with your team.
+        Select <Sparkles className="inline size-3.5 align-[-2px] text-accent" aria-hidden /> Ask AI about this page, next to the title, for an analysis of what the page shows. Or open AI advisor in the top bar to ask anything. Decisions stay with your team.
       </>
     ),
   },

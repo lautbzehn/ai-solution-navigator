@@ -13,7 +13,7 @@ import { Pill, toneText, type Tone } from '@/components/ui/Pill'
 import { InfoTip, Tip } from '@/components/ui/Tooltip'
 import { STAGES } from '@/config'
 import { useActivePortfolio } from '@/data/hooks'
-import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
+import { AskAIAboutPage } from '@/features/advisor/AdvisorSpark'
 import { useStore } from '@/data/store'
 import { LIKELIHOOD, LIKELIHOOD_ORDER, RISK_CATEGORY, SEVERITY, SEVERITY_ORDER } from '@/domain/labels'
 import { METRIC_HEALTH_LABEL, metricHealth, type MetricHealth } from '@/domain/metrics'
@@ -75,7 +75,7 @@ export function ReportsPage() {
   const insights = useMemo(() => portfolioInsights(items, perf), [items, perf])
   const trend = useMemo(() => readinessTrend(snapshots, items.map((i) => i.bundle.solution.id), RANGE_WEEKS[filters.range]), [snapshots, items, filters.range])
 
-  const sections = useSections('portfolio', SECTIONS, ALIASES, { openAll: true })
+  const sections = useSections('portfolio', SECTIONS, ALIASES)
   const [allInsights, setAllInsights] = useState(false)
 
   const filtered = filters.stage || filters.risk
@@ -89,6 +89,7 @@ export function ReportsPage() {
     <Page>
       <PageHeader
         title="Portfolio"
+        aside={<AskAIAboutPage area="health" />}
         subtitle="The whole AI portfolio in one place, calculated live. Each section leads with its headline; fold away what you don't need."
         actions={<ExpandAllButton sections={sections} />}
       />
@@ -136,7 +137,6 @@ export function ReportsPage() {
             {/* Health */}
             <Section
               {...sections.bind('health')} hue="cyan"
-              actions={<AdvisorSpark area="health" />}
               icon={<HeartPulse />}
               title="Portfolio health"
               summary={
@@ -186,7 +186,6 @@ export function ReportsPage() {
             {/* Delivery: performance and bottlenecks */}
             <Section
               {...sections.bind('delivery')} hue="blue"
-              actions={<AdvisorSpark area="delivery" />}
               icon={<Timer />}
               title="Delivery"
               summary={
@@ -262,7 +261,6 @@ export function ReportsPage() {
             {/* Risk */}
             <Section
               {...sections.bind('risk')} hue="pink"
-              actions={<AdvisorSpark area="portfolio-risk" />}
               icon={<ShieldAlert />}
               tone={risk.critical.length ? 'danger' : undefined}
               title="Risk"
@@ -334,7 +332,6 @@ export function ReportsPage() {
             {/* Value and adoption */}
             <Section
               {...sections.bind('value')} hue="lime"
-              actions={<AdvisorSpark area="value" />}
               icon={<TrendingUp />}
               title="Value & adoption"
               summary={`${money(summary.realizedValue)} of ${money(summary.expectedValue)} expected annual value realized · ${pluralize(adoption.length, 'solution')} reporting adoption`}
@@ -431,7 +428,6 @@ export function ReportsPage() {
             {/* AI quality */}
             <Section
               {...sections.bind('ai')} hue="violet"
-              actions={<AdvisorSpark area="ai-quality" />}
               icon={<BrainCircuit />}
               title="AI quality"
               summary={
