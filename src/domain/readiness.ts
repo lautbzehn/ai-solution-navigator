@@ -7,7 +7,9 @@ import type { Activity, ActivityStatus, DimensionId, Evidence, EvidenceStatus, S
    How prepared the overall implementation is to reach (and run in) production.
    It is NOT a measure of AI safety or model quality alone.
 
-   · Each required activity in scope earns credit by status.
+   · Each required activity in scope earns credit by status. Work in progress
+     earns 0.1 more once its evidence is drafted, in review or approved, so
+     approving evidence early never lowers the score.
    · Completed work counts when its evidence is approved. Until then it earns
      part of the credit, by how far the evidence has got: in review 0.7, draft
      0.4. Missing evidence earns nothing on a gate-blocking activity, the same
@@ -32,6 +34,9 @@ const COMPLETE_EVIDENCE_CREDIT: Record<Exclude<EvidenceStatus, 'missing'>, numbe
 
 const COMPLETE_MISSING_CREDIT = { blocking: 0, other: 0.3 }
 
+/** Evidence that has been started: in-progress work behind it earns a little more. */
+const EVIDENCE_UNDERWAY: EvidenceStatus[] = ['draft', 'in_review', 'approved']
+
 export function activityCredit(activity: Activity, evidence?: Evidence): number {
   if (activity.status === 'complete') {
     if (!activity.evidenceTemplateId || !evidence) return 1
@@ -39,7 +44,7 @@ export function activityCredit(activity: Activity, evidence?: Evidence): number 
     return COMPLETE_EVIDENCE_CREDIT[evidence.status]
   }
   let credit = STATUS_CREDIT[activity.status]
-  if (activity.status === 'in_progress' && evidence && (evidence.status === 'draft' || evidence.status === 'in_review')) credit += 0.1
+  if (activity.status === 'in_progress' && evidence && EVIDENCE_UNDERWAY.includes(evidence.status)) credit += 0.1
   return credit
 }
 

@@ -10,7 +10,7 @@ Gates already had gatekeepers and no self-approval (ADR 0005), but a gate requir
 - Anyone on the team can move evidence **Missing to Draft**, **Draft to In Review**, and **In Review back to Draft**. Approved is reached one way only: **Approve, from In Review, by a team member who isn't the evidence owner**, with a note.
 - The store re-checks every rule and refuses anything else with a plain reason, so no screen, form or saved patch can reach Approved another way. New evidence always starts unapproved.
 - Each approval is logged in the history feed with the approver as the actor, whose evidence it was, and the activity it backs.
-- Readiness credit for finished work follows its evidence: approved or not required **1.0**, in review **0.7**, draft **0.4**, missing **0** when the activity blocks the gate for the solution's risk tier and **0.3** when it doesn't. In-progress credit is unchanged.
+- Readiness credit for finished work follows its evidence: approved or not required **1.0**, in review **0.7**, draft **0.4**, missing **0** when the activity blocks the gate for the solution's risk tier and **0.3** when it doesn't. Work in progress keeps its small bonus once its evidence is drafted, in review or approved, so approving early never lowers the score.
 - The demo data names an approver for every seeded approval, using the stage gate's specialist gatekeeper, then the sponsor, and never the owner.
 
 ## Consequences

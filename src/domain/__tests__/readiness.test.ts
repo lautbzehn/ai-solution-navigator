@@ -63,3 +63,11 @@ describe('readiness credit for completed work', () => {
     expect(product.gaps.find((g) => g.activityId === limits.id)?.points).toBeCloseTo(fullShare, 6)
   })
 })
+
+describe('readiness credit for work in progress', () => {
+  test('approving evidence early never lowers the score', () => {
+    const working: Activity = { ...finished(true), status: 'in_progress' }
+    expect(activityCredit(working, proof('missing'))).toBe(0.4)
+    for (const status of ['draft', 'in_review', 'approved'] as const) expect(activityCredit(working, proof(status))).toBe(0.5)
+  })
+})
