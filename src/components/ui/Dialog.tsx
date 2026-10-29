@@ -46,8 +46,9 @@ export function Modal({ open, onOpenChange, title, description, children, footer
   )
 }
 
-/** Right-side drawer for editing records without leaving the current view. */
-export function Sheet({ open, onOpenChange, title, description, children, footer, className, width = 520, onEscapeKeyDown }: BaseProps & { width?: number; onEscapeKeyDown?: (e: KeyboardEvent) => void }) {
+/** Right-side drawer for editing records without leaving the current view. With mobile="bottom",
+    it rises from the bottom edge as a sheet on phones (under 640 px) instead. */
+export function Sheet({ open, onOpenChange, title, description, children, footer, className, width = 520, onEscapeKeyDown, mobile = 'side' }: BaseProps & { width?: number; onEscapeKeyDown?: (e: KeyboardEvent) => void; mobile?: 'side' | 'bottom' }) {
   return (
     <RDialog.Root open={open} onOpenChange={onOpenChange}>
       <RDialog.Portal>
@@ -55,7 +56,11 @@ export function Sheet({ open, onOpenChange, title, description, children, footer
         <RDialog.Content
           style={{ width: `min(${width}px, 100vw)` }}
           onEscapeKeyDown={onEscapeKeyDown}
-          className={cn('fixed top-0 right-0 bottom-0 z-50 flex animate-slide-in-right flex-col border-l border-border bg-surface shadow-pop', className)}
+          className={cn(
+            'fixed top-0 right-0 bottom-0 z-50 flex animate-slide-in-right flex-col border-l border-border bg-surface shadow-pop',
+            mobile === 'bottom' && 'max-sm:top-auto max-sm:left-0 max-sm:max-h-[85dvh] max-sm:animate-slide-in-up max-sm:rounded-t-2xl max-sm:border-t max-sm:border-l-0',
+            className,
+          )}
         >
           <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
             <div className="min-w-0">

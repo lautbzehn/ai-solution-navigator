@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router'
+import { NavLink, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ArrowRight, Calendar, Lock, OctagonX, Pencil, Play } from 'lucide-react'
 import { LifecycleRail } from '@/components/lifecycle/LifecycleRail'
 import { Page } from '@/components/layout/Page'
@@ -11,10 +11,9 @@ import { Pill, toneText } from '@/components/ui/Pill'
 import { Ring } from '@/components/ui/Progress'
 import { HoverCard, InfoTip, Tip } from '@/components/ui/Tooltip'
 import { riskTierDef, stageDef, STAGE_IDS } from '@/config'
-import type { SolutionArea } from '@/ai/areas'
 import { stateOf } from '@/domain/gatekeepers'
 import { gateActionLabel } from '@/domain/gates'
-import type { RiskTier } from '@/domain/types'
+import type { RiskTier, StageId } from '@/domain/types'
 import { useSolutionInsight } from '@/data/hooks'
 import { useStore } from '@/data/store'
 import { useUI } from '@/data/ui'
@@ -26,34 +25,21 @@ import { daysBetween, relative } from '@/lib/format'
 import { NotFoundPage } from '../NotFoundPage'
 import { WorkspaceContext, type WorkspaceCtx } from './context'
 import { ActivityDrawer } from './drawers/ActivityDrawer'
+import { StageDrawer } from './drawers/StageDrawer'
 import { EditSolutionSheet } from './forms/EditSolutionSheet'
 import { GateModal } from './GateModal'
 import { NextActionCard } from './NextActionCard'
 import { RisksAndDecisionsTab, TeamAndHistoryTab } from './tabs/CombinedTabs'
-import { EvidenceTab } from './tabs/EvidenceTab'
-import { LifecycleTab } from './tabs/LifecycleTab'
 import { MetricsTab } from './tabs/MetricsTab'
 import { OverviewTab } from './tabs/OverviewTab'
 import { WorkTab } from './tabs/WorkTab'
-
-/* Seven tabs, each with a one-line purpose. Related registers share a tab
-   (risks with decisions, team with history); their old URLs still work. */
-const TABS: { id: string; label: string; hint: string; area: SolutionArea }[] = [
-  { id: 'overview', label: 'Overview', hint: 'Gate status, readiness, risks, and the business case at a glance', area: 'brief' },
-  { id: 'lifecycle', label: 'Lifecycle', hint: 'Inspect any stage: its activities, gate, evidence, and decisions', area: 'lifecycle' },
-  { id: 'work', label: 'Work', hint: 'Every activity. Update status, assign owners, and attach evidence', area: 'work' },
-  { id: 'evidence', label: 'Evidence', hint: 'Proof that work met the standard, and whether it is approved', area: 'evidence' },
-  { id: 'risks', label: 'Risks & decisions', hint: 'The risk register, heat map, and decision log', area: 'risks' },
-  { id: 'metrics', label: 'Metrics', hint: 'Business, adoption, and AI metrics against their targets', area: 'metrics' },
-  { id: 'team', label: 'Team & history', hint: 'Who owns what, the change log, and the audit trail', area: 'team' },
-]
-/** Tabs that now live inside another tab, and the section they open. */
-const MERGED: Record<string, string> = { decisions: 'risks#decisions', history: 'team#history' }
+import { legacyTabTarget, TABS, tabHref } from './routes'
 
 export function WorkspacePage() {
   const { id, tab: rawTab = 'overview' } = useParams()
   const insight = useSolutionInsight(id)
   const navigate = useNavigate()
+  const location = useLocation()
   const askAdvisor = useUI((s) => s.askAdvisor)
   const markViewed = useUI((s) => s.markViewed)
   const [params, setParams] = useSearchParams()
@@ -64,15 +50,17 @@ export function WorkspacePage() {
     if (id && exists) markViewed(id)
   }, [id, exists, markViewed])
 
-  // Old tab URLs keep working: /decisions and /history open their section, /advisor opens the AI advisor.
+  // Old tab URLs keep working: each lands where its content lives now, and /advisor opens the AI advisor.
+  const currentStage = insight?.bundle.solution.stage
   useEffect(() => {
-    if (!id) return
-    if (MERGED[rawTab]) navigate(`/solutions/${id}/${MERGED[rawTab]}`, { replace: true })
+    if (!id || !currentStage) return
+    const target = legacyTabTarget(rawTab, id, currentStage, location.search)
+    if (target) navigate(target, { replace: true })
     else if (rawTab === 'advisor') {
       navigate(`/solutions/${id}`, { replace: true })
       askAdvisor('Give me an executive briefing on this solution: status, readiness, what is blocking it, and the next step.', 'brief')
     }
-  }, [rawTab, id, navigate, askAdvisor])
+  }, [rawTab, id, currentStage, location.search, navigate, askAdvisor])
   const [gateOpen, setGateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const sponsorId = insight?.bundle.solution.team.find((m) => m.roleId === 'executive_sponsor')?.personId
@@ -82,6 +70,7 @@ export function WorkspacePage() {
     (aid: string) => {
       const next = new URLSearchParams(params)
       next.set('activity', aid)
+      next.delete('stage') // an activity opened from the stage drawer replaces it
       setParams(next)
     },
     [params, setParams],
@@ -91,6 +80,19 @@ export function WorkspacePage() {
     next.delete('activity')
     setParams(next)
   }
+  // The stage drawer opens from the rail on any tab, and from old /lifecycle links.
+  const stageParam = params.get('stage')
+  const openStage = (s: StageId) => {
+    const next = new URLSearchParams(params)
+    next.set('stage', s)
+    next.delete('activity')
+    setParams(next, { replace: true })
+  }
+  const closeStage = () => {
+    const next = new URLSearchParams(params)
+    next.delete('stage')
+    setParams(next, { replace: true })
+  }
 
   const ctx = useMemo<WorkspaceCtx | null>(
     () =>
@@ -99,7 +101,7 @@ export function WorkspacePage() {
             insight,
             openActivity,
             openGate: () => setGateOpen(true),
-            goTab: (t: string, section?: string) => navigate(`/solutions/${insight.bundle.solution.id}/${MERGED[t] ?? t}${section ? `#${section}` : ''}`),
+            goTab: (t: string, section?: string) => navigate(tabHref(insight.bundle.solution.id, insight.bundle.solution.stage, t, section)),
           }
         : null,
     [insight, openActivity, navigate],
@@ -127,8 +129,7 @@ export function WorkspacePage() {
     risks: counts.risks + counts.decisions ? { n: counts.risks + counts.decisions, tip: `${counts.risks} open ${counts.risks === 1 ? 'risk' : 'risks'} · ${counts.decisions} pending ${counts.decisions === 1 ? 'decision' : 'decisions'}` } : undefined,
   }
   const current = TABS.find((t) => t.id === tab) ?? TABS[0]
-  const stageParam = params.get('stage')
-  const railSelected = tab === 'lifecycle' && stageParam && (STAGE_IDS as string[]).includes(stageParam) ? (stageParam as typeof solution.stage) : undefined
+  const drawerStage = stageParam && (STAGE_IDS as string[]).includes(stageParam) ? (stageParam as StageId) : undefined
 
   return (
     <WorkspaceContext.Provider value={ctx}>
@@ -213,7 +214,7 @@ export function WorkspacePage() {
         <NextActionCard className="mt-6" />
 
         <section aria-label="Lifecycle" className="mt-5">
-          <LifecycleRail current={solution.stage} progress={readiness.stageProgress} gate={gate} selected={railSelected} onSelect={(s) => navigate(`/solutions/${solution.id}/lifecycle?stage=${s}`)} />
+          <LifecycleRail current={solution.stage} progress={readiness.stageProgress} gate={gate} selected={drawerStage} onSelect={openStage} />
         </section>
 
         {/* Tabs */}
@@ -249,9 +250,7 @@ export function WorkspacePage() {
 
         <div className="mt-6 animate-fade-in" key={tab}>
           {tab === 'overview' && <OverviewTab />}
-          {tab === 'lifecycle' && <LifecycleTab />}
           {tab === 'work' && <WorkTab />}
-          {tab === 'evidence' && <EvidenceTab />}
           {tab === 'risks' && <RisksAndDecisionsTab />}
           {tab === 'metrics' && <MetricsTab />}
           {tab === 'team' && <TeamAndHistoryTab />}
@@ -260,6 +259,7 @@ export function WorkspacePage() {
 
       <GateModal open={gateOpen} onOpenChange={setGateOpen} />
       <ActivityDrawer activityId={activityId} onClose={closeActivity} />
+      <StageDrawer stage={drawerStage} onClose={closeStage} onSelect={openStage} />
       <EditSolutionSheet open={editOpen} onOpenChange={setEditOpen} />
     </WorkspaceContext.Provider>
   )

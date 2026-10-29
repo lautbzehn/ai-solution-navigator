@@ -63,6 +63,11 @@ export function OverviewTab() {
         }
         actions={
           <>
+            {!gate.isFinal && !gate.canAdvance && (
+              <Button variant="ghost" size="xs" onClick={() => goTab('work')} className="hidden sm:inline-flex">
+                Open in Work
+              </Button>
+            )}
             {!gate.isFinal && (
               <Button variant={gate.canAdvance ? 'primary' : 'ghost'} size="xs" onClick={openGate} className="hidden sm:inline-flex">
                 {gateActionLabel(gate)} <ArrowRight />
