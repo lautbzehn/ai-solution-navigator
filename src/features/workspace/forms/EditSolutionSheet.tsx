@@ -13,7 +13,7 @@ import { hasErrors, meaningful, numeric, type Errors } from '@/domain/validation
 import { cn } from '@/lib/cn'
 import { useForm } from '@/lib/useForm'
 import { useWorkspace } from '../context'
-import { withImpact } from '../feedback'
+import { toastRefusal, withImpact } from '../feedback'
 
 type Values = { name: string; description: string; ownerId: string; riskTier: RiskTier; businessProblem: string; targetUsers: string; desiredOutcome: string; whyAI: string; dataSources: string; aiPatterns: AIPattern[]; expectedValue: string; realizedValue: string }
 
@@ -50,11 +50,12 @@ export function EditSolutionSheet({ open, onOpenChange }: { open: boolean; onOpe
       realizedValue: rv,
     }
     if (hasErrors(e)) return setErrors(e)
-    withImpact(solution.id, () =>
+    const saved = withImpact(solution.id, () =>
       updateSolution(solution.id, {
         name: v.name.trim(), description: v.description.trim(), ownerId: v.ownerId, riskTier: v.riskTier, businessProblem: v.businessProblem.trim(), targetUsers: v.targetUsers.trim(), desiredOutcome: v.desiredOutcome.trim(), whyAI: v.whyAI.trim(), dataSources: v.dataSources.trim(), aiPatterns: v.aiPatterns, expectedValue: expectedValue ?? 0, realizedValue: realizedValue ?? 0,
       }),
     )
+    if (!toastRefusal(saved)) return
     toast.success('Solution updated', { description: tierDelta ? `Risk tier is now ${RISK_TIER[v.riskTier]}. The plan and gates were updated and a risk change was logged.` : undefined })
     onOpenChange(false)
   }

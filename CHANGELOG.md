@@ -15,8 +15,12 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 - A Help answer, "What does the Assess gate need from a feasibility spike?", and three tests for the new criterion (66 in total).
 - Four tests for the workspace tabs, old tab links, and the navigation names, including /portfolio (70 in total).
 - A test for the lifecycle bar's centering math (71 in total).
+- **The numbers have tests.** The Delivery KPIs and the risk report are checked against a small, hand-worked fixture portfolio, along with the next best action's ranking, readiness weights, and a pass rate that counts decisions only (84 in total).
+- **One end-to-end test runs the README demo in a real browser**: open Customer Support, take Erin's UAT Sign-off through review, approve it as Dwight, finish the activity, and see the gate go from 3 open to 2. It's a separate "End-to-end" job in CI, and a deploy waits for it. Run it locally with `npm run build && npm run test:e2e`.
 
 ### Changed
+- **The store checks every change, not just the screens.** Activity, evidence, and solution changes all go through one set of rules: required work can't be marked Not Applicable, evidence needs an approver who isn't its owner, and stage or lifecycle state only changes at the gate (Go, Hold, Stop, Resume). A refused change shows its reason as a toast.
+- **The next best action ranks by time first.** Among gate blockers: blocked work and unmitigated high risks, then overdue, then the nearest due date, with priority breaking ties. No seeded solution's next action changes.
 - **One AI button per page.** The sparkle on every section header and on the workspace tab bar is gone. Each page has one **Ask AI about this page** button next to its title, which opens the advisor on what that page shows. The sparkle on a solution's next best action stays, since that question is about one step.
 - **The lifecycle bar on phones** opens centered on the current stage, shows "Stage 5 of 8 · Validate" above it, and fades at the edges that scroll.
 - **Sections start open everywhere** (on phones, just the first). Only the sections you fold or open are remembered.

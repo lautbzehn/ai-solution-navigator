@@ -2,6 +2,7 @@ import { activityTemplate, nextStage, stageDef } from '@/config'
 import type { SolutionBundle } from './db'
 import { gateLabel, type CriterionResult, type GateResult } from './gates'
 import type { Readiness } from './readiness'
+import { isOverdue } from './status'
 
 export interface NextAction {
   kind: 'unblock' | 'complete_activity' | 'approve_evidence' | 'gate_criterion' | 'advance' | 'sustain'
@@ -19,19 +20,22 @@ export interface NextAction {
 
 const PRIORITY_RANK = { high: 0, medium: 1, low: 2 } as const
 
-function rankCriterion(c: CriterionResult) {
-  // In-flight work first (closest to done), then priority, then due date.
-  const statusRank = c.activityStatus === 'complete' ? 0 : c.activityStatus === 'in_progress' ? 1 : c.activityStatus === 'blocked' ? 2 : 3
+/* Only gate blockers are ranked, so blocking work always comes first. Among
+   them: blocked work and unmitigated high-severity risks (they need unblocking,
+   not doing), then overdue, then the nearest due date, then priority, then
+   whatever is closest to done. */
+function rankCriterion(c: CriterionResult, now: number) {
+  const urgent = c.activityStatus === 'blocked' || c.kind === 'risks' ? 0 : 1
   const due = c.dueDate ? new Date(c.dueDate).getTime() : Number.MAX_SAFE_INTEGER
-  // Blocked work and unmitigated high-severity risks come before everything else.
-  const urgent = c.activityStatus === 'blocked' || c.kind === 'risks' ? -1 : 0
-  return [urgent, PRIORITY_RANK[c.priority ?? 'medium'], due, statusRank] as const
+  const overdue = isOverdue(c.dueDate, now) ? 0 : 1
+  const statusRank = c.activityStatus === 'complete' ? 0 : c.activityStatus === 'in_progress' ? 1 : c.activityStatus === 'blocked' ? 2 : 3
+  return [urgent, overdue, due, PRIORITY_RANK[c.priority ?? 'medium'], statusRank] as const
 }
 
-export function sortUnmet(unmet: CriterionResult[]) {
+export function sortUnmet(unmet: CriterionResult[], now = Date.now()) {
   return [...unmet].sort((a, b) => {
-    const ra = rankCriterion(a)
-    const rb = rankCriterion(b)
+    const ra = rankCriterion(a, now)
+    const rb = rankCriterion(b, now)
     for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] - rb[i]
     return 0
   })

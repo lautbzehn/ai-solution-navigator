@@ -71,3 +71,22 @@ describe('readiness credit for work in progress', () => {
     for (const status of ['draft', 'in_review', 'approved'] as const) expect(activityCredit(working, proof(status))).toBe(0.5)
   })
 })
+
+describe('dimension roll-up', () => {
+  test('overall readiness is the weighted average of the dimensions, by whatever weights are set', () => {
+    const bundle = bundleFor(buildSeed(), 's_support')!
+    const none = Object.fromEntries(Object.keys(DEFAULT_WEIGHTS).map((k) => [k, 0])) as typeof DEFAULT_WEIGHTS
+    const score = (id: string) => computeReadiness(bundle, DEFAULT_WEIGHTS).dimensions.find((d) => d.id === id)!.score
+
+    // All the weight on one dimension: overall is that dimension's score.
+    expect(computeReadiness(bundle, { ...none, technical: 1 }).overall).toBe(Math.round(score('technical')))
+
+    // Product counts twice as much as Adoption.
+    const r = computeReadiness(bundle, { ...none, product: 2, adoption: 1 })
+    expect(r.overall).toBe(Math.round((2 * score('product') + score('adoption')) / 3))
+    expect(r.dimensions.find((d) => d.id === 'product')!.weight).toBe(66.7)
+    expect(r.dimensions.find((d) => d.id === 'adoption')!.weight).toBe(33.3)
+    // The two must differ, or the weights would prove nothing.
+    expect(score('product')).not.toBe(score('adoption'))
+  })
+})
