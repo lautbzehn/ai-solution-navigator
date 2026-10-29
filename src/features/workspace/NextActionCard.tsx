@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Pill } from '@/components/ui/Pill'
 import { InfoTip } from '@/components/ui/Tooltip'
 import { stateOf } from '@/domain/gatekeepers'
+import { gateActionLabel } from '@/domain/gates'
 import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
 import { cn } from '@/lib/cn'
 import { useWorkspace } from './context'
@@ -83,7 +84,7 @@ export function NextActionCard({ className }: { className?: string }) {
           )}
           {n.kind === 'advance' && (
             <Button variant="primary" onClick={openGate}>
-              Review gate <ArrowRight />
+              {gateActionLabel(insight.gate)} <ArrowRight />
             </Button>
           )}
           {n.kind === 'gate_criterion' && n.tab && n.tab !== 'overview' && (
@@ -93,7 +94,7 @@ export function NextActionCard({ className }: { className?: string }) {
           )}
           {n.kind === 'gate_criterion' && (
             <Button variant="secondary" onClick={openGate}>
-              View gate requirements
+              {gateActionLabel(insight.gate)}
             </Button>
           )}
         </div>

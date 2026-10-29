@@ -50,6 +50,41 @@ describe('Go, Hold, Stop', () => {
     expect(solution().stage).toBe(s.stage)
   })
 
+  test('opening a blocked gate creates no attempt', () => {
+    // The review used to call advanceStage on open just to log a failed attempt.
+    const before = useStore.getState()
+    const r = before.advanceStage(DEMO, { ownerId: solution().ownerId, conditions: '', rationale: '' })
+    expect(r.ok).toBe(false)
+    expect(useStore.getState().gateAttempts).toHaveLength(before.gateAttempts.length)
+    expect(useStore.getState().audit).toHaveLength(before.audit.length)
+  })
+
+  test('submitting Hold logs one attempt that did not pass', () => {
+    const keeper = gatekeepers(solution())[0].personId
+    const count = useStore.getState().gateAttempts.length
+    expect(useStore.getState().holdSolution(DEMO, { ownerId: keeper, rationale: 'Waiting on the pilot cohort' }).ok).toBe(true)
+    const attempts = useStore.getState().gateAttempts
+    expect(attempts).toHaveLength(count + 1)
+    expect(attempts.at(-1)).toMatchObject({ solutionId: DEMO, stage: 'validate', passed: false, decision: 'hold' })
+    expect(attempts.at(-1)!.blockers).toHaveLength(3)
+  })
+
+  test('submitting Go on a passable gate logs one attempt that passed, with no rationale needed', () => {
+    const db = buildSeed()
+    for (const t of ['v_oversight', 'v_uat', 'v_monitoring']) {
+      const a = db.activities.find((x) => x.id === `${DEMO}__${t}`)!
+      a.status = 'complete'
+      db.evidence.find((e) => e.activityId === a.id)!.status = 'approved'
+    }
+    useStore.setState({ ...db })
+    const keeper = gatekeepers(solution())[0].personId
+    const count = useStore.getState().gateAttempts.length
+    expect(useStore.getState().advanceStage(DEMO, { ownerId: keeper, conditions: '', rationale: '' }).ok).toBe(true)
+    expect(useStore.getState().gateAttempts).toHaveLength(count + 1)
+    expect(useStore.getState().gateAttempts.at(-1)).toMatchObject({ solutionId: DEMO, stage: 'validate', passed: true, decision: 'go' })
+    expect(solution().stage).toBe('deploy')
+  })
+
   test('Stop ends the project, keeps the record, and cannot be resumed', () => {
     const s = solution()
     const keeper = gatekeepers(s)[0].personId

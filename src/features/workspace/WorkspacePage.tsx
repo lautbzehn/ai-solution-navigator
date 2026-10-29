@@ -13,6 +13,7 @@ import { HoverCard, InfoTip, Tip } from '@/components/ui/Tooltip'
 import { riskTierDef, stageDef, STAGE_IDS } from '@/config'
 import type { SolutionArea } from '@/ai/areas'
 import { stateOf } from '@/domain/gatekeepers'
+import { gateActionLabel } from '@/domain/gates'
 import type { RiskTier } from '@/domain/types'
 import { useSolutionInsight } from '@/data/hooks'
 import { useStore } from '@/data/store'
@@ -194,18 +195,15 @@ export function WorkspacePage() {
                   <OctagonX className="!size-3.5" /> Stopped: see why
                 </Button>
               ) : next ? (
-                <Tip content={gate.canAdvance ? `Every requirement is met. Open the gate review to record the decision.` : `See what's still open before ${next.name}, and who owns it`}>
+                <Tip content={gate.canAdvance ? `Every requirement is met. A gatekeeper can now decide whether to advance to ${next.name}.` : `See what's still open before ${next.name}, who owns it, and fix the next blocker`}>
                   <Button variant={gate.canAdvance ? 'primary' : 'secondary'} size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
-                    {gate.canAdvance ? <>Advance to {next.name} <ArrowRight /></> : <><Lock className="!size-3.5" /> Advance to {next.name}</>}
+                    {!gate.canAdvance && <Lock className="!size-3.5" />} {gateActionLabel(gate)} {gate.canAdvance && <ArrowRight />}
                   </Button>
                 </Tip>
               ) : (
                 <Button variant="ghost" size="sm" className="mt-2 w-full" onClick={() => setGateOpen(true)}>
                   Final stage · Hold or stop
                 </Button>
-              )}
-              {lifeState === 'active' && next && !gate.canAdvance && (
-                <p className="mt-1 text-center text-[11px] text-warning-fg tabular">{gate.unmet.length} gate {gate.unmet.length === 1 ? 'requirement' : 'requirements'} open</p>
               )}
             </div>
           </div>

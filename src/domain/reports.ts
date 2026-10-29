@@ -63,7 +63,7 @@ export function implementationPerformance(items: SolutionInsight[], gateAttempts
   const blocked = activities.filter((a) => a.status === 'blocked')
   const overdue = activities.filter((a) => a.blocking && a.stage === items.find((i) => i.bundle.solution.id === a.solutionId)?.bundle.solution.stage && a.status !== 'complete' && a.status !== 'not_applicable' && a.dueDate && new Date(a.dueDate).getTime() + DAY < now)
 
-  const attempts = gateAttempts.filter((g) => ids.has(g.solutionId) && new Date(g.ts).getTime() >= from)
+  const attempts = gateAttempts.filter((g) => g.decision && ids.has(g.solutionId) && new Date(g.ts).getTime() >= from)
   const passRate = attempts.length ? Math.round((attempts.filter((a) => a.passed).length / attempts.length) * 100) : undefined
 
   const reopened = audit.filter(
@@ -313,7 +313,7 @@ export function portfolioInsights(items: SolutionInsight[], perf: ReturnType<typ
     out.push({
       id: 'gates',
       title: 'Delivery insight',
-      body: `${perf.passRate}% of gate attempts passed first time. Each failed attempt means a team asked to advance before its evidence was ready, so watch rework (${perf.reworkRate}%) and early evidence reviews.`,
+      body: `${perf.passRate}% of gate decisions were Go. Each Hold or Stop means a gatekeeper sent the work back before it was ready, so watch rework (${perf.reworkRate}%) and review evidence early.`,
       tone: perf.passRate >= 80 ? 'success' : 'warning',
       link: '/reports#delivery',
     })

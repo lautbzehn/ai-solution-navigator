@@ -191,13 +191,13 @@ export function ReportsPage() {
               title="Delivery"
               summary={
                 <>
-                  {perf.passRate !== undefined ? `${perf.passRate}% gate pass rate` : 'No gate attempts yet'} · {perf.avgToProduction ? `${perf.avgToProduction} days to production on average` : 'nothing in production yet'} · {slowest ? <span className="text-warning-fg">{slowest.name} is running slow</span> : 'no stage over its typical time'}
+                  {perf.passRate !== undefined ? `${perf.passRate}% gate pass rate` : 'No gate decisions yet'} · {perf.avgToProduction ? `${perf.avgToProduction} days to production on average` : 'nothing in production yet'} · {slowest ? <span className="text-warning-fg">{slowest.name} is running slow</span> : 'no stage over its typical time'}
                 </>
               }
             >
               <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
                 <Tile label="Avg. time to production" value={perf.avgToProduction ? `${perf.avgToProduction}d` : '–'} hint="Days from creation to entering Operate." />
-                <Tile label="Gate pass rate" value={perf.passRate !== undefined ? `${perf.passRate}%` : '–'} term="gatePassRate" sub={pluralize(perf.attempts, 'attempt')} />
+                <Tile label="Gate pass rate" value={perf.passRate !== undefined ? `${perf.passRate}%` : '–'} term="gatePassRate" sub={pluralize(perf.attempts, 'decision')} />
                 <Tile label="Activities completed" value={perf.completed} sub={perf.blocked ? `${perf.blocked} blocked right now` : 'none blocked'} subTone={perf.blocked ? 'danger' : undefined} hint="Lifecycle activities finished in the selected date range." />
                 <Tile label="Rework rate" value={`${num(perf.reworkRate)}%`} term="reworkRate" sub={`${perf.reopened} reopened`} />
               </div>

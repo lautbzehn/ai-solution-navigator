@@ -91,7 +91,7 @@ Live solutions loop back: a material change (a new model, data, audience, or lev
 1. Open the **[live demo](https://navigator.icarianforge.com)**. A short note introduces the project; take the one-minute tour or explore on your own.
 2. **My Overview**: 8 solutions, 2 need attention.
 3. Open **AI Customer Support Resolution Assistant** (Validate, moderate risk, 76% ready). Its next best action is *Validate human oversight in practice*, owned by Dwight Schrute.
-4. Click **Advance to Deploy**. **Go** is locked: three requirements remain, each with an owner and a link. Only the Executive Sponsor or Governance / Risk can decide this gate.
+4. Click **Review gate · 3 open**. **Go** is locked: three requirements remain, each with an owner and a link, and **Resolve next blocker** opens the first one. Only the Executive Sponsor or Governance / Risk can decide this gate.
 5. Resolve a requirement and approve its evidence: readiness rises. Or have a gatekeeper choose **Hold** or **Stop** and watch the portfolio update.
 6. Reset everything from **Settings → Reset demo data**. Your changes live only in your browser.
 

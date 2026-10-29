@@ -152,6 +152,11 @@ export function evaluateGate(bundle: SolutionBundle, stage: StageId = bundle.sol
   }
 }
 
+/** The one name for the gate action, everywhere it appears: what's open while blocked, a decision once passable. */
+export function gateActionLabel(gate: Pick<GateResult, 'canAdvance' | 'unmet'>) {
+  return gate.canAdvance ? 'Request decision' : `Review gate · ${gate.unmet.length} open`
+}
+
 export function gateLabel(stage: StageId) {
   const next = nextStage(stage)
   return next ? `${stageDef(stage).name} → ${stageDef(next).name}` : stageDef(stage).name
