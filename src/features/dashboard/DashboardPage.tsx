@@ -17,7 +17,7 @@ import { canDecideGate, stateOf } from '@/domain/gatekeepers'
 import { gateLabel } from '@/domain/gates'
 import { isOverdue, needsAttention } from '@/domain/status'
 import type { Activity } from '@/domain/types'
-import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
+import { AskAIAboutPage } from '@/features/advisor/AdvisorSpark'
 import { cn } from '@/lib/cn'
 import { dueLabel, pluralize } from '@/lib/format'
 
@@ -45,7 +45,7 @@ export function DashboardPage() {
   const items = useActivePortfolio()
   const me = useStore((s) => s.people.find((p) => p.id === CURRENT_USER_ID))
   const decisions = useStore((s) => s.decisions)
-  const sections = useSections('my-overview', SECTION_IDS, {}, { openAll: true })
+  const sections = useSections('my-overview', SECTION_IDS)
 
   const attention = items
     .filter(needsAttention)
@@ -80,6 +80,7 @@ export function DashboardPage() {
       <PageHeader
         eyebrow={<p className="text-[11px] font-semibold tracking-[0.08em] text-fg-subtle uppercase">My Overview · Dunder Mifflin AI portfolio (fictional demo)</p>}
         title={`${greeting()}, ${me?.name.split(' ')[0] ?? 'there'}`}
+        aside={<AskAIAboutPage area="attention" />}
         subtitle={<YourWork owned={mine.owned.length} work={mine.work.length} waiting={mine.waiting.length} />}
         actions={
           <>
@@ -98,7 +99,6 @@ export function DashboardPage() {
       <SectionStack>
         <Section
           {...sections.bind('attention')} hue="pink"
-          actions={<AdvisorSpark area="attention" />}
           icon={attention.length ? <CircleAlert /> : <CircleCheck />}
           tone={blocked ? 'danger' : attention.length ? 'warning' : 'success'}
           title="Needs your attention"

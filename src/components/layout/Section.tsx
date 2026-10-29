@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { useLocation } from 'react-router'
 import { ChevronRight, ChevronsDownUp, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -7,9 +7,9 @@ import { Tip } from '../ui/Tooltip'
 
 /* Progressive disclosure for busy pages. Each page is a stack of sections whose
    headers carry a one-line headline, so a collapsed page still reads as an
-   executive summary. The first section starts open (or every section, on pages
-   that ask for it, except on phones), the viewer's choices are remembered per
-   page, and a #hash (from the sidebar or a link) opens and scrolls to its section. */
+   executive summary. Every section starts open (on phones, just the first),
+   the sections a viewer folds or opens are remembered per page, and a #hash
+   (from the sidebar or a link) opens and scrolls to its section. */
 
 const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches
 
@@ -32,12 +32,20 @@ export interface SectionsState {
   bind(id: string): { id: string; open: boolean; onToggle: () => void }
 }
 
-export function useSections(page: string, ids: readonly string[], aliases: Record<string, string> = {}, { openAll = false }: { openAll?: boolean } = {}): SectionsState {
-  const key = `asn-open:${page}`
-  const [open, setOpen] = useState<Set<string>>(() => new Set((read(key) ?? (openAll && !isPhone() ? ids : [ids[0]])).filter((id) => ids.includes(id))))
+export function useSections(page: string, ids: readonly string[], aliases: Record<string, string> = {}): SectionsState {
+  // A fresh prefix: the old one saved "first section only" on every visit, which hid the open default.
+  const key = `asn-sections:${page}`
+  const [open, setOpen] = useState<Set<string>>(() => new Set((read(key) ?? (isPhone() ? [ids[0]] : ids)).filter((id) => ids.includes(id))))
   const location = useLocation()
 
+  // Only the viewer's own choices are remembered, never the default a page opened with.
+  const chosen = useRef(false)
+  const choose = useCallback((update: (prev: Set<string>) => Set<string>) => {
+    chosen.current = true
+    setOpen(update)
+  }, [])
   useEffect(() => {
+    if (!chosen.current) return
     try {
       window.localStorage.setItem(key, JSON.stringify([...open]))
     } catch {
@@ -58,25 +66,27 @@ export function useSections(page: string, ids: readonly string[], aliases: Recor
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
 
-  const toggle = useCallback((id: string) => {
-    setOpen((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }, [])
+  const toggle = useCallback(
+    (id: string) =>
+      choose((prev) => {
+        const next = new Set(prev)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        return next
+      }),
+    [choose],
+  )
 
   return useMemo(
     () => ({
       isOpen: (id) => open.has(id),
       toggle,
-      expandAll: () => setOpen(new Set(ids)),
-      collapseAll: () => setOpen(new Set()),
+      expandAll: () => choose(() => new Set(ids)),
+      collapseAll: () => choose(() => new Set()),
       allOpen: ids.every((id) => open.has(id)),
       bind: (id) => ({ id, open: open.has(id), onToggle: () => toggle(id) }),
     }),
-    [open, ids, toggle],
+    [open, ids, toggle, choose],
   )
 }
 

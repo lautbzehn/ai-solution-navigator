@@ -14,8 +14,12 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 - The Autonomous Customer Case Classifier's spike measured 78% routing accuracy against an 85% threshold, so its gate shows the new criterion open. The four solutions that already passed Assess at Moderate or High have a met result on record.
 - A Help answer, "What does the Assess gate need from a feasibility spike?", and three tests for the new criterion (66 in total).
 - Four tests for the workspace tabs, old tab links, and the navigation names, including /portfolio (70 in total).
+- A test for the lifecycle bar's centering math (71 in total).
 
 ### Changed
+- **One AI button per page.** The sparkle on every section header and on the workspace tab bar is gone. Each page has one **Ask AI about this page** button next to its title, which opens the advisor on what that page shows. The sparkle on a solution's next best action stays, since that question is about one step.
+- **The lifecycle bar on phones** opens centered on the current stage, shows "Stage 5 of 8 · Validate" above it, and fades at the edges that scroll.
+- **Sections start open everywhere** (on phones, just the first). Only the sections you fold or open are remembered.
 - **My Overview is about you; Portfolio is the portfolio.**
   - My Overview keeps the greeting, your three chips, and Needs your attention, and adds **My work this week** (your open activities, soonest first, one click to open) and **Decisions waiting on you** (gates you can decide and decisions you own). The portfolio tiles, charts, and solution list move out; Portfolio and the Solutions Hub already have them.
   - Reports is now **Portfolio** everywhere: sidebar, page title, breadcrumb, command palette, Help, and the tour. Its address stays /reports, and /portfolio leads there too.

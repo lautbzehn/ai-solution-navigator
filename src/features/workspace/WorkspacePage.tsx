@@ -17,7 +17,7 @@ import type { RiskTier, StageId } from '@/domain/types'
 import { useSolutionInsight } from '@/data/hooks'
 import { useStore } from '@/data/store'
 import { useUI } from '@/data/ui'
-import { AdvisorSpark } from '@/features/advisor/AdvisorSpark'
+import { AskAIAboutPage } from '@/features/advisor/AdvisorSpark'
 import { FavoriteStar } from '@/components/FavoriteStar'
 import { inProduction } from '@/domain/status'
 import { cn } from '@/lib/cn'
@@ -163,7 +163,7 @@ export function WorkspacePage() {
                 </Tip>
               )}
             </div>
-            <div className="flex items-start gap-1.5">
+            <div className="flex flex-wrap items-start gap-1.5">
               <h1 className="text-[24px] leading-tight font-semibold tracking-[-0.025em] text-balance text-fg md:text-[28px]">{solution.name}</h1>
               <FavoriteStar solutionId={solution.id} name={solution.name} size="md" className="mt-0.5" />
               <Tip content="Edit solution details">
@@ -171,6 +171,7 @@ export function WorkspacePage() {
                   <Pencil className="!size-3.5" />
                 </Button>
               </Tip>
+              <AskAIAboutPage area={current.area} />
             </div>
             <p className="mt-1.5 line-clamp-2 max-w-3xl text-[14px] leading-relaxed text-fg-muted">{solution.description}</p>
             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12.5px] text-fg-subtle">
@@ -242,9 +243,6 @@ export function WorkspacePage() {
                 </Tip>
               </li>
             ))}
-            <li className="sticky right-0 ml-auto flex h-10 items-center bg-bg/85 pl-2">
-              <AdvisorSpark area={current.area} />
-            </li>
           </ul>
         </nav>
 
