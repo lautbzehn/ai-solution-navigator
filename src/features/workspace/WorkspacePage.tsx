@@ -139,8 +139,9 @@ export function WorkspacePage() {
             <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
               <StagePill stage={solution.stage} active />
               <HoverCard label="Risk tier details" width={300} trigger={<RiskPill tier={solution.riskTier} />} triggerClassName="rounded-full">
-                <RiskTierDetail tier={solution.riskTier} />
+                <RiskTierDetail tier={solution.riskTier} provisional={solution.riskTierStatus === 'provisional'} />
               </HoverCard>
+              {solution.riskTierStatus === 'provisional' && <span className="text-[12px] text-warning-fg">{PLACEHOLDER_TIER_NOTE}</span>}
               <HoverCard label="Status details" width={300} trigger={<HealthPill status={health.status} />} triggerClassName="rounded-full">
                 <p className="mb-1 font-semibold text-fg">Why this status</p>
                 <ul className={cn('grid list-disc gap-1 pl-4', toneText[HEALTH_TONE[health.status]])}>
@@ -264,11 +265,14 @@ export function WorkspacePage() {
   )
 }
 
-function RiskTierDetail({ tier }: { tier: RiskTier }) {
+const PLACEHOLDER_TIER_NOTE = 'Risk tier is a placeholder until Assess confirms it.'
+
+function RiskTierDetail({ tier, provisional }: { tier: RiskTier; provisional?: boolean }) {
   const def = riskTierDef(tier)
   return (
     <>
       <p className="mb-1 font-semibold text-fg">{def.name} risk</p>
+      {provisional && <p className="mb-2 text-warning-fg">{PLACEHOLDER_TIER_NOTE} It was set before enough was known to recommend one.</p>}
       <p>{def.description}</p>
       <p className="mt-2 text-fg-muted">{def.rigor}</p>
       <p className="mt-2 text-[11.5px] text-fg-subtle">Higher risk = more required evidence and stronger gate criteria.</p>

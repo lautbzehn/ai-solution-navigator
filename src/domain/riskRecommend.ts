@@ -31,4 +31,10 @@ export function recommendRiskTier(a: RiskAnswers): { tier: RiskTier; reasons: st
   return { tier: 'low', reasons: ['Internal assistance with a human in the loop and non-sensitive data'] }
 }
 
+/** Enough to recommend a tier: what the AI does, whose experience it reaches, and how sensitive the data is.
+    Criticality and autonomy have safe defaults, so they aren't needed. */
+export function hasEnoughForRecommendation(a: { patterns: AIPattern[]; audience?: Audience; sensitivity?: Sensitivity }) {
+  return a.patterns.length > 0 && !!a.audience && !!a.sensitivity
+}
+
 export const TIER_RANK: Record<RiskTier, number> = { low: 0, moderate: 1, high: 2 }
