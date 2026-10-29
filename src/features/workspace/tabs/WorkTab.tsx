@@ -19,6 +19,7 @@ import { dueLabel } from '@/lib/format'
 import { useWorkspace } from '../context'
 import { withImpact } from '../feedback'
 import { AddActivityModal } from '../forms/AddActivityModal'
+import { ApprovedBy } from '../shared/EvidenceActions'
 
 export function WorkTab() {
   const { insight, openActivity, openGate } = useWorkspace()
@@ -163,9 +164,9 @@ export function WorkTab() {
           <Avatar person={person} size="xs" tip={false} />
           <span className="truncate">{person?.name}</span>
         </span>
-        <span className="hidden md:block">{ev ? <Pill tone={EVIDENCE_TONE[ev.status]}>{EVIDENCE_STATUS[ev.status]}</Pill> : <span className="text-[11.5px] text-fg-faint">—</span>}</span>
+        <span className="hidden md:block">{ev ? <Tip content={ev.status === 'approved' && <ApprovedBy evidence={ev} />}><span><Pill tone={EVIDENCE_TONE[ev.status]}>{EVIDENCE_STATUS[ev.status]}</Pill></span></Tip> : <span className="text-[11.5px] text-fg-faint">–</span>}</span>
         <span className={cn('hidden text-[12px] tabular md:block', overdue ? 'text-danger-fg' : 'text-fg-subtle')}>
-          {a.status === 'complete' ? <span className="text-success-fg">Done</span> : a.dueDate ? dueLabel(a.dueDate).replace('Due ', '') : '—'}
+          {a.status === 'complete' ? <span className="text-success-fg">Done</span> : a.dueDate ? dueLabel(a.dueDate).replace('Due ', '') : '–'}
         </span>
         <span className={cn('hidden size-2 justify-self-center rounded-full md:block', { 'bg-success': ACTIVITY_TONE[a.status] === 'success', 'bg-accent': ACTIVITY_TONE[a.status] === 'accent', 'bg-danger': ACTIVITY_TONE[a.status] === 'danger', 'bg-fg-faint': ACTIVITY_TONE[a.status] === 'muted' })} aria-hidden />
       </li>

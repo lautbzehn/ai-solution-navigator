@@ -128,7 +128,7 @@ export function OverviewTab() {
           <CardBody className="grid items-center gap-6 pt-5 md:grid-cols-[220px_minmax(0,1fr)]">
             <ReadinessGauge readiness={readiness} stage={solution.stage} size={150} />
             <div className="md:border-l md:border-border md:pl-6">
-              <p className="mb-2 px-2 text-[11.5px] text-fg-subtle">Hover, focus, or tap a dimension for the why and what would raise it.</p>
+              <p className="mb-2 px-2 text-[11.5px] text-fg-subtle">Completed work counts when its evidence is approved. Hover, focus, or tap a dimension for the why and what would raise it.</p>
               <DimensionBars readiness={readiness} />
             </div>
           </CardBody>
@@ -242,7 +242,7 @@ export function OverviewTab() {
               </div>
               <div>
                 <p className="text-[12px] text-fg-subtle">Realized value</p>
-                <p className={cn('mt-0.5 text-[20px] font-semibold tracking-[-0.02em] tabular', solution.realizedValue ? 'text-success-fg' : 'text-fg-faint')}>{solution.realizedValue ? money(solution.realizedValue) : '—'}</p>
+                <p className={cn('mt-0.5 text-[20px] font-semibold tracking-[-0.02em] tabular', solution.realizedValue ? 'text-success-fg' : 'text-fg-faint')}>{solution.realizedValue ? money(solution.realizedValue) : '–'}</p>
               </div>
             </div>
           </CardBody>

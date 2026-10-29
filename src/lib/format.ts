@@ -1,7 +1,7 @@
 const DAY = 86_400_000
 
 export function money(v: number, opts: { compact?: boolean } = {}) {
-  if (!Number.isFinite(v)) return '—'
+  if (!Number.isFinite(v)) return '–'
   if (opts.compact !== false && Math.abs(v) >= 1000) {
     if (Math.abs(v) >= 1_000_000) return `$${(v / 1_000_000).toFixed(Math.abs(v) >= 10_000_000 ? 0 : 1).replace(/\.0$/, '')}M`
     return `$${Math.round(v / 1000)}K`
@@ -10,13 +10,13 @@ export function money(v: number, opts: { compact?: boolean } = {}) {
 }
 
 export function num(v: number | undefined, digits = 1) {
-  if (v === undefined || !Number.isFinite(v)) return '—'
+  if (v === undefined || !Number.isFinite(v)) return '–'
   const rounded = Math.round(v * 10 ** digits) / 10 ** digits
   return rounded.toLocaleString(undefined, { maximumFractionDigits: digits })
 }
 
 export function withUnit(v: number | undefined, unit: string) {
-  if (v === undefined) return '—'
+  if (v === undefined) return '–'
   if (unit === '%') return `${num(v)}%`
   if (unit === 'USD') return money(v)
   if (unit === 'score') return `${num(v)} / 5`
@@ -24,12 +24,12 @@ export function withUnit(v: number | undefined, unit: string) {
 }
 
 export function shortDate(iso?: string) {
-  if (!iso) return '—'
+  if (!iso) return '–'
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
 export function longDate(iso?: string) {
-  if (!iso) return '—'
+  if (!iso) return '–'
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
@@ -38,7 +38,7 @@ export function daysBetween(a: string | number, b: string | number = Date.now())
 }
 
 export function relative(iso?: string, now = Date.now()) {
-  if (!iso) return '—'
+  if (!iso) return '–'
   const diff = now - new Date(iso).getTime()
   const abs = Math.abs(diff)
   const future = diff < 0

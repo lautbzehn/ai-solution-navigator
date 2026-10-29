@@ -9,3 +9,4 @@ Short records of the choices that shape the Navigator: the context, the decision
 | [0003](0003-advisor-recommends-people-decide_v1.0_10.11.2026.md) | The AI advisor recommends; people decide | Accepted |
 | [0004](0004-eight-stage-lifecycle_v1.0_10.11.2026.md) | An eight-stage lifecycle grounded in recognized standards | Accepted |
 | [0005](0005-gatekeepers-go-hold-stop_v1.0_10.11.2026.md) | Gatekeepers decide each gate: Go, Hold, or Stop | Accepted |
+| [0006](0006-evidence-approved-by-a-second-person_v1.0_10.29.2026.md) | Evidence is approved by a second person | Accepted |

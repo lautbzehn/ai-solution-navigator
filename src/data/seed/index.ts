@@ -95,6 +95,12 @@ function seedSnapshots(db: DB, now: number): ReadinessSnapshot[] {
 function seedAudit(db: DB, now: number): AuditEntry[] {
   const iso = (daysAgo: number, hour = 10) => new Date(now - daysAgo * DAY + (hour - 12) * 3_600_000).toISOString()
   const name = (id: string) => db.activities.find((a) => a.id === id)?.name ?? db.evidence.find((e) => e.id === id)?.name ?? id
+  const person = (id: string) => db.people.find((p) => p.id === id)?.name ?? id
+  /** A seeded approval, logged by its approver: always someone other than the owner. */
+  const approval = (evidenceId: string): Omit<AuditEntry, 'id'> => {
+    const ev = db.evidence.find((e) => e.id === evidenceId)!
+    return { ts: ev.approvedAt!, actorId: ev.approvedById!, solutionId: ev.solutionId, action: 'approved', entityType: 'evidence', entityId: ev.id, entityName: ev.name, from: person(ev.ownerId), to: ev.activityId && name(ev.activityId) }
+  }
   const entries: Omit<AuditEntry, 'id'>[] = [
     { ts: iso(0.2, 9), actorId: 'p_pam', solutionId: 's_support', action: 'commented', entityType: 'activity', entityId: 's_support__v_oversight', entityName: name('s_support__v_oversight') },
     { ts: iso(1, 16), actorId: 'p_darryl', solutionId: 's_support', action: 'commented', entityType: 'activity', entityId: 's_support__v_monitoring', entityName: name('s_support__v_monitoring') },
@@ -103,9 +109,9 @@ function seedAudit(db: DB, now: number): AuditEntry[] {
     { ts: iso(3, 15), actorId: 'p_pam', solutionId: 's_support', action: 'created', entityType: 'change', entityId: 's_support__ch4', entityName: 'Forced agent review for responses offering credits or refunds' },
     { ts: iso(4, 14), actorId: 'p_dwight', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_oversight_validation', entityName: 'Human Oversight Validation', field: 'status', from: 'Missing', to: 'Draft' },
     { ts: iso(6, 10), actorId: 'p_dwight', solutionId: 's_support', action: 'created', entityType: 'risk', entityId: 's_support__r2', entityName: 'Agents over-rely on AI suggestions' },
-    { ts: iso(7, 13), actorId: 'p_toby', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_residual_risk', entityName: 'Residual Risk Assessment', field: 'status', from: 'In Review', to: 'Approved' },
-    { ts: iso(8, 11), actorId: 'p_jan', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_privacy_review', entityName: 'Privacy Review', field: 'status', from: 'In Review', to: 'Approved' },
-    { ts: iso(9, 16), actorId: 'p_holly', solutionId: 's_support', action: 'status_changed', entityType: 'evidence', entityId: 's_support__ev_eval_results', entityName: 'Evaluation Results', field: 'status', from: 'In Review', to: 'Approved' },
+    approval('s_support__ev_residual_risk'),
+    approval('s_support__ev_privacy_review'),
+    approval('s_support__ev_eval_results'),
     { ts: iso(10, 10), actorId: 'p_dwight', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__v_security', entityName: 'Complete security review', field: 'status', from: 'In Progress', to: 'Complete' },
     { ts: iso(13, 15), actorId: 'p_holly', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__v_eval', entityName: 'Run evaluation and document results', field: 'status', from: 'Complete', to: 'In Progress' },
     { ts: iso(11, 15), actorId: 'p_holly', solutionId: 's_support', action: 'status_changed', entityType: 'activity', entityId: 's_support__v_eval', entityName: 'Run evaluation and document results', field: 'status', from: 'In Progress', to: 'Complete' },

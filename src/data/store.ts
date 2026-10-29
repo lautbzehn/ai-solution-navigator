@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_WEIGHTS, nextStage, stageDef } from '@/config'
 import { bundleFor, uid, type DB, type Weights } from '@/domain/db'
+import { approvalProblem, moveProblem } from '@/domain/evidence'
 import { evaluateGate, type CriterionResult } from '@/domain/gates'
 import { canDecideGate, gatekeeperPhrase, stateOf } from '@/domain/gatekeepers'
 import {
@@ -21,6 +22,7 @@ import type {
   Comment,
   Decision,
   Evidence,
+  EvidenceStatus,
   LifecycleState,
   Metric,
   Risk,
@@ -58,6 +60,19 @@ export interface GateCall {
   rationale: string
 }
 
+export type EvidenceResult = { ok: true } | { ok: false; reason: string }
+export type AddEvidenceResult = { ok: true; evidenceId: string } | { ok: false; reason: string }
+/** Evidence as it's first recorded. It always starts unapproved. */
+export type NewEvidence = Omit<Evidence, 'id' | 'date' | 'status' | 'approvedById' | 'approvedAt' | 'approvalNote'> & { status: Exclude<EvidenceStatus, 'approved'> }
+/** What anyone may change on evidence. Approval goes through approveEvidence alone. */
+export type EvidencePatch = Partial<Pick<Evidence, 'status' | 'ownerId' | 'name' | 'link' | 'notes'>>
+export interface EvidenceApproval {
+  approverId: string
+  note: string
+}
+
+const APPROVAL_FIELDS = ['approvedById', 'approvedAt', 'approvalNote'] as const
+
 interface Actions {
   createSolution(input: NewSolution): string
   updateSolution(id: string, patch: Partial<Solution>): void
@@ -67,8 +82,10 @@ interface Actions {
   addActivity(input: Omit<Activity, 'id' | 'comments' | 'createdAt'>): string
   addComment(activityId: string, text: string): void
 
-  addEvidence(input: Omit<Evidence, 'id' | 'date'>): string
-  updateEvidence(id: string, patch: Partial<Evidence>): void
+  addEvidence(input: NewEvidence): AddEvidenceResult
+  updateEvidence(id: string, patch: EvidencePatch): EvidenceResult
+  /** Approve evidence that's in review. The approver is a team member other than its owner. */
+  approveEvidence(id: string, approval: EvidenceApproval): EvidenceResult
 
   addRisk(input: Omit<Risk, 'id' | 'createdAt'>): string
   updateRisk(id: string, patch: Partial<Risk>): void
@@ -120,11 +137,11 @@ const MAX_AUDIT = 1500
 export const useStore = create<Store>()(
   persist(
     (set, get) => {
-      /** Append audit entries and refresh today's readiness snapshot. */
-      const commit = (partial: Partial<DB>, entries: Omit<AuditEntry, 'id' | 'ts' | 'actorId'>[], touched?: string) => {
+      /** Append audit entries and refresh today's readiness snapshot. An entry is by the signed-in user, now, unless it names its own actor and time. */
+      const commit = (partial: Partial<DB>, entries: (Omit<AuditEntry, 'id' | 'ts' | 'actorId'> & Partial<Pick<AuditEntry, 'ts' | 'actorId'>>)[], touched?: string) => {
         const ts = nowIso()
         const audit = [
-          ...entries.map((e) => ({ ...e, id: uid('au'), ts, actorId: CURRENT_USER_ID })),
+          ...entries.map(({ actorId, ts: at, ...e }) => ({ ...e, id: uid('au'), ts: at ?? ts, actorId: actorId ?? CURRENT_USER_ID })),
           ...(partial.audit ?? get().audit),
         ].slice(0, MAX_AUDIT)
         const next = { ...partial, audit } as Partial<DB>
@@ -218,7 +235,7 @@ export const useStore = create<Store>()(
             to: fmt(after[f.key], f.label),
           }))
 
-      const personName = (id: unknown) => get().people.find((p) => p.id === id)?.name ?? String(id ?? '—')
+      const personName = (id: unknown) => get().people.find((p) => p.id === id)?.name ?? String(id ?? '–')
 
       return {
         ...buildSeed(),
@@ -351,11 +368,11 @@ export const useStore = create<Store>()(
           const entries = diffEntries('activity', after.solutionId, after.name, before, after, [
             { key: 'status', label: (v) => ACTIVITY_STATUS[v as Activity['status']] },
             { key: 'ownerId', label: personName },
-            { key: 'dueDate', label: (v) => (v ? new Date(String(v)).toLocaleDateString() : '—') },
+            { key: 'dueDate', label: (v) => (v ? new Date(String(v)).toLocaleDateString() : '–') },
             { key: 'priority' },
             { key: 'name' },
             { key: 'description' },
-            { key: 'contributorIds', label: (v) => (v as string[]).map(personName).join(', ') || '—' },
+            { key: 'contributorIds', label: (v) => (v as string[]).map(personName).join(', ') || '–' },
           ])
           // Keep evidence ownership aligned with the activity owner.
           let evidence = s.evidence
@@ -386,6 +403,8 @@ export const useStore = create<Store>()(
         },
 
         addEvidence(input) {
+          // Checked here as well as in the type: no path but approveEvidence reaches Approved.
+          if ((input.status as EvidenceStatus) === 'approved') return { ok: false, reason: 'New evidence starts unapproved. Submit it for review, then someone else approves it.' }
           const id = uid('ev')
           const ev: Evidence = { ...input, id, date: nowIso() }
           commit(
@@ -393,14 +412,19 @@ export const useStore = create<Store>()(
             [{ solutionId: ev.solutionId, action: 'created', entityType: 'evidence', entityId: id, entityName: ev.name }],
             ev.solutionId,
           )
-          return id
+          return { ok: true, evidenceId: id }
         },
 
         updateEvidence(id, patch) {
           const s = get()
-          const statusChanged = patch.status && patch.status !== s.evidence.find((e) => e.id === id)?.status
+          const prev = s.evidence.find((e) => e.id === id)
+          if (!prev) return { ok: false, reason: 'Evidence not found.' }
+          if (APPROVAL_FIELDS.some((k) => k in patch)) return { ok: false, reason: 'Use Approve, so the app records who approved it.' }
+          const problem = patch.status ? moveProblem(prev.status, patch.status) : undefined
+          if (problem) return { ok: false, reason: problem }
+          const statusChanged = patch.status && patch.status !== prev.status
           const [evidence, before, after] = patchList(s.evidence, id, { ...patch, ...(statusChanged ? { date: nowIso() } : {}) })
-          if (!before || !after) return
+          if (!before || !after) return { ok: false, reason: 'Evidence not found.' }
           const entries = diffEntries('evidence', after.solutionId, after.name, before, after, [
             { key: 'status', label: (v) => EVIDENCE_STATUS[v as Evidence['status']] },
             { key: 'ownerId', label: personName },
@@ -409,6 +433,26 @@ export const useStore = create<Store>()(
             { key: 'notes' },
           ])
           commit({ evidence }, entries, after.solutionId)
+          return { ok: true }
+        },
+
+        approveEvidence(id, { approverId, note }) {
+          const s = get()
+          const ev = s.evidence.find((e) => e.id === id)
+          const sol = ev && s.solutions.find((x) => x.id === ev.solutionId)
+          if (!ev || !sol) return { ok: false, reason: 'Evidence not found.' }
+          // Re-validate here: the store never trusts the UI's view of who may approve.
+          const problem = approvalProblem(ev, approverId, sol.team, note)
+          if (problem) return { ok: false, reason: problem }
+          const ts = nowIso()
+          const [evidence] = patchList(s.evidence, id, { status: 'approved', approvedById: approverId, approvedAt: ts, approvalNote: note.trim(), date: ts })
+          const activity = s.activities.find((a) => a.id === ev.activityId)
+          commit(
+            { evidence },
+            [{ solutionId: ev.solutionId, ts, actorId: approverId, action: 'approved', entityType: 'evidence', entityId: id, entityName: ev.name, from: personName(ev.ownerId), to: activity?.name }],
+            ev.solutionId,
+          )
+          return { ok: true }
         },
 
         addRisk(input) {
@@ -434,7 +478,7 @@ export const useStore = create<Store>()(
             { key: 'title' },
             { key: 'category' },
             { key: 'impact' },
-            { key: 'dueDate', label: (v) => (v ? new Date(String(v)).toLocaleDateString() : '—') },
+            { key: 'dueDate', label: (v) => (v ? new Date(String(v)).toLocaleDateString() : '–') },
           ])
           commit({ risks }, entries, after.solutionId)
         },
@@ -627,7 +671,7 @@ export const useStore = create<Store>()(
     },
     {
       name: 'ai-solution-navigator',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => safeLocalStorage),
       partialize: (s) => ({
         people: s.people,
@@ -653,7 +697,7 @@ export const useStore = create<Store>()(
 
 function fmt(v: unknown, label?: (v: unknown) => string) {
   if (label) return label(v)
-  if (v === undefined || v === null || v === '') return '—'
+  if (v === undefined || v === null || v === '') return '–'
   return String(v)
 }
 

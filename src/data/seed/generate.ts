@@ -1,4 +1,5 @@
 import { evidenceTemplate, isBlocking, isRequired, lifecycle, stageOrder, STAGE_IDS } from '@/config'
+import { approverRolesFor } from '@/domain/gatekeepers'
 import type {
   Activity,
   ActivityStatus,
@@ -158,6 +159,7 @@ export function generateSolution(seed: SolutionSeed, now: number): Generated {
       else if (status === 'complete') evStatus = 'approved'
       else if (status === 'in_progress') evStatus = 'draft'
       else evStatus = 'missing'
+      const date = evStatus === 'missing' ? iso(createdOffset) : iso(Math.min(0, sIdx < currentIdx ? completedOffset : -1 - (t.id.length % 6)))
       evidence.push({
         id: `${seed.id}__${t.evidence}`,
         solutionId: seed.id,
@@ -169,7 +171,8 @@ export function generateSolution(seed: SolutionSeed, now: number): Generated {
         ownerId,
         status: evStatus,
         required,
-        date: evStatus === 'missing' ? iso(createdOffset) : iso(Math.min(0, sIdx < currentIdx ? completedOffset : -1 - (t.id.length % 6))),
+        date,
+        ...(evStatus === 'approved' ? { approvedById: seedApprover(seed, t.stage, ownerId), approvedAt: date } : {}),
       })
     }
   }
@@ -241,4 +244,14 @@ export function generateSolution(seed: SolutionSeed, now: number): Generated {
   })
 
   return { solution, activities, evidence, risks, decisions, metrics, changes }
+}
+
+/** Who signed off seeded evidence: the stage gate's specialist gatekeeper, then the sponsor, and never the owner. */
+function seedApprover(seed: SolutionSeed, stage: StageId, ownerId: string): string | undefined {
+  const roles = [...approverRolesFor(stage)].sort((a, b) => Number(a === 'executive_sponsor') - Number(b === 'executive_sponsor'))
+  for (const role of roles) {
+    const member = seed.team.find(([personId, r]) => r === role && personId !== ownerId)
+    if (member) return member[0]
+  }
+  return seed.team.find(([personId]) => personId !== ownerId)?.[0]
 }

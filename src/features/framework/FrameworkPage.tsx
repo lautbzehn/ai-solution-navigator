@@ -85,7 +85,7 @@ export function FrameworkPage() {
                           </Tip>
                         </td>
                         <td className="px-2 py-2.5 whitespace-nowrap text-fg-muted">{roleName(a.ownerRole)}</td>
-                        <td className="px-2 py-2.5 text-fg-muted">{a.evidence ? evidenceTemplate(a.evidence)?.name : '—'}</td>
+                        <td className="px-2 py-2.5 text-fg-muted">{a.evidence ? evidenceTemplate(a.evidence)?.name : '–'}</td>
                         {TIERS.map((t) => (
                           <td key={t} className="px-2 py-2.5 text-center">
                             <TierCell required={a.requiredFor.includes(t)} blocking={a.blockingFor.includes(t)} />

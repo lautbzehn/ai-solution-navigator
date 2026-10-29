@@ -1,25 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, CalendarClock, CheckCircle2, FileCheck2, Lightbulb, MessageSquare, Send, ShieldAlert, Target } from 'lucide-react'
-import { ActivityStatusIcon, EVIDENCE_TONE } from '@/components/status'
+import { ActivityStatusIcon } from '@/components/status'
 import { Avatar, PersonChip } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { SectionLabel } from '@/components/ui/Card'
 import { Sheet } from '@/components/ui/Dialog'
 import { Field, Input, Select, Textarea } from '@/components/ui/Field'
-import { MenuSelect } from '@/components/ui/misc'
 import { Pill } from '@/components/ui/Pill'
 import { InfoTip } from '@/components/ui/Tooltip'
 import { activityTemplate, dimensionDef, nextStage, roleName, stageDef } from '@/config'
 import { useStore } from '@/data/store'
 import { evidenceForActivity } from '@/domain/db'
 import { gateLabel } from '@/domain/gates'
-import { ACTIVITY_STATUS, ACTIVITY_STATUS_ORDER, EVIDENCE_STATUS, EVIDENCE_STATUS_ORDER, PRIORITY, RISK_TIER } from '@/domain/labels'
-import type { ActivityStatus, EvidenceStatus, Priority } from '@/domain/types'
+import { ACTIVITY_STATUS, ACTIVITY_STATUS_ORDER, PRIORITY, RISK_TIER } from '@/domain/labels'
+import type { ActivityStatus, Priority } from '@/domain/types'
 import { validDate } from '@/domain/validation'
 import { cn } from '@/lib/cn'
 import { dueLabel, fromDateInput, longDate, relative, toDateInput } from '@/lib/format'
 import { useWorkspace } from '../context'
 import { withImpact } from '../feedback'
+import { ApprovedBy, EvidenceActions } from '../shared/EvidenceActions'
 
 export function ActivityDrawer({ activityId, onClose }: { activityId?: string; onClose: () => void }) {
   const { insight, openGate } = useWorkspace()
@@ -63,7 +63,6 @@ function ActivityBody({ activityId, openGate }: { activityId: string; openGate: 
   const ev = evidenceForActivity(bundle, a)
   const people = useStore((s) => s.people)
   const updateActivity = useStore((s) => s.updateActivity)
-  const updateEvidence = useStore((s) => s.updateEvidence)
   const addComment = useStore((s) => s.addComment)
 
   const [blockedReason, setBlockedReason] = useState(a.blockedReason ?? '')
@@ -104,11 +103,6 @@ function ActivityBody({ activityId, openGate }: { activityId: string; openGate: 
     const err = validDate(value, 'Due date', { notBefore: a.createdAt, notBeforeLabel: `the activity was created (${longDate(a.createdAt)})` })
     setDueErr(err)
     if (!err) updateActivity(a.id, { dueDate: fromDateInput(value) })
-  }
-
-  const setEvidence = (status: EvidenceStatus) => {
-    if (!ev || status === ev.status) return
-    withImpact(solution.id, () => updateEvidence(ev.id, { status }), { onGateOpen: openGate })
   }
 
   const submitComment = () => {
@@ -190,7 +184,7 @@ function ActivityBody({ activityId, openGate }: { activityId: string; openGate: 
           <div className="grid gap-1.5">
             <span className="text-[12.5px] font-medium text-fg-muted">Completed</span>
             <span className="flex h-9 items-center text-[13px] text-fg-muted">
-              {a.completedAt ? <span className="flex items-center gap-1.5 text-success-fg"><CheckCircle2 className="size-4" /> {longDate(a.completedAt)}</span> : '—'}
+              {a.completedAt ? <span className="flex items-center gap-1.5 text-success-fg"><CheckCircle2 className="size-4" /> {longDate(a.completedAt)}</span> : '–'}
             </span>
           </div>
         </div>
@@ -202,32 +196,16 @@ function ActivityBody({ activityId, openGate }: { activityId: string; openGate: 
         <h3 className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold"><FileCheck2 className="size-4 text-fg-subtle" /> Evidence <InfoTip term="evidence" /></h3>
         {ev ? (
           <div className={cn('rounded-xl p-3.5 ring-1', evidenceGap ? 'bg-warning-soft/50 ring-warning/25' : 'bg-surface-2 ring-border')}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[13.5px] font-medium text-fg">{ev.name}</p>
-                <p className="text-[12px] text-fg-subtle">{ev.type} · updated {relative(ev.date)}</p>
-              </div>
-              <MenuSelect
-                label="Evidence status"
-                value={ev.status}
-                onChange={setEvidence}
-                align="end"
-                options={EVIDENCE_STATUS_ORDER.map((s) => ({ value: s, label: EVIDENCE_STATUS[s], disabled: s === 'not_required' && ev.required, disabledReason: 'Required for this risk tier' }))}
-                trigger={<Pill tone={EVIDENCE_TONE[ev.status]} dot>{EVIDENCE_STATUS[ev.status]}</Pill>}
-              />
+            <div className="min-w-0">
+              <p className="text-[13.5px] font-medium text-fg">{ev.name}</p>
+              <p className="text-[12px] text-fg-subtle">{ev.type} · {ev.status === 'approved' ? <ApprovedBy evidence={ev} withNote /> : `updated ${relative(ev.date)}`}</p>
             </div>
+            <EvidenceActions evidence={ev} onGateOpen={openGate} className="mt-3" />
             {evidenceGap && (
               <p className="mt-2.5 flex items-start gap-2 text-[12.5px] text-warning-fg">
                 <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                Marked complete, but {a.blocking ? 'the gate' : 'full readiness'} needs this evidence approved. A checked box isn't proof.
+                Marked complete, but {a.blocking ? 'the gate' : 'full readiness'} needs this evidence approved by someone other than its owner. A checked box isn't proof.
               </p>
-            )}
-            {ev.status !== 'approved' && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {ev.status === 'missing' && <Button size="xs" onClick={() => setEvidence('draft')}>Start draft</Button>}
-                {(ev.status === 'missing' || ev.status === 'draft') && <Button size="xs" onClick={() => setEvidence('in_review')}>Submit for review</Button>}
-                {ev.status === 'in_review' && <Button size="xs" variant="accent-soft" onClick={() => setEvidence('approved')}>Record approval</Button>}
-              </div>
             )}
           </div>
         ) : (

@@ -3,7 +3,7 @@
 export const GLOSSARY = {
   readiness: {
     title: 'Implementation Readiness',
-    body: 'Measures how prepared the overall solution is to advance through the lifecycle. It does not represent AI safety or model quality alone.',
+    body: 'Measures how prepared the overall solution is to advance through the lifecycle. Completed work counts when its evidence is approved. It does not represent AI safety or model quality alone.',
   },
   readinessPace: {
     title: 'Expected readiness',
@@ -27,7 +27,7 @@ export const GLOSSARY = {
   },
   evidence: {
     title: 'Evidence',
-    body: 'Structured proof that work was done to the required standard: an assessment, a review, a sign-off. A completed checkbox without approved evidence does not count as full readiness.',
+    body: 'Structured proof that work was done to the required standard: an assessment, a review, a sign-off. Someone other than its owner approves it. A completed checkbox without approved evidence does not count as full readiness.',
   },
   aiEvaluation: {
     title: 'AI evaluation',

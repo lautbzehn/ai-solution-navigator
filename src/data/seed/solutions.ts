@@ -76,7 +76,6 @@ export const SOLUTION_SEEDS: SolutionSeed[] = [
         comments: [{ authorId: 'p_holly', daysAgo: 9, text: 'Final eval on 1,200 held-out tickets: 88.5% suggestion accuracy, 2.8% unsupported claims. Above the bar we set in Design.' }],
       },
       dp_training: { status: 'in_progress', evidence: 'draft' },
-      b_limits: { evidence: 'in_review' },
       a_value: { evidence: 'in_review' },
     },
     risks: [
@@ -205,7 +204,7 @@ export const SOLUTION_SEEDS: SolutionSeed[] = [
       a_data: { status: 'in_progress', evidence: 'draft', due: -3, comments: [{ authorId: 'p_oscar', daysAgo: 5, text: 'Historical labels are inconsistent: dispatchers disagree on 23% of a 500-case sample. We need a relabeling effort before training.' }] },
       a_feasibility: { status: 'complete', evidence: 'in_review', due: -1 },
       a_stakeholders: { status: 'complete' },
-      a_value: { status: 'complete', evidence: 'in_review', due: 6 },
+      a_value: { status: 'complete', evidence: 'approved', due: 6 },
       a_privacy_screen: { status: 'in_progress', evidence: 'draft', due: 9 },
       a_autonomy: {
         status: 'blocked',

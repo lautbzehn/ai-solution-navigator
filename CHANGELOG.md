@@ -4,7 +4,15 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 
 ## [Unreleased]
 
+### Added
+- **Evidence is approved by a second person.** Approve works only on evidence that's in review, asks who is approving (anyone on the team but the owner) and for a one-line note, and logs the approval in history. Approved items read "Approved by {name} · {date}". The store refuses every other route to Approved, including the owner approving their own work. ([ADR 0006](docs/adr/0006-evidence-approved-by-a-second-person_v1.0_10.29.2026.md))
+- A Help answer, "Who approves evidence?"
+- Twelve tests for the readiness credit table and the approval rules (57 in total).
+
 ### Changed
+- **Readiness tells the same story as the gate.** Finished work counts when its evidence is approved: in review earns 0.7, draft 0.4, and missing evidence earns nothing on a gate-blocking activity (0.3 on any other). It used to earn 0.6 even with no evidence at all. Work still in progress keeps its small bonus when its evidence is approved early, so approving never lowers the score. The readiness tooltip and the Readiness section say so.
+- The Evidence tab and the activity drawer show a status pill and buttons for the next step (Start draft, Submit for review, Back to draft, Approve) instead of a free dropdown.
+- Demo data: every seeded approval names its approver, two items finished their review so the scores hold steady, and three history entries that showed people approving their own evidence now show a teammate. Saved demo data starts fresh once.
 - Dan's title reads "AI strategy and operations leader" in the README and Help, matching his résumé.
 
 ### Added

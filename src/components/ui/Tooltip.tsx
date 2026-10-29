@@ -31,7 +31,7 @@ export function Tip({ content, children, side = 'top', delay }: { content: React
   )
 }
 
-/** Rich hover card that also opens on keyboard focus and tap — never hover-only. */
+/** Rich hover card that also opens on keyboard focus and tap, so it is never hover-only. */
 export function HoverCard({
   trigger,
   children,
