@@ -218,7 +218,7 @@ export const useStore = create<Store>()(
             to: fmt(after[f.key], f.label),
           }))
 
-      const personName = (id: unknown) => get().people.find((p) => p.id === id)?.name ?? String(id ?? '—')
+      const personName = (id: unknown) => get().people.find((p) => p.id === id)?.name ?? String(id ?? '–')
 
       return {
         ...buildSeed(),
@@ -351,11 +351,11 @@ export const useStore = create<Store>()(
           const entries = diffEntries('activity', after.solutionId, after.name, before, after, [
             { key: 'status', label: (v) => ACTIVITY_STATUS[v as Activity['status']] },
             { key: 'ownerId', label: personName },
-            { key: 'dueDate', label: (v) => (v ? new Date(String(v)).toLocaleDateString() : '—') },
+            { key: 'dueDate', label: (v) => (v ? new Date(String(v)).toLocaleDateString() : '–') },
             { key: 'priority' },
             { key: 'name' },
             { key: 'description' },
-            { key: 'contributorIds', label: (v) => (v as string[]).map(personName).join(', ') || '—' },
+            { key: 'contributorIds', label: (v) => (v as string[]).map(personName).join(', ') || '–' },
           ])
           // Keep evidence ownership aligned with the activity owner.
           let evidence = s.evidence
@@ -434,7 +434,7 @@ export const useStore = create<Store>()(
             { key: 'title' },
             { key: 'category' },
             { key: 'impact' },
-            { key: 'dueDate', label: (v) => (v ? new Date(String(v)).toLocaleDateString() : '—') },
+            { key: 'dueDate', label: (v) => (v ? new Date(String(v)).toLocaleDateString() : '–') },
           ])
           commit({ risks }, entries, after.solutionId)
         },
@@ -653,7 +653,7 @@ export const useStore = create<Store>()(
 
 function fmt(v: unknown, label?: (v: unknown) => string) {
   if (label) return label(v)
-  if (v === undefined || v === null || v === '') return '—'
+  if (v === undefined || v === null || v === '') return '–'
   return String(v)
 }
 

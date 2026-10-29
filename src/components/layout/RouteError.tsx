@@ -2,7 +2,7 @@ import { Link, useRouteError } from 'react-router'
 import { TriangleAlert } from 'lucide-react'
 import { Button } from '../ui/Button'
 
-/** Friendly error boundary — never a raw stack trace. */
+/** Friendly error boundary: never a raw stack trace. */
 export function RouteError() {
   const error = useRouteError()
   if (import.meta.env.DEV) console.error(error)

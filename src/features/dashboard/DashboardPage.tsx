@@ -256,7 +256,7 @@ export function DashboardPage() {
                         <span className={cn('block h-full rounded-full', c.completion >= 100 ? 'bg-success/70' : c.solutions ? 'bg-accent' : 'bg-fg-faint')} style={{ width: `${c.completion}%` }} />
                       </span>
                       <Tip content={`${pluralize(c.solutions, 'solution')} reached ${c.name}`}>
-                        <span className="text-right font-medium text-fg tabular">{c.solutions ? `${c.completion}%` : '—'}</span>
+                        <span className="text-right font-medium text-fg tabular">{c.solutions ? `${c.completion}%` : '–'}</span>
                       </Tip>
                     </li>
                   ))}

@@ -242,7 +242,7 @@ export function OverviewTab() {
               </div>
               <div>
                 <p className="text-[12px] text-fg-subtle">Realized value</p>
-                <p className={cn('mt-0.5 text-[20px] font-semibold tracking-[-0.02em] tabular', solution.realizedValue ? 'text-success-fg' : 'text-fg-faint')}>{solution.realizedValue ? money(solution.realizedValue) : '—'}</p>
+                <p className={cn('mt-0.5 text-[20px] font-semibold tracking-[-0.02em] tabular', solution.realizedValue ? 'text-success-fg' : 'text-fg-faint')}>{solution.realizedValue ? money(solution.realizedValue) : '–'}</p>
               </div>
             </div>
           </CardBody>

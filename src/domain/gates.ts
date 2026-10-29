@@ -6,7 +6,7 @@ import type { ActivityStatus, EvidenceStatus, GateDef, StageId } from './types'
    ---------------
    A stage's exit gate is the union of:
    · every blocking activity instantiated for that stage (blocking is set per
-     risk tier in lifecycle.json — higher risk ⇒ more blocking controls), each
+     risk tier in lifecycle.json, so higher risk ⇒ more blocking controls), each
      of which also needs approved evidence when evidence is expected, and
    · the gate's explicit criteria (fields, roles, metrics, risk rules).
    The UI never just disables a button: every unmet criterion says why. */

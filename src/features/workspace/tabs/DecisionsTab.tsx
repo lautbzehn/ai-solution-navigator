@@ -100,7 +100,7 @@ function Item({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-[11px] font-semibold tracking-[0.06em] text-fg-subtle uppercase">{label}</dt>
-      <dd className={cn('mt-0.5 leading-relaxed', value ? 'text-fg-muted' : 'text-fg-faint')}>{value || '—'}</dd>
+      <dd className={cn('mt-0.5 leading-relaxed', value ? 'text-fg-muted' : 'text-fg-faint')}>{value || '–'}</dd>
     </div>
   )
 }

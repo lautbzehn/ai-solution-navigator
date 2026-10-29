@@ -18,11 +18,11 @@ import {
 } from 'recharts'
 import { cn } from '@/lib/cn'
 
-/* Charts — adapted from the Layro "Charts & KPI Cards" kit (21st.dev).
+/* Charts, adapted from the Layro "Charts & KPI Cards" kit (21st.dev).
    Rules that keep charts readable rather than decorative:
    · thin marks: 2px lines, bars ≤ 28px with rounded ends, 10% area wash
    · hairline horizontal gridlines only; one y-axis
-   · text never wears the series colour — a swatch carries identity
+   · text never wears the series colour; a swatch carries identity
    · every chart has a tooltip and a visually hidden data table */
 
 export interface Series {

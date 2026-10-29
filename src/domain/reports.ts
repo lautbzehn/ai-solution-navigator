@@ -123,7 +123,7 @@ export function bottlenecks(items: SolutionInsight[], now = Date.now()) {
       blocked: here.filter((i) => i.health.status === 'blocked').length,
       atRisk: here.filter((i) => i.health.status === 'at_risk').length,
       openRequirements: here.reduce((n, i) => n + i.gate.unmet.length, 0),
-      primaryReason: reasons.length ? reasons.slice(0, 2).map(([r]) => r).join(' / ') : here.length ? 'Ready for gate review' : '—',
+      primaryReason: reasons.length ? reasons.slice(0, 2).map(([r]) => r).join(' / ') : here.length ? 'Ready for gate review' : '–',
       reasons: reasons.slice(0, 2).map(([r]) => r),
       ids: here.map((i) => i.bundle.solution.id),
     }

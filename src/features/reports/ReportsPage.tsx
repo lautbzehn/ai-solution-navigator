@@ -196,8 +196,8 @@ export function ReportsPage() {
               }
             >
               <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-                <Tile label="Avg. time to production" value={perf.avgToProduction ? `${perf.avgToProduction}d` : '—'} hint="Days from creation to entering Operate." />
-                <Tile label="Gate pass rate" value={perf.passRate !== undefined ? `${perf.passRate}%` : '—'} term="gatePassRate" sub={pluralize(perf.attempts, 'attempt')} />
+                <Tile label="Avg. time to production" value={perf.avgToProduction ? `${perf.avgToProduction}d` : '–'} hint="Days from creation to entering Operate." />
+                <Tile label="Gate pass rate" value={perf.passRate !== undefined ? `${perf.passRate}%` : '–'} term="gatePassRate" sub={pluralize(perf.attempts, 'attempt')} />
                 <Tile label="Activities completed" value={perf.completed} sub={perf.blocked ? `${perf.blocked} blocked right now` : 'none blocked'} subTone={perf.blocked ? 'danger' : undefined} hint="Lifecycle activities finished in the selected date range." />
                 <Tile label="Rework rate" value={`${num(perf.reworkRate)}%`} term="reworkRate" sub={`${perf.reopened} reopened`} />
               </div>
@@ -246,10 +246,10 @@ export function ReportsPage() {
                           <td className="px-3 py-3 text-right tabular">
                             {b.solutions ? (
                               <Tip content={`Typical: ${b.typicalDays} days`}><span className={cn(slow ? 'text-warning-fg' : '')}>{b.avgDays}d{slow && ' ▲'}</span></Tip>
-                            ) : '—'}
+                            ) : '–'}
                           </td>
-                          <td className={cn('px-3 py-3 text-right tabular', b.blocked && 'text-danger-fg')}>{b.solutions ? b.blocked : '—'}</td>
-                          <td className="px-3 py-3 text-right tabular">{b.solutions ? b.openRequirements : '—'}</td>
+                          <td className={cn('px-3 py-3 text-right tabular', b.blocked && 'text-danger-fg')}>{b.solutions ? b.blocked : '–'}</td>
+                          <td className="px-3 py-3 text-right tabular">{b.solutions ? b.openRequirements : '–'}</td>
                           <td className="px-5 py-3 text-fg-muted">{b.primaryReason}</td>
                         </tr>
                       )
@@ -376,7 +376,7 @@ export function ReportsPage() {
                           <td className="px-2 py-2.5 text-right tabular text-fg-muted">{withUnit(o.metric.baseline, o.metric.unit)}</td>
                           <td className="px-2 py-2.5 text-right tabular text-fg-muted">{withUnit(o.metric.target, o.metric.unit)}</td>
                           <td className="px-2 py-2.5 text-right font-medium tabular">{withUnit(o.metric.current, o.metric.unit)}</td>
-                          <td className={cn('px-2 py-2.5 text-right tabular', o.variance === undefined ? 'text-fg-faint' : o.variance >= 0 ? 'text-success-fg' : 'text-fg-muted')}>{o.variance === undefined ? '—' : `${o.variance >= 0 ? '+' : '−'}${withUnit(Math.abs(o.variance), o.metric.unit)}`}</td>
+                          <td className={cn('px-2 py-2.5 text-right tabular', o.variance === undefined ? 'text-fg-faint' : o.variance >= 0 ? 'text-success-fg' : 'text-fg-muted')}>{o.variance === undefined ? '–' : `${o.variance >= 0 ? '+' : '−'}${withUnit(Math.abs(o.variance), o.metric.unit)}`}</td>
                           <td className="px-5 py-2.5"><Pill tone={HEALTH_TONE[o.health.status]} dot>{METRIC_HEALTH_LABEL[o.health.status]}</Pill></td>
                         </tr>
                       ))}
@@ -409,15 +409,15 @@ export function ReportsPage() {
                       {adoption.map((r) => (
                         <tr key={r.solution.id} className="cursor-pointer transition-colors hover:bg-surface-2" onClick={() => navigate(`/solutions/${r.solution.id}/metrics`)}>
                           <td className="px-5 py-3"><p className="font-medium">{short(r.solution.name)}</p><p className="text-[11.5px] text-fg-subtle">{STAGES.find((s) => s.id === r.solution.stage)?.name}</p></td>
-                          <td className="px-3 py-3 text-right tabular">{r.eligible ?? '—'}</td>
-                          <td className="px-3 py-3 text-right tabular">{r.active ?? '—'}</td>
+                          <td className="px-3 py-3 text-right tabular">{r.eligible ?? '–'}</td>
+                          <td className="px-3 py-3 text-right tabular">{r.active ?? '–'}</td>
                           <td className="px-3 py-3">
                             {r.rate !== undefined ? (
                               <span className="flex items-center gap-2"><span className="h-1.5 w-24 overflow-hidden rounded-full bg-surface-3"><span className={cn('block h-full rounded-full', r.rate >= 70 ? 'bg-success' : r.rate >= 30 ? 'bg-warning' : 'bg-fg-subtle')} style={{ width: `${Math.min(100, r.rate)}%` }} /></span><span className="font-medium tabular">{r.rate}%</span></span>
-                            ) : '—'}
+                            ) : '–'}
                           </td>
                           <td className="px-3 py-3 text-right tabular">{r.frequency?.current !== undefined ? `${num(r.frequency.current)} / wk` : <span className="text-fg-faint">Not applicable</span>}</td>
-                          <td className="px-5 py-3 text-right tabular">{r.satisfaction?.current !== undefined ? `${num(r.satisfaction.current)} / 5` : '—'}</td>
+                          <td className="px-5 py-3 text-right tabular">{r.satisfaction?.current !== undefined ? `${num(r.satisfaction.current)} / 5` : '–'}</td>
                         </tr>
                       ))}
                     </tbody>

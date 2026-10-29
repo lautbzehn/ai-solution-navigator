@@ -89,7 +89,7 @@ export function EvidenceTab() {
                   <p className="text-[12px] text-fg-subtle">{e.type} · {e.status === 'missing' ? 'not started' : `updated ${relative(e.date)}`}</p>
                 </div>
                 <span className="text-[11.5px] font-semibold tracking-[0.04em] text-fg-muted uppercase sm:row-start-1 sm:col-start-2 xl:row-auto xl:col-auto">{stageDef(e.stage).name}</span>
-                <span className="min-w-0 sm:col-span-2 xl:col-span-1">{e.activityId ? <button onClick={() => openActivity(e.activityId!)} className="block max-w-full truncate text-left text-[12.5px] text-fg-muted hover:text-fg hover:underline">{activityName(e.activityId)}</button> : <span className="text-[12px] text-fg-faint">—</span>}</span>
+                <span className="min-w-0 sm:col-span-2 xl:col-span-1">{e.activityId ? <button onClick={() => openActivity(e.activityId!)} className="block max-w-full truncate text-left text-[12.5px] text-fg-muted hover:text-fg hover:underline">{activityName(e.activityId)}</button> : <span className="text-[12px] text-fg-faint">–</span>}</span>
                 <PersonChip id={e.ownerId} className="text-[12px]" />
                 <MenuSelect
                   label="Evidence status"

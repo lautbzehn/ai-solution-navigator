@@ -81,7 +81,7 @@ export function LifecycleRail({
                   />
                 </div>
                 <span className={cn('text-[11px] tabular', state === 'current' ? 'text-accent-fg' : state === 'complete' ? 'text-success-fg' : 'text-fg-faint')}>
-                  {state === 'complete' ? 'Complete' : state === 'current' ? `Current · ${pct}%` : pct > 0 ? `${pct}% early work` : '—'}
+                  {state === 'complete' ? 'Complete' : state === 'current' ? `Current · ${pct}%` : pct > 0 ? `${pct}% early work` : '–'}
                 </span>
               </Node>
               {i < STAGES.length - 1 && (

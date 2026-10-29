@@ -190,7 +190,7 @@ function ActivityBody({ activityId, openGate }: { activityId: string; openGate: 
           <div className="grid gap-1.5">
             <span className="text-[12.5px] font-medium text-fg-muted">Completed</span>
             <span className="flex h-9 items-center text-[13px] text-fg-muted">
-              {a.completedAt ? <span className="flex items-center gap-1.5 text-success-fg"><CheckCircle2 className="size-4" /> {longDate(a.completedAt)}</span> : '—'}
+              {a.completedAt ? <span className="flex items-center gap-1.5 text-success-fg"><CheckCircle2 className="size-4" /> {longDate(a.completedAt)}</span> : '–'}
             </span>
           </div>
         </div>

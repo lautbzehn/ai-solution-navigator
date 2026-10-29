@@ -28,7 +28,7 @@ export interface DB {
   snapshots: ReadinessSnapshot[]
 }
 
-/** Everything belonging to one solution — the unit most domain logic works on. */
+/** Everything belonging to one solution: the unit most domain logic works on. */
 export interface SolutionBundle {
   solution: Solution
   activities: Activity[]
