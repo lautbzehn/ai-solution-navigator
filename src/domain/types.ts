@@ -1,4 +1,4 @@
-/* Core domain model for the Forge AI Solution Navigator.
+/* Core domain model for Forge Navigator.
    Lifecycle methodology lives in config/lifecycle.json; these types describe
    both that configuration and the per-solution records that instantiate it. */
 

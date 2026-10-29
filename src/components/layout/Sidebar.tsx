@@ -11,9 +11,10 @@ import { cn } from '@/lib/cn'
 import { Avatar } from '../ui/Avatar'
 import { Tip } from '../ui/Tooltip'
 import { FavoriteStar } from '../FavoriteStar'
-import { BrandName, ForgeMark } from '../brand/ForgeMark'
+import { BrandName } from '../brand/ForgeMark'
 import { hueVar, type Hue } from './Section'
 import { Logo } from './Logo'
+import { OVERVIEW_SECTIONS, PAGES } from './nav'
 
 interface SubItem {
   label: string
@@ -41,6 +42,8 @@ const atHash = (id: string, ...aliases: string[]) => (l: Location) => [id, ...al
 const samePath = (a: string, b: string) => a.replace(/\/$/, '') === b.replace(/\/$/, '')
 /** A click that should keep the browser's own behavior, like opening in a new tab. */
 const modified = (e: MouseEvent) => e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey
+
+const OVERVIEW_HUE = { attention: 'pink', work: 'blue', decisions: 'violet' } as const
 
 function Caret({ open, label, controls, onToggle }: { open: boolean; label: string; controls: string; onToggle: () => void }) {
   return (
@@ -209,21 +212,16 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
 
   const main: NavItem[] = [
     {
-      to: '/',
-      label: 'My Overview',
+      to: PAGES.overview.to,
+      label: PAGES.overview.label,
       icon: LayoutDashboard,
       end: true,
-      hint: 'Your portfolio at a glance: what needs you, progress, risk, and value',
-      subs: [
-        { label: 'Needs your attention', hue: 'pink', to: '/#attention', active: atHash('attention'), badge: attention, tone: 'danger' },
-        { label: 'All solutions', hue: 'cyan', to: '/#solutions', active: atHash('solutions') },
-        { label: 'Progress & readiness', hue: 'blue', to: '/#progress', active: atHash('progress') },
-        { label: 'Risk & value', hue: 'lime', to: '/#risk-value', active: atHash('risk-value') },
-      ],
+      hint: 'Your own work: what needs you, what is assigned to you, and decisions waiting on you',
+      subs: OVERVIEW_SECTIONS.map((s) => ({ label: s.label, hue: OVERVIEW_HUE[s.id], to: `/#${s.id}`, active: atHash(s.id), ...(s.id === 'attention' ? { badge: attention, tone: 'danger' as const } : {}) })),
     },
     {
-      to: '/solutions',
-      label: 'Solutions Hub',
+      to: PAGES.solutions.to,
+      label: PAGES.solutions.label,
       icon: FolderKanban,
       badge: solutions.length,
       hint: 'Every AI initiative in one place. Filter, sort, star, and open a workspace',
@@ -235,10 +233,10 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
       ],
     },
     {
-      to: '/reports',
-      label: 'Reports',
+      to: PAGES.portfolio.to,
+      label: PAGES.portfolio.label,
       icon: BarChart3,
-      hint: 'Executive reporting on health, delivery, risk, value, and AI quality',
+      hint: 'The whole portfolio: health, delivery, risk, value, and AI quality',
       subs: [
         { label: 'Portfolio health', hue: 'cyan', to: '/reports#health', active: atHash('health') },
         { label: 'Delivery', hue: 'blue', to: '/reports#delivery', active: atHash('delivery', 'performance', 'bottlenecks') },
@@ -250,8 +248,8 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
   ]
   const method: NavItem[] = [
     {
-      to: '/framework',
-      label: 'Lifecycle Framework',
+      to: PAGES.framework.to,
+      label: PAGES.framework.label,
       icon: BookOpenCheck,
       hint: 'The stages, gates, risk tiers, and weights behind every plan',
       subs: [
@@ -272,8 +270,11 @@ export function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; 
             <p className="truncate text-[13px] font-semibold tracking-[-0.015em] text-fg">
               <BrandName />
             </p>
-            <p className="truncate text-[11px] text-fg-subtle">
-              <ForgeMark />
+            {/* A small byline on larger screens; phones show the name alone. */}
+            <p className="hidden truncate text-[11px] text-fg-subtle sm:block">
+              <a href="https://www.icarianforge.com" target="_blank" rel="noopener" className="transition-colors hover:text-fg [&_b]:font-normal [&_b]:text-forge">
+                by{' '}<span className="ifp"><b>I</b>carian <b>Forge</b></span>
+              </a>
             </p>
           </div>
         )}

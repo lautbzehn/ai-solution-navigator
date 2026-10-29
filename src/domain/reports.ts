@@ -5,7 +5,7 @@ import { metricHealth, variance } from './metrics'
 import { inProductionStage } from './portfolio'
 import type { AuditEntry, GateAttempt, Metric, MetricKey, RiskTier, StageId } from './types'
 
-/* Portfolio Intelligence. Every number here is a deterministic calculation
+/* Portfolio reporting. Every number here is a deterministic calculation
    over the same records the workspace edits, so reports update live. */
 
 const DAY = 86_400_000

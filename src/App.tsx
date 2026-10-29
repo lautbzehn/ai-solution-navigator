@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, type ReactNode } from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router'
+import { createBrowserRouter, Navigate, RouterProvider, useLocation } from 'react-router'
 import { Toaster, toast } from 'sonner'
 import { AppShell } from '@/components/layout/AppShell'
 import { RouteError } from '@/components/layout/RouteError'
@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/ui/Tooltip'
 import { useStore } from '@/data/store'
 import { onStorageError } from '@/data/storage'
 import { PageSkeleton } from '@/components/layout/PageSkeleton'
+import { ROUTE_ALIASES } from '@/components/layout/nav'
 import { NotFoundPage } from '@/features/NotFoundPage'
 
 // Route-level code splitting keeps the first load small.
@@ -20,6 +21,12 @@ const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then(
 
 const page = (el: ReactNode) => <Suspense fallback={<PageSkeleton />}>{el}</Suspense>
 
+/** An alias path: lands on its page with the same query and #section. */
+function Alias({ to }: { to: string }) {
+  const { search, hash } = useLocation()
+  return <Navigate to={`${to}${search}${hash}`} replace />
+}
+
 const router = createBrowserRouter([
   {
     element: <AppShell />,
@@ -32,6 +39,7 @@ const router = createBrowserRouter([
       { path: 'framework', element: page(<FrameworkPage />) },
       { path: 'settings', element: page(<SettingsPage />) },
       { path: 'about', element: page(<AboutPage />) },
+      ...Object.entries(ROUTE_ALIASES).map(([path, to]) => ({ path, element: <Alias to={to} /> })),
       { path: '*', element: <NotFoundPage /> },
     ],
   },

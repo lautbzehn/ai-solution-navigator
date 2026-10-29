@@ -90,7 +90,7 @@ export function IntroDialog() {
             <div className="flex items-center gap-2 pr-8">
               <Logo size={22} />
               <span className="text-[12px] font-semibold tracking-[-0.01em]">
-                <b className="font-bold text-[#ffb48a]">Forge</b> AI Solution Navigator
+                <b className="font-bold text-[#ffb48a]">Forge</b> Navigator
               </span>
               <span className="ml-1 inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/30 px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] whitespace-nowrap text-[#fff3ea] uppercase ring-1 ring-white/10">
                 <span className="intro-live size-1.5 rounded-full bg-[#34d399]" aria-hidden />

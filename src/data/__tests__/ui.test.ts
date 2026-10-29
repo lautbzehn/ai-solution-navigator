@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest'
+import { OVERVIEW_SECTIONS, PAGES, pageName, ROUTE_ALIASES } from '@/components/layout/nav'
 import { useUI } from '@/data/ui'
 import { legacyTabTarget, TABS } from '@/features/workspace/routes'
 
@@ -39,5 +40,23 @@ describe('workspace tabs', () => {
     expect(go('decisions')).toBe('/solutions/s_support/risks#decisions')
     expect(go('history')).toBe('/solutions/s_support/team#history')
     for (const t of TABS) expect(go(t.id)).toBeUndefined()
+  })
+})
+
+describe('navigation names', () => {
+  test('the sidebar reads My Overview, Solutions Hub, Portfolio, Lifecycle Framework, with My Overview personal', () => {
+    const main = [PAGES.overview, PAGES.solutions, PAGES.portfolio, PAGES.framework]
+    expect(main.map((p) => p.label)).toEqual(['My Overview', 'Solutions Hub', 'Portfolio', 'Lifecycle Framework'])
+    expect(OVERVIEW_SECTIONS.map((s) => s.label)).toEqual(['Needs your attention', 'My work', 'Decisions waiting'])
+    const labels = Object.values(PAGES).map((p) => p.label)
+    expect(labels).not.toContain('Reports')
+    expect(labels).not.toContain('Portfolio Intelligence')
+  })
+
+  test('/portfolio leads to the Portfolio page, which keeps its /reports route', () => {
+    expect(ROUTE_ALIASES.portfolio).toBe('/reports')
+    expect(PAGES.portfolio.to).toBe('/reports')
+    expect(pageName('reports')).toBe('Portfolio')
+    expect(pageName('')).toBe('My Overview')
   })
 })

@@ -7,9 +7,11 @@ import { Tip } from '../ui/Tooltip'
 
 /* Progressive disclosure for busy pages. Each page is a stack of sections whose
    headers carry a one-line headline, so a collapsed page still reads as an
-   executive summary. The first section starts open, the viewer's choices are
-   remembered per page, and a #hash (from the sidebar or a link) opens and
-   scrolls to its section. */
+   executive summary. The first section starts open (or every section, on pages
+   that ask for it, except on phones), the viewer's choices are remembered per
+   page, and a #hash (from the sidebar or a link) opens and scrolls to its section. */
+
+const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches
 
 const read = (key: string): string[] | undefined => {
   try {
@@ -30,9 +32,9 @@ export interface SectionsState {
   bind(id: string): { id: string; open: boolean; onToggle: () => void }
 }
 
-export function useSections(page: string, ids: readonly string[], aliases: Record<string, string> = {}): SectionsState {
+export function useSections(page: string, ids: readonly string[], aliases: Record<string, string> = {}, { openAll = false }: { openAll?: boolean } = {}): SectionsState {
   const key = `asn-open:${page}`
-  const [open, setOpen] = useState<Set<string>>(() => new Set((read(key) ?? [ids[0]]).filter((id) => ids.includes(id))))
+  const [open, setOpen] = useState<Set<string>>(() => new Set((read(key) ?? (openAll && !isPhone() ? ids : [ids[0]])).filter((id) => ids.includes(id))))
   const location = useLocation()
 
   useEffect(() => {
