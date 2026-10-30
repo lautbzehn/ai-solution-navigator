@@ -4,6 +4,12 @@ All notable changes to Forge Navigator. The format follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Changed
+- **The docs match 2.0.**
+  - The README screenshots show the current app: My Overview, Customer Support's workspace, and a blocked gate review with "Resolve next blocker". Their descriptions say so too.
+  - The architecture doc is now v2.0 (`docs/architecture_v2.0_10.29.2026.md`). It covers evidence approved by a second person, the readiness credit table, measured thresholds at gates, the five tabs, the store rules, the end-to-end test, and deploys on every merge.
+  - The case study is now v1.5, with a short section on what a design review found and what changed in 2.0.
+
 ## [2.0.0] · 2026-10-29
 
 ### Added
