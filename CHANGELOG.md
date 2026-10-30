@@ -4,6 +4,9 @@ All notable changes to Forge Navigator. The format follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Fixed
+- **The Lifecycle Framework's picture fits a 1280 px laptop.** All eight stages show beside the sidebar; Improve / Retire used to be cut off until you scrolled sideways.
+
 ### Changed
 - **The docs match 2.0.**
   - The README screenshots show the current app: My Overview, Customer Support's workspace, and a blocked gate review with "Resolve next blocker". Their descriptions say so too.
