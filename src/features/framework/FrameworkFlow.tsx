@@ -11,6 +11,9 @@ import { cn } from '@/lib/cn'
    inspects it in the Stages and gates section below. */
 
 const GAP = 28 // px between stages, where the gates sit
+// The narrowest the eight stages get before the picture scrolls sideways. 880 fits a 1280 px laptop beside the sidebar
+// (the card has 932 px there); 960 used to clip Improve / Retire until you scrolled.
+const MIN_WIDTH = 880
 
 export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSelect: (s: StageId) => void }) {
   const col = (id: StageId) => STAGES.findIndex((s) => s.id === id)
@@ -22,7 +25,7 @@ export function FrameworkFlow({ selected, onSelect }: { selected: StageId; onSel
         subtitle="Eight stages, left to right. Each ends in a gate that must be met before moving on. Governance runs the whole way, and live solutions loop back as they improve."
       />
       <div className="overflow-x-auto px-5 pb-5">
-        <div className="min-w-[960px]" role="group" aria-label="The lifecycle, in order">
+        <div style={{ minWidth: MIN_WIDTH }} role="group" aria-label="The lifecycle, in order">
           {/* Phases */}
           <div className="mb-2 grid grid-cols-8" style={{ columnGap: GAP }}>
             {PHASES.map((p) => (
