@@ -1,6 +1,6 @@
 # The story behind the Navigator
 
-**v1.4 · 10.11.2026** · Dan West · [Try the live demo](https://navigator.icarianforge.com)
+**v1.5 · 10.29.2026** · Dan West · [Try the live demo](https://navigator.icarianforge.com)
 
 ---
 
@@ -34,7 +34,7 @@ I didn't want to build something that only works for one team's way of doing thi
 
 ### "Done" should mean done
 
-I've seen projects get waved through because someone said the work was done, while the proof was still sitting in an email somewhere. So here, you can't move a project to the next stage just by ticking boxes. The work has to be finished and the proof behind it has to be signed off. And if something's holding a project up, the app tells you exactly what it is and who can fix it. No guessing, no chasing people down.
+I've seen projects get waved through because someone said the work was done, while the proof was still sitting in an email somewhere. So here, you can't move a project to the next stage just by ticking boxes. The work has to be finished and the proof behind it has to be signed off by someone other than the person who produced it. And if something's holding a project up, the app tells you exactly what it is and who can fix it. No guessing, no chasing people down.
 
 ### The right person decides, and "no" is allowed
 
@@ -55,6 +55,25 @@ Each project gets a readiness score, but it never shows up alone. It always come
 There's a built-in AI advisor you can ask about any part of a project. It can explain and suggest, but it can't approve anything or move a project forward. Those calls stay with people.
 
 It also works for free out of the box, and only uses Claude if you choose to connect it.
+
+## What changed in 2.0, and why
+
+A few weeks after launch I sat down and reviewed the whole thing the way a skeptical design reviewer would. Two findings stung, because they went against the very things I said the Navigator stands for.
+
+**People could sign off their own proof.** The app said "done should mean done," but nothing stopped the person who wrote a piece of evidence from approving it themselves. A few entries in the demo's history showed exactly that. That's the shortcut the whole tool exists to prevent.
+
+**The score and the gate told different stories.** A finished activity earned most of its readiness points even when its proof was missing. So a project could look nearly ready on its score while its gate was firmly shut. If those two disagree, people stop trusting both.
+
+Here's what I changed:
+
+- **Someone else approves the evidence.** Proof moves from draft to review, and then a teammate who isn't its owner approves it with a one-line note. The app remembers who and when, and won't accept any other route.
+- **The score follows the gate.** Finished work counts in full only once its proof is approved. Proof in review counts for most of it, a draft for less, and missing proof on gate work counts for nothing.
+- **A blocked gate says what to fix first.** When a gate is blocked, the main button is "Resolve next blocker", and just opening a gate to look no longer counts as a failed attempt.
+- **Riskier projects prove the idea works before going further.** For moderate and high risk, the feasibility gate now wants a real result on sample data, measured against a bar the team set beforehand.
+- **Less to get through.** Starting a project takes a name, a problem, and an owner. The workspace went from seven tabs to five, with the evidence sitting right next to the work it proves. My Overview is now about you, and Portfolio covers everything else.
+- **The rules live in one place.** The app itself checks every change, so it doesn't matter which screen made it. A test also walks through the whole demo in a real browser before anything goes live.
+
+None of this added steps for a team that was already doing the work properly. It just makes the shortcuts harder to take, and the score easier to believe.
 
 ## What I left out on purpose
 

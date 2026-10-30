@@ -16,8 +16,8 @@
 
 <p align="center">
   <a href="https://navigator.icarianforge.com"><b>Try the live demo</b></a> ·
-  <a href="docs/case-study_v1.4_10.11.2026.md">The story behind it</a> ·
-  <a href="docs/architecture_v1.1_10.13.2026.md">Architecture</a> ·
+  <a href="docs/case-study_v1.5_10.29.2026.md">The story behind it</a> ·
+  <a href="docs/architecture_v2.0_10.29.2026.md">Architecture</a> ·
   <a href="docs/adr">Decision records</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
@@ -35,11 +35,11 @@
 > Built by **[Dan West](https://www.icarianforge.com)**, an AI strategy and operations leader with nearly 20 years in IT. I designed it and directed Claude Code as the engineering team, the same way I'd lead a product team. All people, companies, and figures in the demo are fictional (Dunder Mifflin, with The Office cast).
 
 <p>
-  <img src="docs/screenshots/dashboard.png" alt="My Overview: a personal briefing, four headline numbers, and the projects that need attention" width="100%">
+  <img src="docs/screenshots/dashboard.png" alt="My Overview: what needs your attention, your work this week, and the decisions waiting on you" width="100%">
 </p>
 <p>
-  <img src="docs/screenshots/workspace.png" width="49%" alt="One project's workspace: stage, readiness, and the next best action with its owner">
-  <img src="docs/screenshots/gate-blocked.png" width="49%" alt="A gate review: exactly what is blocking, who owns it, and a link to fix it">
+  <img src="docs/screenshots/workspace.png" width="49%" alt="One project's workspace: stage, readiness, the next best action with its owner, and the lifecycle bar above five tabs">
+  <img src="docs/screenshots/gate-blocked.png" width="49%" alt="A blocked gate review: exactly what is blocking, who owns it, and Resolve next blocker to fix the first one">
 </p>
 
 ## Highlights
@@ -116,7 +116,7 @@ flowchart LR
   Guard -- "within limits" --> Claude["Claude API<br/>structured output"]
 ```
 
-Layers flow one way: UI → domain → data → AI integration. The domain is pure TypeScript with no React, so it is tested directly. Full detail in **[docs/architecture](docs/architecture_v1.1_10.13.2026.md)**.
+Layers flow one way: UI → domain → data → AI integration. The domain is pure TypeScript with no React, so it is tested directly. Full detail in **[docs/architecture](docs/architecture_v2.0_10.29.2026.md)**.
 </details>
 
 <details>
