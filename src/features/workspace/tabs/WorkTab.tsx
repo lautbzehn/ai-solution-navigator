@@ -18,7 +18,7 @@ import type { Activity, ActivityStatus, Evidence, StageId } from '@/domain/types
 import { cn } from '@/lib/cn'
 import { dueLabel, relative } from '@/lib/format'
 import { useWorkspace } from '../context'
-import { withImpact } from '../feedback'
+import { toastRefusal, withImpact } from '../feedback'
 import { AddActivityModal } from '../forms/AddActivityModal'
 import { AddEvidenceModal } from '../forms/AddEvidenceModal'
 import { ApprovedBy, EvidenceActions } from '../shared/EvidenceActions'
@@ -110,7 +110,7 @@ export function WorkTab() {
 
   const changeStatus = (a: Activity, s: ActivityStatus) => {
     if (s === 'blocked') return openActivity(a.id) // a reason is required; the drawer asks for it
-    withImpact(solution.id, () => updateActivity(a.id, { status: s }), { onGateOpen: openGate })
+    toastRefusal(withImpact(solution.id, () => updateActivity(a.id, { status: s }), { onGateOpen: openGate }))
   }
 
   return (

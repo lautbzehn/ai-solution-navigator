@@ -18,7 +18,7 @@ import { validDate } from '@/domain/validation'
 import { cn } from '@/lib/cn'
 import { dueLabel, fromDateInput, longDate, relative, toDateInput } from '@/lib/format'
 import { useWorkspace } from '../context'
-import { withImpact } from '../feedback'
+import { toastRefusal, withImpact } from '../feedback'
 import { ApprovedBy, EvidenceActions } from '../shared/EvidenceActions'
 
 export function ActivityDrawer({ activityId, onClose }: { activityId?: string; onClose: () => void }) {
@@ -88,21 +88,21 @@ function ActivityBody({ activityId, openGate }: { activityId: string; openGate: 
       setAskBlocked(true)
       return
     }
-    withImpact(solution.id, () => updateActivity(a.id, { status }), { onGateOpen: openGate })
+    toastRefusal(withImpact(solution.id, () => updateActivity(a.id, { status }), { onGateOpen: openGate }))
   }
 
   const confirmBlocked = () => {
     if (blockedReason.trim().length < 8) return setBlockErr('Explain what is blocking this so the owner and PM can act on it.')
     setBlockErr(undefined)
     setAskBlocked(false)
-    withImpact(solution.id, () => updateActivity(a.id, { status: 'blocked', blockedReason: blockedReason.trim() }))
+    toastRefusal(withImpact(solution.id, () => updateActivity(a.id, { status: 'blocked', blockedReason: blockedReason.trim() })))
   }
 
   const saveDue = (value: string) => {
     setDue(value)
     const err = validDate(value, 'Due date', { notBefore: a.createdAt, notBeforeLabel: `the activity was created (${longDate(a.createdAt)})` })
     setDueErr(err)
-    if (!err) updateActivity(a.id, { dueDate: fromDateInput(value) })
+    if (!err) toastRefusal(updateActivity(a.id, { dueDate: fromDateInput(value) }))
   }
 
   const submitComment = () => {
@@ -164,7 +164,7 @@ function ActivityBody({ activityId, openGate }: { activityId: string; openGate: 
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Owner">
             {(p) => (
-              <Select {...p} value={a.ownerId} onChange={(e) => updateActivity(a.id, { ownerId: e.target.value })}>
+              <Select {...p} value={a.ownerId} onChange={(e) => toastRefusal(updateActivity(a.id, { ownerId: e.target.value }))}>
                 {team.map((person) => (
                   <option key={person.id} value={person.id}>{person.name}{roleOf(person.id) ? ` · ${roleOf(person.id)}` : ''}</option>
                 ))}
@@ -173,7 +173,7 @@ function ActivityBody({ activityId, openGate }: { activityId: string; openGate: 
           </Field>
           <Field label="Priority">
             {(p) => (
-              <Select {...p} value={a.priority} onChange={(e) => updateActivity(a.id, { priority: e.target.value as Priority })}>
+              <Select {...p} value={a.priority} onChange={(e) => toastRefusal(updateActivity(a.id, { priority: e.target.value as Priority }))}>
                 {(['high', 'medium', 'low'] as Priority[]).map((x) => <option key={x} value={x}>{PRIORITY[x]}</option>)}
               </Select>
             )}
@@ -296,7 +296,7 @@ function ContributorPicker({ activityId, options }: { activityId: string; option
   const [editing, setEditing] = useState(false)
   const toggle = (id: string) => {
     const next = a.contributorIds.includes(id) ? a.contributorIds.filter((x) => x !== id) : [...a.contributorIds, id]
-    updateActivity(a.id, { contributorIds: next })
+    toastRefusal(updateActivity(a.id, { contributorIds: next }))
   }
   return (
     <div className="grid gap-1.5">

@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_WEIGHTS, nextStage, stageDef } from '@/config'
 import { bundleFor, uid, type DB, type Weights } from '@/domain/db'
-import { approvalProblem, moveProblem } from '@/domain/evidence'
 import { evaluateGate, type CriterionResult } from '@/domain/gates'
 import { canDecideGate, gatekeeperPhrase, stateOf } from '@/domain/gatekeepers'
 import {
@@ -15,6 +14,7 @@ import {
 } from '@/domain/labels'
 import { instantiatePlan, reconcileTier } from '@/domain/plan'
 import { computeReadiness } from '@/domain/readiness'
+import { activityPatchProblem, evidenceApprovalProblem, evidencePatchProblem, solutionPatchProblem } from '@/domain/validation'
 import type {
   Activity,
   AuditEntry,
@@ -60,7 +60,9 @@ export interface GateCall {
   rationale: string
 }
 
-export type EvidenceResult = { ok: true } | { ok: false; reason: string }
+/** Every patch either lands or comes back with a reason the UI shows as a toast. */
+export type PatchResult = { ok: true } | { ok: false; reason: string }
+export type EvidenceResult = PatchResult
 export type AddEvidenceResult = { ok: true; evidenceId: string } | { ok: false; reason: string }
 /** Evidence as it's first recorded. It always starts unapproved. */
 export type NewEvidence = Omit<Evidence, 'id' | 'date' | 'status' | 'approvedById' | 'approvedAt' | 'approvalNote'> & { status: Exclude<EvidenceStatus, 'approved'> }
@@ -71,14 +73,13 @@ export interface EvidenceApproval {
   note: string
 }
 
-const APPROVAL_FIELDS = ['approvedById', 'approvedAt', 'approvalNote'] as const
-
 interface Actions {
   createSolution(input: NewSolution): string
-  updateSolution(id: string, patch: Partial<Solution>): void
+  /** Stage and state change only through the gate commands below. */
+  updateSolution(id: string, patch: Partial<Solution>): PatchResult
   setTeam(id: string, team: TeamMember[]): void
 
-  updateActivity(id: string, patch: Partial<Activity>): void
+  updateActivity(id: string, patch: Partial<Activity>): PatchResult
   addActivity(input: Omit<Activity, 'id' | 'comments' | 'createdAt'>): string
   addComment(activityId: string, text: string): void
 
@@ -290,9 +291,11 @@ export const useStore = create<Store>()(
         },
 
         updateSolution(id, patch) {
+          const problem = solutionPatchProblem(patch)
+          if (problem) return { ok: false, reason: problem }
           const s = get()
           const [solutions, before, after] = patchList(s.solutions, id, patch)
-          if (!before || !after) return
+          if (!before || !after) return { ok: false, reason: 'Solution not found.' }
           const entries = diffEntries('solution', id, after.name, before, after, [
             { key: 'name' },
             { key: 'description' },
@@ -335,6 +338,7 @@ export const useStore = create<Store>()(
             ]
           }
           commit(partial, entries, id)
+          return { ok: true }
         },
 
         setTeam(id, team) {
@@ -356,14 +360,17 @@ export const useStore = create<Store>()(
         updateActivity(id, patch) {
           const s = get()
           const prev = s.activities.find((a) => a.id === id)
-          if (!prev) return
+          const sol = prev && s.solutions.find((x) => x.id === prev.solutionId)
+          if (!prev || !sol) return { ok: false, reason: 'Activity not found.' }
+          const problem = activityPatchProblem(prev, patch, sol.riskTier)
+          if (problem) return { ok: false, reason: problem }
           const extra: Partial<Activity> = {}
           if (patch.status && patch.status !== prev.status) {
             extra.completedAt = patch.status === 'complete' ? nowIso() : undefined
             if (patch.status !== 'blocked') extra.blockedReason = patch.blockedReason ?? undefined
           }
           const [activities, before, after] = patchList(s.activities, id, { ...patch, ...extra })
-          if (!before || !after) return
+          if (!before || !after) return { ok: false, reason: 'Activity not found.' }
           const entries = diffEntries('activity', after.solutionId, after.name, before, after, [
             { key: 'status', label: (v) => ACTIVITY_STATUS[v as Activity['status']] },
             { key: 'ownerId', label: personName },
@@ -379,6 +386,7 @@ export const useStore = create<Store>()(
             evidence = s.evidence.map((e) => (e.activityId === id && e.ownerId === before.ownerId ? { ...e, ownerId: patch.ownerId! } : e))
           }
           commit({ activities, evidence }, entries, after.solutionId)
+          return { ok: true }
         },
 
         addActivity(input) {
@@ -418,8 +426,7 @@ export const useStore = create<Store>()(
           const s = get()
           const prev = s.evidence.find((e) => e.id === id)
           if (!prev) return { ok: false, reason: 'Evidence not found.' }
-          if (APPROVAL_FIELDS.some((k) => k in patch)) return { ok: false, reason: 'Use Approve, so the app records who approved it.' }
-          const problem = patch.status ? moveProblem(prev.status, patch.status) : undefined
+          const problem = evidencePatchProblem(prev, patch)
           if (problem) return { ok: false, reason: problem }
           const statusChanged = patch.status && patch.status !== prev.status
           const [evidence, before, after] = patchList(s.evidence, id, { ...patch, ...(statusChanged ? { date: nowIso() } : {}) })
@@ -441,7 +448,7 @@ export const useStore = create<Store>()(
           const sol = ev && s.solutions.find((x) => x.id === ev.solutionId)
           if (!ev || !sol) return { ok: false, reason: 'Evidence not found.' }
           // Re-validate here: the store never trusts the UI's view of who may approve.
-          const problem = approvalProblem(ev, approverId, sol.team, note)
+          const problem = evidenceApprovalProblem(ev, approverId, sol.team, note)
           if (problem) return { ok: false, reason: problem }
           const ts = nowIso()
           const [evidence] = patchList(s.evidence, id, { status: 'approved', approvedById: approverId, approvedAt: ts, approvalNote: note.trim(), date: ts })

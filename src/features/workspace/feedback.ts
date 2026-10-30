@@ -1,9 +1,15 @@
 import { toast } from 'sonner'
 import { stageDef } from '@/config'
-import { useStore } from '@/data/store'
+import { useStore, type PatchResult } from '@/data/store'
 import { bundleFor } from '@/domain/db'
 import { evaluateGate } from '@/domain/gates'
 import { computeReadiness } from '@/domain/readiness'
+
+/** Show why the store refused a patch. True when the patch landed. */
+export function toastRefusal(result: PatchResult): boolean {
+  if (!result.ok) toast.error(result.reason)
+  return result.ok
+}
 
 type ImpactOptions = { onGateOpen?: () => void; quiet?: boolean }
 type Snapshot = NonNullable<ReturnType<typeof snapshot>>

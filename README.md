@@ -6,7 +6,7 @@
 <p align="center">
   <a href="https://navigator.icarianforge.com"><img alt="Live demo" src="https://img.shields.io/badge/Live_demo-navigator.icarianforge.com-f97343?style=flat-square&labelColor=1c1917"></a>
   <a href="https://github.com/lautbzehn/ai-solution-navigator/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/lautbzehn/ai-solution-navigator/ci.yml?branch=main&style=flat-square&label=CI&labelColor=1c1917"></a>
-  <img alt="Tests" src="https://img.shields.io/badge/tests-45_passing-34d399?style=flat-square&labelColor=1c1917">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-84_passing-34d399?style=flat-square&labelColor=1c1917">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&labelColor=1c1917&logo=typescript&logoColor=white">
   <img alt="React 19" src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&labelColor=1c1917&logo=react&logoColor=61dafb">
   <img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-f38020?style=flat-square&labelColor=1c1917&logo=cloudflare&logoColor=f38020">
@@ -89,10 +89,10 @@ Live solutions loop back: a material change (a new model, data, audience, or lev
 ## Try it in five minutes
 
 1. Open the **[live demo](https://navigator.icarianforge.com)**. A short note introduces the project; take the one-minute tour or explore on your own.
-2. **My Overview**: 8 solutions, 2 need attention.
+2. **My Overview** is yours as Jim Halpert: two solutions need attention (one blocked, one at risk), plus your work this week and the decisions waiting on you.
 3. Open **AI Customer Support Resolution Assistant** (Validate, moderate risk, 76% ready). Its next best action is *Validate human oversight in practice*, owned by Dwight Schrute.
 4. Click **Review gate · 3 open**. **Go** is locked: three requirements remain, each with an owner and a link, and **Resolve next blocker** opens the first one. Only the Executive Sponsor or Governance / Risk can decide this gate.
-5. Resolve a requirement and approve its evidence: readiness rises. Or have a gatekeeper choose **Hold** or **Stop** and watch the portfolio update.
+5. Close one. In **Work**, expand **Complete UAT**, then **Start draft** and **Submit for review** on Erin's UAT Sign-off. **Approve** it as Dwight Schrute with a one-line note, and mark the activity **Complete**. Readiness rises and the button reads **Review gate · 2 open**. Or have a gatekeeper choose **Hold** or **Stop** and watch the portfolio update.
 6. Reset everything from **Settings → Reset demo data**. Your changes live only in your browser.
 
 ## Engineering
@@ -122,7 +122,7 @@ Layers flow one way: UI → domain → data → AI integration. The domain is pu
 <details>
 <summary><b>Quality and security</b></summary>
 
-- **Tests:** 45 Vitest tests across domain logic, the gatekeeper and decision rules, the advisor areas, the sidebar memory, saved-data validation, tour placement, and the server guardrails. CI runs them, the type check, and a production build on every pull request.
+- **Tests:** 84 Vitest tests across domain logic, the readiness, next-action and Portfolio calculators (checked against a hand-worked fixture portfolio), the store's rules, the gatekeeper and decision rules, the advisor areas, the sidebar memory, saved-data validation, tour placement, and the server guardrails. One Playwright test runs the demo below in a real browser. CI runs them, the type check, and a production build on every pull request.
 - **Type safety:** TypeScript in strict mode end to end, including the Worker.
 - **Server-side checks:** the store re-validates every gate decision; the UI is never trusted.
 - **Advisor guardrails** (`server/guard.ts`): only the app's own pages may call it, requests over 64 KB are refused, each visitor (an anonymous hash, never a raw IP) gets 6 questions a minute and 20 a day, and the whole site has a daily spend cap (`ADVISOR_DAILY_BUDGET_USD`, default $5) enforced in a Durable Object.
@@ -137,7 +137,8 @@ Layers flow one way: UI → domain → data → AI integration. The domain is pu
 ```bash
 npm ci
 npm run dev        # http://localhost:5173
-npm test           # 45 tests
+npm test           # 84 tests
+npm run test:e2e   # the demo in a browser (after npm run build; first run: npx playwright install chromium)
 npm run typecheck
 npm run build      # type check and production build
 ```
