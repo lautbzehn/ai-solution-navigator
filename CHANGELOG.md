@@ -1,8 +1,10 @@
 # Changelog
 
-All notable changes to the Forge AI Solution Navigator. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
+All notable changes to Forge Navigator. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.0.0] · 2026-10-29
 
 ### Added
 - **Evidence is approved by a second person.** Approve works only on evidence that's in review, asks who is approving (anyone on the team but the owner) and for a one-line note, and logs the approval in history. Approved items read "Approved by {name} · {date}". The store refuses every other route to Approved, including the owner approving their own work. ([ADR 0006](docs/adr/0006-evidence-approved-by-a-second-person_v1.0_10.29.2026.md))
@@ -17,6 +19,7 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 - A test for the lifecycle bar's centering math (71 in total).
 - **The numbers have tests.** The Delivery KPIs and the risk report are checked against a small, hand-worked fixture portfolio, along with the next best action's ranking, readiness weights, and a pass rate that counts decisions only (84 in total).
 - **One end-to-end test runs the README demo in a real browser**: open Customer Support, take Erin's UAT Sign-off through review, approve it as Dwight, finish the activity, and see the gate go from 3 open to 2. It's a separate "End-to-end" job in CI, and a deploy waits for it. Run it locally with `npm run build && npm run test:e2e`.
+- Anonymous visit counts for Dan, the same as on www.icarianforge.com: the pages you open, for how long, and links that take you out of the app. Never its buttons, and never anything you type or change. No cookies, nothing at all under Global Privacy Control, and a new Help answer, "Is my visit counted?", says so. The script is `public/insights.js`, reporting to www.icarianforge.com/api/i.
 
 ### Changed
 - **The store checks every change, not just the screens.** Activity, evidence, and solution changes all go through one set of rules: required work can't be marked Not Applicable, evidence needs an approver who isn't its owner, and stage or lifecycle state only changes at the gate (Go, Hold, Stop, Resume). A refused change shows its reason as a toast.
@@ -43,11 +46,6 @@ All notable changes to the Forge AI Solution Navigator. The format follows [Keep
 - The Evidence tab and the activity drawer show a status pill and buttons for the next step (Start draft, Submit for review, Back to draft, Approve) instead of a free dropdown.
 - Demo data: every seeded approval names its approver, two items finished their review so the scores hold steady, and three history entries that showed people approving their own evidence now show a teammate. Saved demo data starts fresh once.
 - Dan's title reads "AI strategy and operations leader" in the README and Help, matching his résumé.
-
-### Added
-- Anonymous visit counts for Dan, the same as on www.icarianforge.com: the pages you open, for how long, and links that take you out of the app. Never its buttons, and never anything you type or change. No cookies, nothing at all under Global Privacy Control, and a new Help answer, "Is my visit counted?", says so. The script is `public/insights.js`, reporting to www.icarianforge.com/api/i.
-
-### Changed
 - The welcome note greets you from Dan and keeps to two points, why he built it and what it does, with roomier spacing, a note to check back for what's new, and a shorter Dwight disclaimer.
 
 ## [1.3.0] · 2026-10-13
