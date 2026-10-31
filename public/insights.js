@@ -1,7 +1,8 @@
 // Visit insights for the site's owner: which pages are read, for how long and how far down, which links are
-// clicked, the site that sent you here, and the tagged link (?via=name) if one did. No cookies, nothing saved
-// in your browser, and nothing at all when your browser sends Global Privacy Control. The one exception is the
-// opt-out below, which anyone may use. Details: /privacy/.
+// clicked, the site that sent you here, and the tagged link (?via=name) if one did. Nothing at all when your
+// browser sends Global Privacy Control. Two cookies at most, both set by the site, never by this script: if-id, a
+// random number so a return visit is recognised (not set in the EU, the UK or Switzerland), and the opt-out
+// below, which anyone may use. Details: /privacy/.
 //
 // The apps on other icarianforge.com addresses carry their own copy of this file, set up by its script tag:
 //   data-endpoint="https://www.icarianforge.com/api/i"  where to report (this site's own /api/i otherwise)
@@ -40,7 +41,7 @@
   const send = (data) => {
     const body = JSON.stringify({ ...data, p: path, w: innerWidth, wd: navigator.webdriver ? 1 : 0 });
     if (!(navigator.sendBeacon && navigator.sendBeacon(ENDPOINT, body))) {
-      fetch(ENDPOINT, { method: 'POST', body, keepalive: true, credentials: 'omit' }).catch(() => {});
+      fetch(ENDPOINT, { method: 'POST', body, keepalive: true, credentials: 'include' }).catch(() => {});
     }
   };
 
