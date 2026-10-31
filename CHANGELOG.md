@@ -4,6 +4,9 @@ All notable changes to Forge Navigator. The format follows [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Changed
+- **The visit-count opt-out now sticks.** Opening a page with `?ignore-me` asks the portfolio for one cookie, `if-insights`, that keeps that browser out of the count on every icarianforge.com site for 13 months; a value saved by the page alone was wiped by some phone browsers after a week. Help's "Is my visit counted?" says so. `public/insights.js` stays an exact copy of the portfolio's.
+
 ### Fixed
 - **The Lifecycle Framework's picture fits a 1280 px laptop.** All eight stages show beside the sidebar; Improve / Retire used to be cut off until you scrolled sideways.
 
