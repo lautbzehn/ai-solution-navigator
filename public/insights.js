@@ -1,6 +1,7 @@
 // Visit insights for the site's owner: which pages are read, for how long and how far down, which links are
 // clicked, the site that sent you here, and the tagged link (?via=name) if one did. No cookies, nothing saved
-// in your browser, and nothing at all when your browser sends Global Privacy Control. Details: /privacy/.
+// in your browser, and nothing at all when your browser sends Global Privacy Control. The one exception is the
+// opt-out below, which anyone may use. Details: /privacy/.
 //
 // The apps on other icarianforge.com addresses carry their own copy of this file, set up by its script tag:
 //   data-endpoint="https://www.icarianforge.com/api/i"  where to report (this site's own /api/i otherwise)
@@ -11,18 +12,28 @@
   const ENDPOINT = script?.dataset.endpoint || '/api/i';
   const OUTBOUND_ONLY = script?.dataset.clicks === 'outbound';
   const KEY = 'if-insights';
-  try {
-    const url = new URL(location.href);
-    // The owner's devices opt out once (the dashboard does this too) and are never counted after that.
-    if (url.searchParams.has('ignore-me')) {
-      localStorage.setItem(KEY, 'ignore');
-      url.searchParams.delete('ignore-me');
-      history.replaceState(history.state, '', url);
+  const url = new URL(location.href);
+  // Opt out once with ?ignore-me (the owner's devices do; the dashboard does it too) and this browser is never
+  // counted again, on any icarianforge.com site. The site answers with a cookie for the whole domain, because
+  // some phone browsers wipe what a script saves after a week; the saved copy still covers a blocked cookie.
+  const optedOut = () => {
+    if (new RegExp(`(?:^|;\\s*)${KEY}=ignore(?:;|$)`).test(document.cookie)) return true;
+    try {
+      return localStorage.getItem(KEY) === 'ignore';
+    } catch {
+      return false; // Storage blocked: this visitor simply isn't the owner.
     }
-    if (localStorage.getItem(KEY) === 'ignore') return;
-  } catch {
-    // Storage blocked: carry on, this visitor simply isn't the owner.
+  };
+  if (url.searchParams.has('ignore-me')) {
+    try {
+      localStorage.setItem(KEY, 'ignore');
+    } catch {}
+    url.searchParams.delete('ignore-me');
+    history.replaceState(history.state, '', url);
+    fetch(`${ENDPOINT}/ignore`, { credentials: 'include' }).catch(() => {});
+    return;
   }
+  if (optedOut()) return;
   if (navigator.globalPrivacyControl) return;
 
   let path = location.pathname;
@@ -34,7 +45,6 @@
   };
 
   // The tag is read once, then taken out of the address bar so a copied or shared link doesn't carry it on.
-  const url = new URL(location.href);
   const via = (url.searchParams.get('via') || '').toLowerCase().slice(0, 40);
   if (url.searchParams.has('via')) {
     url.searchParams.delete('via');
