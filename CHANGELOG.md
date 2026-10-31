@@ -5,6 +5,7 @@ All notable changes to Forge Navigator. The format follows [Keep a Changelog](ht
 ## [Unreleased]
 
 ### Changed
+- **The visit counter recognises a return visit.** The portfolio sets one more cookie, `if-id`, a random number so someone who comes back on another day is counted as the same person (never in the EU, the UK or Switzerland, nor with Global Privacy Control). Help's "Is my visit counted?" explains both cookies. `public/insights.js` stays an exact copy of the portfolio's.
 - **The visit-count opt-out now sticks.** Opening a page with `?ignore-me` asks the portfolio for one cookie, `if-insights`, that keeps that browser out of the count on every icarianforge.com site for 13 months; a value saved by the page alone was wiped by some phone browsers after a week. Help's "Is my visit counted?" says so. `public/insights.js` stays an exact copy of the portfolio's.
 
 ### Fixed
