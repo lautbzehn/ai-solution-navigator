@@ -1,4 +1,5 @@
-// Visit insights for the site's owner: which pages are read, for how long and how far down, which links are
+// Visit insights for the site's owner: which pages are read, for how long and how far down, whether anyone scrolled,
+// swiped or pressed a key at all (a yes or no that tells a reader from a link-checking robot), which links are
 // clicked, the site that sent you here, and the tagged link (?via=name) if one did. Nothing at all when your
 // browser sends Global Privacy Control. Two cookies at most, both set by the site, never by this script: if-id, a
 // random number so a return visit is recognised (not set in the EU, the UK or Switzerland), and the opt-out
@@ -60,6 +61,9 @@
   let since = document.visibilityState === 'visible' ? performance.now() : 0;
   let depth = 0;
   let reported = -1;
+  // Whether a person moved the page: a scroll, a swipe or a key. Robots that check links open pages and never do.
+  let interacted = 0;
+  let startY = scrollY;
   const seconds = () => Math.round((shown + (since ? performance.now() - since : 0)) / 1000);
   const measure = () => {
     const doc = document.documentElement;
@@ -70,7 +74,7 @@
     const s = seconds();
     if (s === reported) return;
     reported = s;
-    send({ k: 'leave', s, d: depth });
+    send({ k: 'leave', s, d: depth, m: interacted });
   };
 
   send({ k: 'view', r: referrer, v: via });
@@ -81,9 +85,15 @@
     ticking = true;
     requestAnimationFrame(() => {
       measure();
+      if (Math.abs(scrollY - startY) > 40) interacted = 1;
       ticking = false;
     });
   }, { passive: true });
+  for (const type of ['wheel', 'touchmove', 'keydown']) {
+    addEventListener(type, (e) => {
+      if (e.isTrusted) interacted = 1;
+    }, { passive: true });
+  }
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
       if (since) shown += performance.now() - since;
@@ -100,6 +110,8 @@
     shown = 0;
     since = performance.now();
     reported = -1;
+    interacted = 0;
+    startY = scrollY;
     send({ k: 'view', r: '', v: '' });
   });
 
@@ -113,6 +125,8 @@
       since = document.visibilityState === 'visible' ? performance.now() : 0;
       depth = 0;
       reported = -1;
+      interacted = 0;
+      startY = scrollY;
       send({ k: 'view', r: '', v: '' });
       measure();
     };
